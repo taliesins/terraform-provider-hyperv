@@ -8,6 +8,7 @@ import (
 	"time"
 	"github.com/masterzen/winrm"
 	"github.com/dylanmei/iso8601"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 	"strconv"
 )
 
@@ -27,7 +28,7 @@ type Config struct {
 }
 
 // HypervClient() returns a new client for configuring hyperv.
-func (c *Config) Client() (comm *HypervClient, err error) {
+func (c *Config) Client() (comm *api.HypervClient, err error) {
 	log.Printf("[INFO][hyperv] HyperV HypervClient configured for HyperV API operations using:\n"+
 			"  Host: %s\n"+
 			"  Port: %d\n"+
@@ -143,14 +144,14 @@ func ipFormat(ip string) string {
 	return fmt.Sprintf("[%s]", ip)
 }
 
-func getHypervClient(config *Config) (hypervClient *HypervClient, err error) {
+func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error) {
 	winrmClient, err := getWinrmClient(config)
 
 	if err != nil {
 		return hypervClient, err
 	}
 
-	hypervClient = &HypervClient{
+	hypervClient = &api.HypervClient{
 		ElevatedPassword: config.Password,
 		ElevatedUser:     config.User,
 		Vars:             "",

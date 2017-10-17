@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 func resourceHyperVMachineInstance() *schema.Resource {
@@ -151,7 +152,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 
 func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] creating hyperv machine: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	name := ""
 
@@ -163,16 +164,16 @@ func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{
 
 	generation := (d.Get("generation")).(int)
 	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
-	automaticCriticalErrorAction := CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
+	automaticCriticalErrorAction := api.CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
-	automaticStartAction := StartAction((d.Get("automatic_start_action")).(int))
+	automaticStartAction := api.StartAction((d.Get("automatic_start_action")).(int))
 	automaticStartDelay := int32((d.Get("automatic_start_delay")).(int))
-	automaticStopAction := StopAction((d.Get("automatic_stop_action")).(int))
-	checkpointType := CheckpointType((d.Get("checkpoint_type")).(int))
+	automaticStopAction := api.StopAction((d.Get("automatic_stop_action")).(int))
+	checkpointType := api.CheckpointType((d.Get("checkpoint_type")).(int))
 	dynamicMemory := (d.Get("dynamic_memory")).(bool)
 	guestControlledCacheTypes := (d.Get("guest_controlled_cache_types")).(bool)
 	highMemoryMappedIoSpace := int64((d.Get("high_memory_mapped_io_space")).(int))
-	lockOnDisconnect := OnOffState((d.Get("lock_on_disconnect")).(int))
+	lockOnDisconnect := api.OnOffState((d.Get("lock_on_disconnect")).(int))
 	lowMemoryMappedIoSpace := int32((d.Get("low_memory_mapped_io_space")).(int))
 	memoryMaximumBytes := int64((d.Get("memory_maximum_bytes")).(int))
 	memoryMinimumBytes := int64((d.Get("memory_minimum_bytes")).(int))
@@ -197,7 +198,7 @@ func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{
 
 func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] reading hyperv machine: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	name := d.Id()
 
@@ -246,22 +247,22 @@ func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{})
 
 func resourceHyperVMachineInstanceUpdate(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] updating hyperv machine: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	name := d.Id()
 
 	//generation := (d.Get("generation")).(int)
 	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
-	automaticCriticalErrorAction := CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
+	automaticCriticalErrorAction := api.CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
-	automaticStartAction := StartAction((d.Get("automatic_start_action")).(int))
+	automaticStartAction := api.StartAction((d.Get("automatic_start_action")).(int))
 	automaticStartDelay := int32((d.Get("automatic_start_delay")).(int))
-	automaticStopAction := StopAction((d.Get("automatic_stop_action")).(int))
-	checkpointType := CheckpointType((d.Get("checkpoint_type")).(int))
+	automaticStopAction := api.StopAction((d.Get("automatic_stop_action")).(int))
+	checkpointType := api.CheckpointType((d.Get("checkpoint_type")).(int))
 	dynamicMemory := (d.Get("dynamic_memory")).(bool)
 	guestControlledCacheTypes := (d.Get("guest_controlled_cache_types")).(bool)
 	highMemoryMappedIoSpace := int64((d.Get("high_memory_mapped_io_space")).(int))
-	lockOnDisconnect := OnOffState((d.Get("lock_on_disconnect")).(int))
+	lockOnDisconnect := api.OnOffState((d.Get("lock_on_disconnect")).(int))
 	lowMemoryMappedIoSpace := int32((d.Get("low_memory_mapped_io_space")).(int))
 	memoryMaximumBytes := int64((d.Get("memory_maximum_bytes")).(int))
 	memoryMinimumBytes := int64((d.Get("memory_minimum_bytes")).(int))
@@ -286,7 +287,7 @@ func resourceHyperVMachineInstanceUpdate(d *schema.ResourceData, meta interface{
 func resourceHyperVMachineInstanceDelete(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] deleting hyperv machine: %#v", d)
 
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	name := d.Id()
 

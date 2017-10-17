@@ -1,4 +1,4 @@
-package hyperv
+package api
 
 import (
 	"text/template"

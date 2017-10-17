@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 func resourceHyperVNetworkSwitch() *schema.Resource {
@@ -113,7 +114,7 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{}) (err error) {
 
 	log.Printf("[INFO][hyperv] creating hyperv switch: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	switchName := ""
 
@@ -128,8 +129,8 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 	embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
 	iovEnabled := (d.Get("enable_iov")).(bool)
 	packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
-	bandwidthReservationMode := VMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(int))
-	switchType := VMSwitchType((d.Get("switch_type")).(int))
+	bandwidthReservationMode := api.VMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(int))
+	switchType := api.VMSwitchType((d.Get("switch_type")).(int))
 	netAdapterInterfaceDescriptions := []string{}
 	if raw, ok := d.GetOk("net_adapter_interface_descriptions"); ok {
 		for _, v := range raw.([]interface{}) {
@@ -162,7 +163,7 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 
 func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] reading hyperv switch: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	switchName := d.Id()
 
@@ -204,7 +205,7 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 
 func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] updating hyperv switch: %#v", d)
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	switchName := d.Id()
 
@@ -214,7 +215,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 	//iovEnabled := (d.Get("enable_iov")).(bool)
 	//packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
 	//bandwidthReservationMode := VMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(int))
-	switchType := VMSwitchType((d.Get("switch_type")).(int))
+	switchType := api.VMSwitchType((d.Get("switch_type")).(int))
 	netAdapterInterfaceDescriptions := []string{}
 	if raw, ok := d.GetOk("net_adapter_interface_descriptions"); ok {
 		for _, v := range raw.([]interface{}) {
@@ -247,7 +248,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 func resourceHyperVNetworkSwitchDelete(d *schema.ResourceData, meta interface{}) (err error) {
 	log.Printf("[INFO][hyperv] deleting hyperv switch: %#v", d)
 
-	c := meta.(*HypervClient)
+	c := meta.(*api.HypervClient)
 
 	switchName := ""
 

@@ -179,15 +179,15 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	config := Config{
 		User:       		d.Get("user").(string),
 		Password:   		d.Get("password").(string),
-		Host: 			d.Get("host").(string),
-		Port: 			d.Get("port").(int),
-		HTTPS:			d.Get("https").(bool),
-		CACert:			cacert,
-		Cert:			cert,
+		Host: 				d.Get("host").(string),
+		Port: 				d.Get("port").(int),
+		HTTPS:				d.Get("https").(bool),
+		CACert:				cacert,
+		Cert:				cert,
 		Key:				key,
-		Insecure:		d.Get("insecure").(bool),
-		TLSServerName:	d.Get("tls_server_name").(string),
-		ScriptPath:		d.Get("script_path").(string),
+		Insecure:			d.Get("insecure").(bool),
+		TLSServerName:		d.Get("tls_server_name").(string),
+		ScriptPath:			d.Get("script_path").(string),
 		Timeout:			d.Get("timeout").(string),
 	}
 
