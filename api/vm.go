@@ -13,6 +13,24 @@ const (
 	CriticalErrorAction_Pause CriticalErrorAction = 1
 )
 
+var CriticalErrorAction_name = map[CriticalErrorAction]string{
+	CriticalErrorAction_None: "None",
+	CriticalErrorAction_Pause: "Pause",
+}
+
+var CriticalErrorAction_value = map[string]CriticalErrorAction{
+	"none": CriticalErrorAction_None,
+	"pause": CriticalErrorAction_Pause,
+}
+
+func (x CriticalErrorAction) String() string {
+	return CriticalErrorAction_name[x]
+}
+
+func ToCriticalErrorAction(x string) CriticalErrorAction {
+	return CriticalErrorAction_value[strings.ToLower(x)]
+}
+
 type StartAction int
 
 const (

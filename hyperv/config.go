@@ -10,13 +10,15 @@ import (
 	"github.com/dylanmei/iso8601"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"strconv"
+	"github.com/hashicorp/terraform/helper/schema"
+	"reflect"
 )
 
 type Config struct {
 	User          	string
 	Password      	string
 	Host  	      	string
-	Port	      		int
+	Port	      	int
 	HTTPS	      	bool
 	Insecure      	bool
 	TLSServerName 	string
@@ -24,7 +26,7 @@ type Config struct {
 	Key    			[]byte
 	Cert     		[]byte
 	ScriptPath 		string
-	Timeout 			string
+	Timeout 		string
 }
 
 // HypervClient() returns a new client for configuring hyperv.
@@ -126,7 +128,7 @@ func parseEndpoint(addr string, https bool, insecure bool, tlsServerName string,
 		Insecure:      	insecure,
 		TLSServerName: 	tlsServerName,
 		Cert:			cert,
-		Key:				key,
+		Key:			key,
 		CACert:        	caCert,
 		Timeout:       	timeoutDuration,
 	}, nil
@@ -159,4 +161,33 @@ func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error)
 	}
 
 	return hypervClient, err
+}
+
+func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		mapType := reflect.ValueOf(valid)
+		if mapType.Kind() != reflect.Map {
+			fmt.Println("not a map!")
+			return
+		}
+
+		mapKeyString, ok := i.(string)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be string", k))
+			return
+		}
+
+		if ignoreCase {
+			mapKeyString = strings.ToLower(mapKeyString)
+		}
+
+		mapKeyType := reflect.ValueOf(mapKeyString)
+		mapValueType := mapType.MapIndex(mapKeyType)
+
+		if mapValueType.IsValid() {
+			es = append(es, fmt.Errorf("expected %s to be one of %mapKeyString, got %s", k, valid, mapKeyString))
+		}
+
+		return
+	}
 }

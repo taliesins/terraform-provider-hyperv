@@ -34,9 +34,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"automatic_critical_error_action": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.CriticalErrorAction_name[api.CriticalErrorAction_None],
+				ValidateFunc: stringKeyInMap(api.CriticalErrorAction_value , true),
 			},
 
 			"automatic_critical_error_action_timeout": {
@@ -46,9 +47,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"automatic_start_action": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.StartAction_name[api.StartAction_StartIfRunning],
+				ValidateFunc: stringKeyInMap(api.StartAction_value , true),
 			},
 
 			"automatic_start_delay": {
@@ -58,15 +60,17 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"automatic_stop_action": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.StopAction_name[api.StopAction_Save],
+				ValidateFunc: stringKeyInMap(api.StopAction_value , true),
 			},
 
 			"checkpoint_type": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.CheckpointType_name[api.CheckpointType_Production],
+				ValidateFunc: stringKeyInMap(api.CheckpointType_value , true),
 			},
 
 			"dynamic_memory": {
@@ -88,9 +92,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"lock_on_disconnect": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.OnOffState_name[api.OnOffState_Off],
+				ValidateFunc: stringKeyInMap(api.OnOffState_value , true),
 			},
 
 			"low_memory_mapped_io_space": {
@@ -164,16 +169,16 @@ func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{
 
 	generation := (d.Get("generation")).(int)
 	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
-	automaticCriticalErrorAction := api.CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
+	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
-	automaticStartAction := api.StartAction((d.Get("automatic_start_action")).(int))
+	automaticStartAction := api.ToStartAction((d.Get("automatic_start_action")).(string))
 	automaticStartDelay := int32((d.Get("automatic_start_delay")).(int))
-	automaticStopAction := api.StopAction((d.Get("automatic_stop_action")).(int))
-	checkpointType := api.CheckpointType((d.Get("checkpoint_type")).(int))
+	automaticStopAction := api.ToStopAction((d.Get("automatic_stop_action")).(string))
+	checkpointType := api.ToCheckpointType((d.Get("checkpoint_type")).(string))
 	dynamicMemory := (d.Get("dynamic_memory")).(bool)
 	guestControlledCacheTypes := (d.Get("guest_controlled_cache_types")).(bool)
 	highMemoryMappedIoSpace := int64((d.Get("high_memory_mapped_io_space")).(int))
-	lockOnDisconnect := api.OnOffState((d.Get("lock_on_disconnect")).(int))
+	lockOnDisconnect := api.ToOnOffState((d.Get("lock_on_disconnect")).(string))
 	lowMemoryMappedIoSpace := int32((d.Get("low_memory_mapped_io_space")).(int))
 	memoryMaximumBytes := int64((d.Get("memory_maximum_bytes")).(int))
 	memoryMinimumBytes := int64((d.Get("memory_minimum_bytes")).(int))
@@ -216,16 +221,16 @@ func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{})
 
 	d.Set("generation", s.Generation)
 	d.Set("allow_unverified_paths", s.AllowUnverifiedPaths)
-	d.Set("automatic_critical_error_action", s.AutomaticCriticalErrorAction)
+	d.Set("automatic_critical_error_action", s.AutomaticCriticalErrorAction.String())
 	d.Set("automatic_critical_error_action_timeout", s.AutomaticCriticalErrorActionTimeout)
-	d.Set("automatic_start_action", s.AutomaticStartAction)
+	d.Set("automatic_start_action", s.AutomaticStartAction.String())
 	d.Set("automatic_start_delay", s.AutomaticStartDelay)
-	d.Set("automatic_stop_action", s.AutomaticStopAction)
-	d.Set("checkpoint_type", s.CheckpointType)
+	d.Set("automatic_stop_action", s.AutomaticStopAction.String())
+	d.Set("checkpoint_type", s.CheckpointType.String())
 	d.Set("dynamic_memory", s.DynamicMemory)
 	d.Set("guest_controlled_cache_types", s.GuestControlledCacheTypes)
 	d.Set("high_memory_mapped_io_space", s.HighMemoryMappedIoSpace)
-	d.Set("lock_on_disconnect", s.LockOnDisconnect)
+	d.Set("lock_on_disconnect", s.LockOnDisconnect.String())
 	d.Set("low_memory_mapped_io_space", s.LowMemoryMappedIoSpace)
 	d.Set("memory_maximum_bytes", s.MemoryMaximumBytes)
 	d.Set("memory_minimum_bytes", s.MemoryMinimumBytes)
@@ -253,16 +258,16 @@ func resourceHyperVMachineInstanceUpdate(d *schema.ResourceData, meta interface{
 
 	//generation := (d.Get("generation")).(int)
 	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
-	automaticCriticalErrorAction := api.CriticalErrorAction((d.Get("automatic_critical_error_action")).(int))
+	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
-	automaticStartAction := api.StartAction((d.Get("automatic_start_action")).(int))
+	automaticStartAction := api.ToStartAction((d.Get("automatic_start_action")).(string))
 	automaticStartDelay := int32((d.Get("automatic_start_delay")).(int))
-	automaticStopAction := api.StopAction((d.Get("automatic_stop_action")).(int))
-	checkpointType := api.CheckpointType((d.Get("checkpoint_type")).(int))
+	automaticStopAction := api.ToStopAction((d.Get("automatic_stop_action")).(string))
+	checkpointType := api.ToCheckpointType((d.Get("checkpoint_type")).(string))
 	dynamicMemory := (d.Get("dynamic_memory")).(bool)
 	guestControlledCacheTypes := (d.Get("guest_controlled_cache_types")).(bool)
 	highMemoryMappedIoSpace := int64((d.Get("high_memory_mapped_io_space")).(int))
-	lockOnDisconnect := api.OnOffState((d.Get("lock_on_disconnect")).(int))
+	lockOnDisconnect := api.ToOnOffState((d.Get("lock_on_disconnect")).(string))
 	lowMemoryMappedIoSpace := int32((d.Get("low_memory_mapped_io_space")).(int))
 	memoryMaximumBytes := int64((d.Get("memory_maximum_bytes")).(int))
 	memoryMinimumBytes := int64((d.Get("memory_minimum_bytes")).(int))

@@ -54,16 +54,18 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 			},
 
 			"minimum_bandwidth_mode": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.VMSwitchBandwidthMode_name[api.VMSwitchBandwidthMode_None],
+				ValidateFunc: stringKeyInMap(api.VMSwitchBandwidthMode_value , true),
 				ForceNew: true,
 			},
 
 			"switch_type": {
-				Type:     schema.TypeInt,
+				Type:     schema.TypeString,
 				Optional: true,
-				Default:  0,
+				Default:  api.VMSwitchType_name[api.VMSwitchType_Internal],
+				ValidateFunc: stringKeyInMap(api.VMSwitchType_value , true),
 			},
 
 			"net_adapter_interface_descriptions": {
@@ -129,8 +131,8 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 	embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
 	iovEnabled := (d.Get("enable_iov")).(bool)
 	packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
-	bandwidthReservationMode := api.VMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(int))
-	switchType := api.VMSwitchType((d.Get("switch_type")).(int))
+	bandwidthReservationMode := api.ToVMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(string))
+	switchType := api.ToVMSwitchType((d.Get("switch_type")).(string))
 	netAdapterInterfaceDescriptions := []string{}
 	if raw, ok := d.GetOk("net_adapter_interface_descriptions"); ok {
 		for _, v := range raw.([]interface{}) {
@@ -184,8 +186,8 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 	d.Set("enable_embedded_teaming", s.EmbeddedTeamingEnabled)
 	d.Set("enable_iov", s.IovEnabled)
 	d.Set("enable_packet_direct", s.PacketDirectEnabled)
-	d.Set("minimum_bandwidth_mode", s.BandwidthReservationMode)
-	d.Set("switch_type", s.SwitchType)
+	d.Set("minimum_bandwidth_mode", s.BandwidthReservationMode.String())
+	d.Set("switch_type", s.SwitchType.String())
 	d.Set("net_adapter_interface_descriptions", s.NetAdapterInterfaceDescriptions)
 	d.Set("net_adapter_names", s.NetAdapterNames)
 	d.Set("default_flow_minimum_bandwidth_absolute", s.DefaultFlowMinimumBandwidthAbsolute)
@@ -214,8 +216,8 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 	//embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
 	//iovEnabled := (d.Get("enable_iov")).(bool)
 	//packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
-	//bandwidthReservationMode := VMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(int))
-	switchType := api.VMSwitchType((d.Get("switch_type")).(int))
+	//bandwidthReservationMode := api.ToVMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(string))
+	switchType := api.ToVMSwitchType((d.Get("switch_type")).(string))
 	netAdapterInterfaceDescriptions := []string{}
 	if raw, ok := d.GetOk("net_adapter_interface_descriptions"); ok {
 		for _, v := range raw.([]interface{}) {
