@@ -255,7 +255,7 @@ type getVMArgs struct {
 
 var getVMTemplate = template.Must(template.New("GetVM").Parse(`
 $ErrorActionPreference = 'Stop'
-$vm = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmObject = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
 	Generation=$_.Generation;
 	AllowUnverifiedPaths=$_.AllowUnverifiedPaths;
@@ -278,11 +278,9 @@ $vm = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	SmartPagingFilePath=$_.SmartPagingFilePath;
 	SnapshotFileLocation=$_.SnapshotFileLocation;
 	StaticMemory=$_.StaticMemory;
-}} | ConvertTo-Json
+}}
 
-if (!$vm){
-	$vm = '{}'
-}
+$vm = ConvertTo-Json -InputObject $vmObject
 
 $vm
 `))

@@ -7,6 +7,7 @@ import (
 	"github.com/masterzen/winrm"
 	"github.com/taliesins/terraform-provider-hyperv/powershell"
 	"strings"
+	"fmt"
 )
 
 type HypervClient struct {
@@ -52,5 +53,10 @@ func (c *HypervClient) runScriptWithResult(script  *template.Template, args inte
 	}
 
 	stdout = strings.TrimSpace(stdout)
-	return json.Unmarshal([]byte(stdout), &result)
+
+	err = json.Unmarshal([]byte(stdout), &result)
+	if err != nil {
+		return fmt.Errorf("%s\n%s", err, stdout)
+	}
+	return nil
 }

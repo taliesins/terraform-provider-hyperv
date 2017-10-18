@@ -184,7 +184,7 @@ type getVMSwitchArgs struct {
 
 var getVMSwitchTemplate = template.Must(template.New("GetVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmSwitch = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
 	Notes=$_.Notes;
 	AllowManagementOS=$_.AllowManagementOS;
@@ -193,18 +193,15 @@ $vmSwitch = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	PacketDirectEnabled=$_.PacketDirectEnabled;
 	BandwidthReservationMode=$_.BandwidthReservationMode;
 	SwitchType=$_.SwitchType;
-	NetAdapterInterfaceDescriptions=$_.NetAdapterInterfaceDescriptions;
-	NetAdapterNames=if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})}else{@()};
+	NetAdapterInterfaceDescriptions=@($_.NetAdapterInterfaceDescriptions);
+	NetAdapterNames=@(if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})});
 	DefaultFlowMinimumBandwidthAbsolute=$_.DefaultFlowMinimumBandwidthAbsolute;
 	DefaultFlowMinimumBandwidthWeight=$_.DefaultFlowMinimumBandwidthWeight;
 	DefaultQueueVmmqEnabled=$_.DefaultQueueVmmqEnabled;
 	DefaultQueueVmmqQueuePairs=$_.DefaultQueueVmmqQueuePairs;
 	DefaultQueueVrssEnabled=$_.DefaultQueueVrssEnabled;
-}} | ConvertTo-Json
-
-if (!$vmSwitch) {
-	$vmSwitch = '{"NetAdapterNames":[]}'
-}
+}}
+$vmSwitch = ConvertTo-Json -InputObject $vmSwitchObject
 
 $vmSwitch
 `))

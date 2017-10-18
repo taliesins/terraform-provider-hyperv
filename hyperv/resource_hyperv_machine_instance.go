@@ -23,7 +23,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"generation": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default: 1,
+				Default:  1,
 				ForceNew: true,
 			},
 
@@ -119,7 +119,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"memory_startup_bytes": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  512000000,
 			},
 
 			"notes": {

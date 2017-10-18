@@ -216,13 +216,13 @@ type resolvePathTemplateOptions struct {
 	FilePath	string
 }
 
-var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};[System.IO.Path]::GetFullPath(\"{{.FilePath}}\");exit $LastExitCode; }`))
+var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};[System.IO.Path]::GetFullPath("{{.FilePath}}");exit $LastExitCode; }`))
 
 type deleteFileTemplateOptions struct {
 	FilePath	string
 }
 
-var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};Remove-Item \"{{.FilePath}}\" -ErrorAction SilentlyContinue;exit $LastExitCode; }`))
+var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;exit $LastExitCode; }`))
 
 type appendFileTemplateOptions struct {
 	FilePath	string
@@ -230,4 +230,4 @@ type appendFileTemplateOptions struct {
 }
 
 //This is not a Powershell script
-var appendFileTemplate = template.Must(template.New("AppendFile").Parse(`echo {{.Content}} >> \"{{.FilePath}}\"`))
+var appendFileTemplate = template.Must(template.New("AppendFile").Parse(`echo {{.Content}} >> "{{.FilePath}}"`))
