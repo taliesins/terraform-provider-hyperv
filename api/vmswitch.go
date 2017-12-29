@@ -1,32 +1,32 @@
 package api
 
 import (
-	"text/template"
 	"encoding/json"
 	"strings"
+	"text/template"
 )
 
 type VMSwitchBandwidthMode int
 
 const (
-	VMSwitchBandwidthMode_Default VMSwitchBandwidthMode = 0
-	VMSwitchBandwidthMode_Weight VMSwitchBandwidthMode = 1
+	VMSwitchBandwidthMode_Default  VMSwitchBandwidthMode = 0
+	VMSwitchBandwidthMode_Weight   VMSwitchBandwidthMode = 1
 	VMSwitchBandwidthMode_Absolute VMSwitchBandwidthMode = 2
-	VMSwitchBandwidthMode_None VMSwitchBandwidthMode = 3
+	VMSwitchBandwidthMode_None     VMSwitchBandwidthMode = 3
 )
 
 var VMSwitchBandwidthMode_name = map[VMSwitchBandwidthMode]string{
-	VMSwitchBandwidthMode_Default: "Default",
-	VMSwitchBandwidthMode_Weight: "Weight",
+	VMSwitchBandwidthMode_Default:  "Default",
+	VMSwitchBandwidthMode_Weight:   "Weight",
 	VMSwitchBandwidthMode_Absolute: "Absolute",
-	VMSwitchBandwidthMode_None: "None",
+	VMSwitchBandwidthMode_None:     "None",
 }
 
 var VMSwitchBandwidthMode_value = map[string]VMSwitchBandwidthMode{
-	"default": VMSwitchBandwidthMode_Default,
-	"weight": VMSwitchBandwidthMode_Weight,
+	"default":  VMSwitchBandwidthMode_Default,
+	"weight":   VMSwitchBandwidthMode_Weight,
 	"absolute": VMSwitchBandwidthMode_Absolute,
-	"none": VMSwitchBandwidthMode_None,
+	"none":     VMSwitchBandwidthMode_None,
 }
 
 func (x VMSwitchBandwidthMode) String() string {
@@ -40,19 +40,19 @@ func ToVMSwitchBandwidthMode(x string) VMSwitchBandwidthMode {
 type VMSwitchType int
 
 const (
-	VMSwitchType_Private VMSwitchType = 0
+	VMSwitchType_Private  VMSwitchType = 0
 	VMSwitchType_Internal VMSwitchType = 1
 	VMSwitchType_External VMSwitchType = 2
 )
 
 var VMSwitchType_name = map[VMSwitchType]string{
-	VMSwitchType_Private: "Private",
+	VMSwitchType_Private:  "Private",
 	VMSwitchType_Internal: "Internal",
 	VMSwitchType_External: "External",
 }
 
 var VMSwitchType_value = map[string]VMSwitchType{
-	"private": VMSwitchType_Private,
+	"private":  VMSwitchType_Private,
 	"internal": VMSwitchType_Internal,
 	"external": VMSwitchType_External,
 }
@@ -66,25 +66,25 @@ func ToVMSwitchType(x string) VMSwitchType {
 }
 
 type vmSwitch struct {
-	Name		string
-	Notes		string
-	AllowManagementOS bool
-	EmbeddedTeamingEnabled bool
-	IovEnabled bool
-	PacketDirectEnabled bool
-	BandwidthReservationMode VMSwitchBandwidthMode
-	SwitchType	VMSwitchType
-	NetAdapterInterfaceDescriptions []string
-	NetAdapterNames []string
+	Name                                string
+	Notes                               string
+	AllowManagementOS                   bool
+	EmbeddedTeamingEnabled              bool
+	IovEnabled                          bool
+	PacketDirectEnabled                 bool
+	BandwidthReservationMode            VMSwitchBandwidthMode
+	SwitchType                          VMSwitchType
+	NetAdapterInterfaceDescriptions     []string
+	NetAdapterNames                     []string
 	DefaultFlowMinimumBandwidthAbsolute int64
-	DefaultFlowMinimumBandwidthWeight int64
-	DefaultQueueVmmqEnabled bool
-	DefaultQueueVmmqQueuePairs int32
-	DefaultQueueVrssEnabled bool
+	DefaultFlowMinimumBandwidthWeight   int64
+	DefaultQueueVmmqEnabled             bool
+	DefaultQueueVmmqQueuePairs          int32
+	DefaultQueueVrssEnabled             bool
 }
 
 type createVMSwitchArgs struct {
-	VmSwitchJson		string
+	VmSwitchJson string
 }
 
 var createVMSwitchTemplate = template.Must(template.New("CreateVMSwitch").Parse(`
@@ -103,36 +103,45 @@ if ($switchObject){
 	throw "Switch already exists - $($vmSwitch.Name)"
 }
 
-if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
-	New-VMSwitch -Name $vmSwitch.Name -Notes $vmSwitch.Notes -AllowManagementOS $vmSwitch.AllowManagementOS -EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled -EnableIov $vmSwitch.IovEnabled -EnablePacketDirect $vmSwitch.PacketDirectEnabled -MinimumBandwidthMode $minimumBandwidthMode -NetAdapterInterfaceDescription $NetAdapterInterfaceDescriptions -NetAdapterName $NetAdapterNames
-} else {
-	New-VMSwitch -Name $vmSwitch.Name -Notes $vmSwitch.Notes -EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled -EnableIov $vmSwitch.IovEnabled -EnablePacketDirect $vmSwitch.PacketDirectEnabled -MinimumBandwidthMode $minimumBandwidthMode -SwitchType $switchType
+$NewVmSwitchArgs = @{}
+$NewVmSwitchArgs.Name=$vmSwitch.Name
+$NewVmSwitchArgs.MinimumBandwidthMode=$minimumBandwidthMode
+$NewVmSwitchArgs.EnableEmbeddedTeaming=$vmSwitch.EmbeddedTeamingEnabled
+$NewVmSwitchArgs.EnableIov=$vmSwitch.IovEnabled
+$NewVmSwitchArgs.EnablePacketDirect=$vmSwitch.PacketDirectEnabled
 
+if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
+	$NewVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
+	$NewVmSwitchArgs.NetAdapterInterfaceDescription=$NetAdapterInterfaceDescriptions
+	$NewVmSwitchArgs.NetAdapterName=$NetAdapterNames
+} else {
+	$NewVmSwitchArgs.SwitchType=$switchType
 	#not used unless interface is specified
 	#-AllowManagementOS $vmSwitch.AllowManagementOS
 }
+New-VMSwitch @NewVmSwitchArgs
 
-$switchObject = Get-VMSwitch -Name $vmSwitch.Name
+$switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
 
-if ($switchObject.DefaultFlowMinimumBandwidthAbsolute -ne $vmSwitch.DefaultFlowMinimumBandwidthAbsolute) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultFlowMinimumBandwidthAbsolute $vmSwitch.DefaultFlowMinimumBandwidthAbsolute
+if (!$switchObject){
+	throw "Switch does not exist - $($vmSwitch.Name)"
 }
 
-if ($switchObject.DefaultFlowMinimumBandwidthWeight -ne $vmSwitch.DefaultFlowMinimumBandwidthWeight) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultFlowMinimumBandwidthWeight $vmSwitch.DefaultFlowMinimumBandwidthWeight
+$SetVmSwitchArgs = @{}
+$SetVmSwitchArgs.Name=$vmSwitch.Name
+$SetVmSwitchArgs.Notes=$vmSwitch.Notes
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) {
+	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthAbsolute=$vmSwitch.DefaultFlowMinimumBandwidthAbsolute
 }
+if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) {
+	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthWeight=$vmSwitch.DefaultFlowMinimumBandwidthWeight
+}
+$SetVmSwitchArgs.DefaultQueueVmmqEnabled=$vmSwitch.DefaultQueueVmmqEnabled
+$SetVmSwitchArgs.DefaultQueueVmmqQueuePairs=$vmSwitch.DefaultQueueVmmqQueuePairs
+$SetVmSwitchArgs.DefaultQueueVrssEnabled=$vmSwitch.DefaultQueueVrssEnabled
 
-if ($switchObject.DefaultQueueVmmqEnabled -ne $vmSwitch.DefaultQueueVmmqEnabled) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVmmqEnabled $vmSwitch.DefaultQueueVmmqEnabled
-}
+Set-VMSwitch @SetVmSwitchArgs
 
-if ($switchObject.DefaultQueueVmmqQueuePairs -ne $vmSwitch.DefaultQueueVmmqQueuePairs) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVmmqQueuePairs $vmSwitch.DefaultQueueVmmqQueuePairs
-}
-
-if ($switchObject.DefaultQueueVrssEnabled -ne $vmSwitch.DefaultQueueVrssEnabled) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVrssEnabled $vmSwitch.DefaultQueueVrssEnabled
-}
 `))
 
 func (c *HypervClient) CreateVMSwitch(
@@ -154,32 +163,32 @@ func (c *HypervClient) CreateVMSwitch(
 ) (err error) {
 
 	vmSwitchJson, err := json.Marshal(vmSwitch{
-		Name:name,
-		Notes:notes,
-		AllowManagementOS:allowManagementOS,
-		EmbeddedTeamingEnabled:embeddedTeamingEnabled,
-		IovEnabled:iovEnabled,
-		PacketDirectEnabled:packetDirectEnabled,
-		BandwidthReservationMode:bandwidthReservationMode,
-		SwitchType:switchType,
-		NetAdapterInterfaceDescriptions:netAdapterInterfaceDescriptions,
-		NetAdapterNames:netAdapterNames,
-		DefaultFlowMinimumBandwidthAbsolute:defaultFlowMinimumBandwidthAbsolute,
-		DefaultFlowMinimumBandwidthWeight:defaultFlowMinimumBandwidthWeight,
-		DefaultQueueVmmqEnabled:defaultQueueVmmqEnabled,
-		DefaultQueueVmmqQueuePairs:defaultQueueVmmqQueuePairs,
-		DefaultQueueVrssEnabled:defaultQueueVrssEnabled,
+		Name:                                name,
+		Notes:                               notes,
+		AllowManagementOS:                   allowManagementOS,
+		EmbeddedTeamingEnabled:              embeddedTeamingEnabled,
+		IovEnabled:                          iovEnabled,
+		PacketDirectEnabled:                 packetDirectEnabled,
+		BandwidthReservationMode:            bandwidthReservationMode,
+		SwitchType:                          switchType,
+		NetAdapterInterfaceDescriptions:     netAdapterInterfaceDescriptions,
+		NetAdapterNames:                     netAdapterNames,
+		DefaultFlowMinimumBandwidthAbsolute: defaultFlowMinimumBandwidthAbsolute,
+		DefaultFlowMinimumBandwidthWeight:   defaultFlowMinimumBandwidthWeight,
+		DefaultQueueVmmqEnabled:             defaultQueueVmmqEnabled,
+		DefaultQueueVmmqQueuePairs:          defaultQueueVmmqQueuePairs,
+		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
 	})
 
 	err = c.runFireAndForgetScript(createVMSwitchTemplate, createVMSwitchArgs{
-		VmSwitchJson:string(vmSwitchJson),
-	});
+		VmSwitchJson: string(vmSwitchJson),
+	})
 
 	return err
 }
 
 type getVMSwitchArgs struct {
-	Name		string
+	Name string
 }
 
 var getVMSwitchTemplate = template.Must(template.New("GetVMSwitch").Parse(`
@@ -193,29 +202,33 @@ $vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	PacketDirectEnabled=$_.PacketDirectEnabled;
 	BandwidthReservationMode=$_.BandwidthReservationMode;
 	SwitchType=$_.SwitchType;
-	NetAdapterInterfaceDescriptions=@($_.NetAdapterInterfaceDescriptions);
+	NetAdapterInterfaceDescriptions=@(if($_.NetAdapterInterfaceDescriptions){$_.NetAdapterInterfaceDescriptions});
 	NetAdapterNames=@(if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})});
 	DefaultFlowMinimumBandwidthAbsolute=$_.DefaultFlowMinimumBandwidthAbsolute;
 	DefaultFlowMinimumBandwidthWeight=$_.DefaultFlowMinimumBandwidthWeight;
-	DefaultQueueVmmqEnabled=$_.DefaultQueueVmmqEnabled;
-	DefaultQueueVmmqQueuePairs=$_.DefaultQueueVmmqQueuePairs;
-	DefaultQueueVrssEnabled=$_.DefaultQueueVrssEnabled;
+	DefaultQueueVmmqEnabled=$_.DefaultQueueVmmqEnabledRequested;
+	DefaultQueueVmmqQueuePairs=$_.DefaultQueueVmmqQueuePairsRequested;
+	DefaultQueueVrssEnabled=$_.DefaultQueueVrssEnabledRequested;
 }}
-$vmSwitch = ConvertTo-Json -InputObject $vmSwitchObject
 
-$vmSwitch
+if ($vmSwitchObject){
+	$vmSwitch = ConvertTo-Json -InputObject $vmSwitchObject
+	$vmSwitch
+} else {
+	"{}"
+}
 `))
 
 func (c *HypervClient) GetVMSwitch(name string) (result vmSwitch, err error) {
 	err = c.runScriptWithResult(getVMSwitchTemplate, getVMSwitchArgs{
-		Name:name,
-	}, &result);
+		Name: name,
+	}, &result)
 
 	return result, err
 }
 
 type updateVMSwitchArgs struct {
-	VmSwitchJson		string
+	VmSwitchJson string
 }
 
 var updateVMSwitchTemplate = template.Must(template.New("UpdateVMSwitch").Parse(`
@@ -234,17 +247,20 @@ if (!$switchObject){
 	throw "Switch does not exist - $($vmSwitch.Name)"
 }
 
+$SetVmSwitchArgs = @{}
+$SetVmSwitchArgs.Name=$vmSwitch.Name
+$SetVmSwitchArgs.Notes=$vmSwitch.Notes
 if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
-	Set-VMSwitch -Name $vmSwitch.Name -AllowManagementOS $vmSwitch.AllowManagementOS -NetAdapterInterfaceDescription $vmSwitch.NetAdapterInterfaceDescriptions -NetAdapterName $NetAdapterNames
-
+	$SetVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
+	$SetVmSwitchArgs.NetAdapterInterfaceDescription=$vmSwitch.NetAdapterInterfaceDescriptions
+	$SetVmSwitchArgs.NetAdapterName=$NetAdapterNames
 	#Updates not supported on:
 	#-EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled
 	#-EnableIov $vmSwitch.IovEnabled
 	#-EnablePacketDirect $vmSwitch.PacketDirectEnabled
 	#-MinimumBandwidthMode $minimumBandwidthMode
 } else {
-	Set-VMSwitch -Name $vmSwitch.Name -SwitchType $switchType
-
+	$SetVmSwitchArgs.SwitchType=$switchType
 	#Updates not supported on:
 	#-EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled
 	#-EnableIov $vmSwitch.IovEnabled
@@ -255,39 +271,27 @@ if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
 	#-AllowManagementOS $vmSwitch.AllowManagementOS
 }
 
-if ($switchObject.Notes -ne $vmSwitch.Notes) {
-	Set-VMSwitch -Name $vmSwitch.Name -Notes $vmSwitch.Notes
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) {
+	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthAbsolute=$vmSwitch.DefaultFlowMinimumBandwidthAbsolute
 }
+if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) {
+	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthWeight=$vmSwitch.DefaultFlowMinimumBandwidthWeight
+}
+$SetVmSwitchArgs.DefaultQueueVmmqEnabled=$vmSwitch.DefaultQueueVmmqEnabled
+$SetVmSwitchArgs.DefaultQueueVmmqQueuePairs=$vmSwitch.DefaultQueueVmmqQueuePairs
+$SetVmSwitchArgs.DefaultQueueVrssEnabled=$vmSwitch.DefaultQueueVrssEnabled
 
-if ($switchObject.DefaultFlowMinimumBandwidthAbsolute -ne $vmSwitch.DefaultFlowMinimumBandwidthAbsolute) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultFlowMinimumBandwidthAbsolute $vmSwitch.DefaultFlowMinimumBandwidthAbsolute
-}
-
-if ($switchObject.DefaultFlowMinimumBandwidthWeight -ne $vmSwitch.DefaultFlowMinimumBandwidthWeight) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultFlowMinimumBandwidthWeight $vmSwitch.DefaultFlowMinimumBandwidthWeight
-}
-
-if ($switchObject.DefaultQueueVmmqEnabled -ne $vmSwitch.DefaultQueueVmmqEnabled) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVmmqEnabled $vmSwitch.DefaultQueueVmmqEnabled
-}
-
-if ($switchObject.DefaultQueueVmmqQueuePairs -ne $vmSwitch.DefaultQueueVmmqQueuePairs) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVmmqQueuePairs $vmSwitch.DefaultQueueVmmqQueuePairs
-}
-
-if ($switchObject.DefaultQueueVrssEnabled -ne $vmSwitch.DefaultQueueVrssEnabled) {
-	Set-VMSwitch -Name $vmSwitch.Name -DefaultQueueVrssEnabled $vmSwitch.DefaultQueueVrssEnabled
-}
+Set-VMSwitch @SetVmSwitchArgs
 `))
 
 func (c *HypervClient) UpdateVMSwitch(
 	name string,
 	notes string,
 	allowManagementOS bool,
-//embeddedTeamingEnabled bool,
-//iovEnabled bool,
-//packetDirectEnabled bool,
-//bandwidthReservationMode VMSwitchBandwidthMode,
+	//embeddedTeamingEnabled bool,
+	//iovEnabled bool,
+	//packetDirectEnabled bool,
+	//bandwidthReservationMode VMSwitchBandwidthMode,
 	switchType VMSwitchType,
 	netAdapterInterfaceDescriptions []string,
 	netAdapterNames []string,
@@ -299,43 +303,43 @@ func (c *HypervClient) UpdateVMSwitch(
 ) (err error) {
 
 	vmSwitchJson, err := json.Marshal(vmSwitch{
-		Name:name,
-		Notes:notes,
-		AllowManagementOS:allowManagementOS,
+		Name:              name,
+		Notes:             notes,
+		AllowManagementOS: allowManagementOS,
 		//EmbeddedTeamingEnabled:embeddedTeamingEnabled,
 		//IovEnabled:iovEnabled,
 		//PacketDirectEnabled:packetDirectEnabled,
 		//BandwidthReservationMode:bandwidthReservationMode,
-		SwitchType:switchType,
-		NetAdapterInterfaceDescriptions:netAdapterInterfaceDescriptions,
-		NetAdapterNames:netAdapterNames,
-		DefaultFlowMinimumBandwidthAbsolute:defaultFlowMinimumBandwidthAbsolute,
-		DefaultFlowMinimumBandwidthWeight:defaultFlowMinimumBandwidthWeight,
-		DefaultQueueVmmqEnabled:defaultQueueVmmqEnabled,
-		DefaultQueueVmmqQueuePairs:defaultQueueVmmqQueuePairs,
-		DefaultQueueVrssEnabled:defaultQueueVrssEnabled,
+		SwitchType:                          switchType,
+		NetAdapterInterfaceDescriptions:     netAdapterInterfaceDescriptions,
+		NetAdapterNames:                     netAdapterNames,
+		DefaultFlowMinimumBandwidthAbsolute: defaultFlowMinimumBandwidthAbsolute,
+		DefaultFlowMinimumBandwidthWeight:   defaultFlowMinimumBandwidthWeight,
+		DefaultQueueVmmqEnabled:             defaultQueueVmmqEnabled,
+		DefaultQueueVmmqQueuePairs:          defaultQueueVmmqQueuePairs,
+		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
 	})
 
 	err = c.runFireAndForgetScript(updateVMSwitchTemplate, updateVMSwitchArgs{
-		VmSwitchJson:string(vmSwitchJson),
-	});
+		VmSwitchJson: string(vmSwitchJson),
+	})
 
 	return err
 }
 
 type deleteVMSwitchArgs struct {
-	Name		string
+	Name string
 }
 
 var deleteVMSwitchTemplate = template.Must(template.New("DeleteVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-VMSwitch | ?{$_.Name -eq '{{.Name}}'} | Remove-VMSwitch
+Get-VMSwitch | ?{$_.Name -eq '{{.Name}}'} | Remove-VMSwitch -Force
 `))
 
 func (c *HypervClient) DeleteVMSwitch(name string) (err error) {
 	err = c.runFireAndForgetScript(deleteVMSwitchTemplate, deleteVMSwitchArgs{
-		Name:name,
-	});
+		Name: name,
+	})
 
 	return err
 }

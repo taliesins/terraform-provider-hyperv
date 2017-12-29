@@ -25,8 +25,6 @@ The following arguments are supported:
 
 * `generation` - (Optional) `1`(default). Specifies a note to be associated with the switch to be created.
 
-* `allow_unverified_paths` - (Optional) `false` (default). Specifies if the HyperV cluster will not throw an error if the specified path is not verified by the cluster.
-
 * `automatic_critical_error_action` - (Optional) `0`(default). Specifies the action to take when the VM encounters a critical error, and exceeds the timeout duration specified by the AutomaticCriticalErrorActionTimeout cmdlet. The acceptable values for this parameter are: `Pause` and `None`.
 
 * `automatic_critical_error_action_timeout` - (Optional) `0`(default). Specifies the amount of time, in minutes, to wait in critical pause before powering off the virtual machine.

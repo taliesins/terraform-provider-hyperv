@@ -2,10 +2,11 @@ package hyperv
 
 import (
 	"fmt"
+	"io/ioutil"
+	"os"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"os"
-	"io/ioutil"
 )
 
 const (
@@ -127,7 +128,7 @@ func Provider() terraform.ResourceProvider {
 		},
 
 		ResourcesMap: map[string]*schema.Resource{
-			"hyperv_network_switch": resourceHyperVNetworkSwitch(),
+			"hyperv_network_switch":   resourceHyperVNetworkSwitch(),
 			"hyperv_machine_instance": resourceHyperVMachineInstance(),
 		},
 
@@ -177,18 +178,18 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	}
 
 	config := Config{
-		User:       		d.Get("user").(string),
-		Password:   		d.Get("password").(string),
-		Host: 				d.Get("host").(string),
-		Port: 				d.Get("port").(int),
-		HTTPS:				d.Get("https").(bool),
-		CACert:				cacert,
-		Cert:				cert,
-		Key:				key,
-		Insecure:			d.Get("insecure").(bool),
-		TLSServerName:		d.Get("tls_server_name").(string),
-		ScriptPath:			d.Get("script_path").(string),
-		Timeout:			d.Get("timeout").(string),
+		User:          d.Get("user").(string),
+		Password:      d.Get("password").(string),
+		Host:          d.Get("host").(string),
+		Port:          d.Get("port").(int),
+		HTTPS:         d.Get("https").(bool),
+		CACert:        cacert,
+		Cert:          cert,
+		Key:           key,
+		Insecure:      d.Get("insecure").(bool),
+		TLSServerName: d.Get("tls_server_name").(string),
+		ScriptPath:    d.Get("script_path").(string),
+		Timeout:       d.Get("timeout").(string),
 	}
 
 	return config.Client()

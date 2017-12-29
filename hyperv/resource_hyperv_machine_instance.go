@@ -3,6 +3,7 @@ package hyperv
 import (
 	"fmt"
 	"log"
+
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
@@ -27,30 +28,24 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				ForceNew: true,
 			},
 
-			"allow_unverified_paths": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
-			},
-
 			"automatic_critical_error_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  api.CriticalErrorAction_name[api.CriticalErrorAction_None],
-				ValidateFunc: stringKeyInMap(api.CriticalErrorAction_value , true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.CriticalErrorAction_name[api.CriticalErrorAction_Pause],
+				ValidateFunc: stringKeyInMap(api.CriticalErrorAction_value, true),
 			},
 
 			"automatic_critical_error_action_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  30,
 			},
 
 			"automatic_start_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  api.StartAction_name[api.StartAction_StartIfRunning],
-				ValidateFunc: stringKeyInMap(api.StartAction_value , true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.StartAction_name[api.StartAction_StartIfRunning],
+				ValidateFunc: stringKeyInMap(api.StartAction_value, true),
 			},
 
 			"automatic_start_delay": {
@@ -60,17 +55,17 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"automatic_stop_action": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  api.StopAction_name[api.StopAction_Save],
-				ValidateFunc: stringKeyInMap(api.StopAction_value , true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.StopAction_name[api.StopAction_Save],
+				ValidateFunc: stringKeyInMap(api.StopAction_value, true),
 			},
 
 			"checkpoint_type": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  api.CheckpointType_name[api.CheckpointType_Production],
-				ValidateFunc: stringKeyInMap(api.CheckpointType_value , true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.CheckpointType_name[api.CheckpointType_Production],
+				ValidateFunc: stringKeyInMap(api.CheckpointType_value, true),
 			},
 
 			"dynamic_memory": {
@@ -88,38 +83,38 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"high_memory_mapped_io_space": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  536870912,
 			},
 
 			"lock_on_disconnect": {
-				Type:     schema.TypeString,
-				Optional: true,
-				Default:  api.OnOffState_name[api.OnOffState_Off],
-				ValidateFunc: stringKeyInMap(api.OnOffState_value , true),
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.OnOffState_name[api.OnOffState_Off],
+				ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
 			},
 
 			"low_memory_mapped_io_space": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  134217728,
 			},
 
 			"memory_maximum_bytes": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  1099511627776,
 			},
 
 			"memory_minimum_bytes": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  0,
+				Default:  536870912,
 			},
 
 			"memory_startup_bytes": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  512000000,
+				Default:  536870912,
 			},
 
 			"notes": {
@@ -137,26 +132,26 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"smart_paging_file_path": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
+				Default:  `C:\ProgramData\Microsoft\Windows\Hyper-V`,
 			},
 
 			"snapshot_file_location": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  "",
+				Default:  `C:\ProgramData\Microsoft\Windows\Hyper-V`,
 			},
 
 			"static_memory": {
 				Type:     schema.TypeBool,
 				Optional: true,
-				Default:  false,
+				Default:  true,
 			},
 		},
 	}
 }
 
 func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{}) (err error) {
-	log.Printf("[INFO][hyperv] creating hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][create] creating hyperv machine: %#v", d)
 	c := meta.(*api.HypervClient)
 
 	name := ""
@@ -164,11 +159,10 @@ func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{
 	if v, ok := d.GetOk("name"); ok {
 		name = v.(string)
 	} else {
-		return fmt.Errorf("name argument is required")
+		return fmt.Errorf("[ERROR][hyperv][create] name argument is required")
 	}
 
 	generation := (d.Get("generation")).(int)
-	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
 	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
 	automaticStartAction := api.ToStartAction((d.Get("automatic_start_action")).(string))
@@ -189,20 +183,28 @@ func resourceHyperVMachineInstanceCreate(d *schema.ResourceData, meta interface{
 	snapshotFileLocation := (d.Get("snapshot_file_location")).(string)
 	staticMemory := (d.Get("static_memory")).(bool)
 
-	err = c.CreateVM(name, generation, allowUnverifiedPaths, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	if dynamicMemory && staticMemory {
+		return fmt.Errorf("[ERROR][hyperv][create] Dynamic and static can't be both selected at the same time")
+	}
+
+	if !dynamicMemory && !staticMemory {
+		return fmt.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
+	}
+
+	err = c.CreateVM(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 
 	if err != nil {
 		return err
 	}
 
 	d.SetId(name)
-	log.Printf("[INFO][hyperv] created hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][create] created hyperv machine: %#v", d)
 
-	return  nil
+	return nil
 }
 
 func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{}) (err error) {
-	log.Printf("[INFO][hyperv] reading hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][read] reading hyperv machine: %#v", d)
 	c := meta.(*api.HypervClient)
 
 	name := d.Id()
@@ -213,14 +215,15 @@ func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{})
 		return err
 	}
 
+	log.Printf("[INFO][hyperv][read] retrieved vm: %+v", s)
+
 	if s.Name != name {
 		d.SetId("")
-		log.Printf("[INFO][hyperv] unable to read hyperv machine as it does not exist: %#v", name)
+		log.Printf("[INFO][hyperv][read] unable to read hyperv machine as it does not exist: %#v", name)
 		return nil
 	}
 
 	d.Set("generation", s.Generation)
-	d.Set("allow_unverified_paths", s.AllowUnverifiedPaths)
 	d.Set("automatic_critical_error_action", s.AutomaticCriticalErrorAction.String())
 	d.Set("automatic_critical_error_action_timeout", s.AutomaticCriticalErrorActionTimeout)
 	d.Set("automatic_start_action", s.AutomaticStartAction.String())
@@ -241,23 +244,30 @@ func resourceHyperVMachineInstanceRead(d *schema.ResourceData, meta interface{})
 	d.Set("snapshot_file_location", s.SnapshotFileLocation)
 	d.Set("static_memory", s.StaticMemory)
 
+	if s.DynamicMemory && s.StaticMemory {
+		return fmt.Errorf("[ERROR][hyperv][read] Dynamic and static can't be both selected at the same time")
+	}
+
+	if !s.DynamicMemory && !s.StaticMemory {
+		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
+	}
+
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[INFO][hyperv] read hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][read] read hyperv machine: %#v", d)
 
 	return nil
 }
 
 func resourceHyperVMachineInstanceUpdate(d *schema.ResourceData, meta interface{}) (err error) {
-	log.Printf("[INFO][hyperv] updating hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][update] updating hyperv machine: %#v", d)
 	c := meta.(*api.HypervClient)
 
 	name := d.Id()
 
 	//generation := (d.Get("generation")).(int)
-	allowUnverifiedPaths := (d.Get("allow_unverified_paths")).(bool)
 	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
 	automaticStartAction := api.ToStartAction((d.Get("automatic_start_action")).(string))
@@ -278,19 +288,27 @@ func resourceHyperVMachineInstanceUpdate(d *schema.ResourceData, meta interface{
 	snapshotFileLocation := (d.Get("snapshot_file_location")).(string)
 	staticMemory := (d.Get("static_memory")).(bool)
 
-	err = c.UpdateVM(name, allowUnverifiedPaths, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	if dynamicMemory && staticMemory {
+		return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static can't be both selected at the same time")
+	}
+
+	if !dynamicMemory && !staticMemory {
+		return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
+	}
+
+	err = c.UpdateVM(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 
 	if err != nil {
 		return err
 	}
 
-	log.Printf("[INFO][hyperv] updated hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][update] updated hyperv machine: %#v", d)
 
 	return nil
 }
 
 func resourceHyperVMachineInstanceDelete(d *schema.ResourceData, meta interface{}) (err error) {
-	log.Printf("[INFO][hyperv] deleting hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][delete] deleting hyperv machine: %#v", d)
 
 	c := meta.(*api.HypervClient)
 
@@ -302,6 +320,6 @@ func resourceHyperVMachineInstanceDelete(d *schema.ResourceData, meta interface{
 		return err
 	}
 
-	log.Printf("[INFO][hyperv] deleted hyperv machine: %#v", d)
+	log.Printf("[INFO][hyperv][delete] deleted hyperv machine: %#v", d)
 	return nil
 }

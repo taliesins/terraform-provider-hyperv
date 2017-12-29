@@ -1,25 +1,25 @@
 package api
 
 import (
-	"text/template"
 	"encoding/json"
 	"strings"
+	"text/template"
 )
 
 type CriticalErrorAction int
 
 const (
-	CriticalErrorAction_None CriticalErrorAction = 0
+	CriticalErrorAction_None  CriticalErrorAction = 0
 	CriticalErrorAction_Pause CriticalErrorAction = 1
 )
 
 var CriticalErrorAction_name = map[CriticalErrorAction]string{
-	CriticalErrorAction_None: "None",
+	CriticalErrorAction_None:  "None",
 	CriticalErrorAction_Pause: "Pause",
 }
 
 var CriticalErrorAction_value = map[string]CriticalErrorAction{
-	"none": CriticalErrorAction_None,
+	"none":  CriticalErrorAction_None,
 	"pause": CriticalErrorAction_Pause,
 }
 
@@ -34,21 +34,21 @@ func ToCriticalErrorAction(x string) CriticalErrorAction {
 type StartAction int
 
 const (
-	StartAction_Nothing StartAction = 2
+	StartAction_Nothing        StartAction = 2
 	StartAction_StartIfRunning StartAction = 3
-	StartAction_Start StartAction = 4
+	StartAction_Start          StartAction = 4
 )
 
 var StartAction_name = map[StartAction]string{
-	StartAction_Nothing: "Nothing",
+	StartAction_Nothing:        "Nothing",
 	StartAction_StartIfRunning: "StartIfRunning",
-	StartAction_Start: "Start",
+	StartAction_Start:          "Start",
 }
 
 var StartAction_value = map[string]StartAction{
-	"nothing": StartAction_Nothing,
+	"nothing":        StartAction_Nothing,
 	"startifrunning": StartAction_StartIfRunning,
-	"start": StartAction_Start,
+	"start":          StartAction_Start,
 }
 
 func (x StartAction) String() string {
@@ -62,20 +62,20 @@ func ToStartAction(x string) StartAction {
 type StopAction int
 
 const (
-	StopAction_TurnOff StopAction = 2
-	StopAction_Save StopAction = 3
+	StopAction_TurnOff  StopAction = 2
+	StopAction_Save     StopAction = 3
 	StopAction_ShutDown StopAction = 4
 )
 
 var StopAction_name = map[StopAction]string{
-	StopAction_TurnOff: "TurnOff",
-	StopAction_Save: "Save",
+	StopAction_TurnOff:  "TurnOff",
+	StopAction_Save:     "Save",
 	StopAction_ShutDown: "ShutDown",
 }
 
 var StopAction_value = map[string]StopAction{
-	"turnoff": StopAction_TurnOff,
-	"save": StopAction_Save,
+	"turnoff":  StopAction_TurnOff,
+	"save":     StopAction_Save,
 	"shutdown": StopAction_ShutDown,
 }
 
@@ -90,24 +90,24 @@ func ToStopAction(x string) StopAction {
 type CheckpointType int
 
 const (
-	CheckpointType_Disabled CheckpointType = 2
-	CheckpointType_Production CheckpointType = 3
+	CheckpointType_Disabled       CheckpointType = 2
+	CheckpointType_Production     CheckpointType = 3
 	CheckpointType_ProductionOnly CheckpointType = 4
-	CheckpointType_Standard CheckpointType = 5
+	CheckpointType_Standard       CheckpointType = 5
 )
 
 var CheckpointType_name = map[CheckpointType]string{
-	CheckpointType_Disabled: "Disabled",
-	CheckpointType_Production: "Production",
+	CheckpointType_Disabled:       "Disabled",
+	CheckpointType_Production:     "Production",
 	CheckpointType_ProductionOnly: "ProductionOnly",
-	CheckpointType_Standard: "Standard",
+	CheckpointType_Standard:       "Standard",
 }
 
 var CheckpointType_value = map[string]CheckpointType{
-	"disabled": CheckpointType_Disabled,
-	"production": CheckpointType_Production,
+	"disabled":       CheckpointType_Disabled,
+	"production":     CheckpointType_Production,
 	"productiononly": CheckpointType_ProductionOnly,
-	"standard": CheckpointType_Standard,
+	"standard":       CheckpointType_Standard,
 }
 
 func (x CheckpointType) String() string {
@@ -121,17 +121,17 @@ func ToCheckpointType(x string) CheckpointType {
 type OnOffState int
 
 const (
-	OnOffState_On OnOffState = 0
+	OnOffState_On  OnOffState = 0
 	OnOffState_Off OnOffState = 1
 )
 
 var OnOffState_name = map[OnOffState]string{
-	OnOffState_On: "On",
+	OnOffState_On:  "On",
 	OnOffState_Off: "Off",
 }
 
 var OnOffState_value = map[string]OnOffState{
-	"on": OnOffState_On,
+	"on":  OnOffState_On,
 	"off": OnOffState_Off,
 }
 
@@ -144,32 +144,31 @@ func ToOnOffState(x string) OnOffState {
 }
 
 type vm struct {
-	Name string
-	Generation int
-	AllowUnverifiedPaths bool
-	AutomaticCriticalErrorAction CriticalErrorAction
+	Name                                string
+	Generation                          int
+	AutomaticCriticalErrorAction        CriticalErrorAction
 	AutomaticCriticalErrorActionTimeout int32
-	AutomaticStartAction StartAction
-	AutomaticStartDelay int32
-	AutomaticStopAction StopAction
-	CheckpointType CheckpointType
-	DynamicMemory bool
-	GuestControlledCacheTypes bool
-	HighMemoryMappedIoSpace int64
-	LockOnDisconnect OnOffState
-	LowMemoryMappedIoSpace int32
-	MemoryMaximumBytes int64
-	MemoryMinimumBytes int64
-	MemoryStartupBytes int64
-	Notes string
-	ProcessorCount int64
-	SmartPagingFilePath string
-	SnapshotFileLocation string
-	StaticMemory bool
+	AutomaticStartAction                StartAction
+	AutomaticStartDelay                 int32
+	AutomaticStopAction                 StopAction
+	CheckpointType                      CheckpointType
+	DynamicMemory                       bool
+	GuestControlledCacheTypes           bool
+	HighMemoryMappedIoSpace             int64
+	LockOnDisconnect                    OnOffState
+	LowMemoryMappedIoSpace              int32
+	MemoryMaximumBytes                  int64
+	MemoryMinimumBytes                  int64
+	MemoryStartupBytes                  int64
+	Notes                               string
+	ProcessorCount                      int64
+	SmartPagingFilePath                 string
+	SnapshotFileLocation                string
+	StaticMemory                        bool
 }
 
 type createVMArgs struct {
-	VmJson		string
+	VmJson string
 }
 
 var createVMTemplate = template.Must(template.New("CreateVM").Parse(`
@@ -181,6 +180,7 @@ $automaticStartAction = [Microsoft.HyperV.PowerShell.StartAction]$vm.AutomaticSt
 $automaticStopAction = [Microsoft.HyperV.PowerShell.StopAction]$vm.AutomaticStopAction
 $checkpointType = [Microsoft.HyperV.PowerShell.CheckpointType]$vm.CheckpointType
 $lockOnDisconnect = [Microsoft.HyperV.PowerShell.OnOffState]$vm.LockOnDisconnect
+$allowUnverifiedPaths = $true #Not a property set on the vm object, skips validation when changing path
 
 $vmObject = Get-VM | ?{$_.Name -eq $vm.Name}
 
@@ -188,14 +188,57 @@ if ($vmObject){
 	throw "VM already exists - $($vm.Name)"
 }
 
-New-Vm -Name $vm.Name -Generation $vm.Generation -MemoryStartupBytes $vm.MemoryStartupBytes
-Set-Vm -Name $vm.Name -GuestControlledCacheTypes:$vm.GuestControlledCacheTypes -LowMemoryMappedIoSpace $vm.LowMemoryMappedIoSpace -HighMemoryMappedIoSpace $vm.HighMemoryMappedIoSpace -ProcessorCount $vm.ProcessorCount -DynamicMemory:$vm.DynamicMemory -StaticMemory:$vm.StaticMemory -MemoryMinimumBytes $vm.MemoryMinimumBytes -MemoryMaximumBytes $vm.MemoryMaximumBytes -MemoryStartupBytes $vm.MemoryStartupBytes -AutomaticStartAction $automaticStartAction -AutomaticStopAction $automaticStopAction -AutomaticStartDelay $vm.AutomaticStartDelay -AutomaticCriticalErrorAction $automaticCriticalErrorAction -AutomaticCriticalErrorActionTimeout $vm.AutomaticCriticalErrorActionTimeout -LockOnDisconnect $lockOnDisconnect -Notes $vm.Notes -SnapshotFileLocation $vm.SnapshotFileLocation -SmartPagingFilePath $vm.SmartPagingFilePath -CheckpointType $checkpointType -AllowUnverifiedPaths $vm.AllowUnverifiedPaths
+$NewVmArgs = @{
+	Name=$vm.Name
+	Generation=$vm.Generation
+	MemoryStartupBytes=$vm.MemoryStartupBytes
+}
+
+New-Vm @NewVmArgs
+
+#Set static and dynamic properties can't be set at the same time, but we need the values to match terraforms state
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.StaticMemory=$true
+$SetVmArgs.MemoryStartupBytes=$vm.MemoryStartupBytes
+Set-Vm @SetVmArgs
+
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.DynamicMemory=$true
+$SetVmArgs.MemoryMinimumBytes=$vm.MemoryMinimumBytes
+$SetVmArgs.MemoryMaximumBytes=$vm.MemoryMaximumBytes
+Set-Vm @SetVmArgs
+
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.GuestControlledCacheTypes=$vm.GuestControlledCacheTypes
+$SetVmArgs.LowMemoryMappedIoSpace=$vm.LowMemoryMappedIoSpace
+$SetVmArgs.HighMemoryMappedIoSpace=$vm.HighMemoryMappedIoSpace
+$SetVmArgs.ProcessorCount=$vm.ProcessorCount
+$SetVmArgs.AutomaticStartAction=$automaticStartAction
+$SetVmArgs.AutomaticStopAction=$automaticStopAction
+$SetVmArgs.AutomaticStartDelay=$vm.AutomaticStartDelay
+$SetVmArgs.AutomaticCriticalErrorAction=$automaticCriticalErrorAction
+$SetVmArgs.AutomaticCriticalErrorActionTimeout=$vm.AutomaticCriticalErrorActionTimeout
+$SetVmArgs.LockOnDisconnect=$lockOnDisconnect
+$SetVmArgs.Notes=$vm.Notes
+$SetVmArgs.SnapshotFileLocation=$vm.SnapshotFileLocation
+$SetVmArgs.SmartPagingFilePath=$vm.SmartPagingFilePath
+$SetVmArgs.CheckpointType=$checkpointType
+$SetVmArgs.AllowUnverifiedPaths=$allowUnverifiedPaths
+if ($vm.StaticMemory) {
+	$SetVmArgs.StaticMemory = $vm.StaticMemory
+} else {
+	$SetVmArgs.DynamicMemory = $vm.DynamicMemory
+}
+
+Set-Vm @SetVmArgs
 `))
 
 func (c *HypervClient) CreateVM(
 	name string,
 	generation int,
-	allowUnverifiedPaths bool,
 	automaticCriticalErrorAction CriticalErrorAction,
 	automaticCriticalErrorActionTimeout int32,
 	automaticStartAction StartAction,
@@ -218,39 +261,38 @@ func (c *HypervClient) CreateVM(
 ) (err error) {
 
 	vmJson, err := json.Marshal(vm{
-		Name:name,
-		Generation:generation,
-		AllowUnverifiedPaths: allowUnverifiedPaths,
-		AutomaticCriticalErrorAction: automaticCriticalErrorAction,
+		Name:                                name,
+		Generation:                          generation,
+		AutomaticCriticalErrorAction:        automaticCriticalErrorAction,
 		AutomaticCriticalErrorActionTimeout: automaticCriticalErrorActionTimeout,
-		AutomaticStartAction: automaticStartAction,
-		AutomaticStartDelay: automaticStartDelay,
-		AutomaticStopAction: automaticStopAction,
-		CheckpointType: checkpointType,
-		DynamicMemory: dynamicMemory,
-		GuestControlledCacheTypes: guestControlledCacheTypes,
-		HighMemoryMappedIoSpace: highMemoryMappedIoSpace,
-		LockOnDisconnect: lockOnDisconnect,
-		LowMemoryMappedIoSpace: lowMemoryMappedIoSpace,
-		MemoryMaximumBytes: memoryMaximumBytes,
-		MemoryMinimumBytes: memoryMinimumBytes,
-		MemoryStartupBytes: memoryStartupBytes,
-		Notes: notes,
-		ProcessorCount: processorCount,
-		SmartPagingFilePath: smartPagingFilePath,
-		SnapshotFileLocation: snapshotFileLocation,
-		StaticMemory: staticMemory,
+		AutomaticStartAction:                automaticStartAction,
+		AutomaticStartDelay:                 automaticStartDelay,
+		AutomaticStopAction:                 automaticStopAction,
+		CheckpointType:                      checkpointType,
+		DynamicMemory:                       dynamicMemory,
+		GuestControlledCacheTypes:           guestControlledCacheTypes,
+		HighMemoryMappedIoSpace:             highMemoryMappedIoSpace,
+		LockOnDisconnect:                    lockOnDisconnect,
+		LowMemoryMappedIoSpace:              lowMemoryMappedIoSpace,
+		MemoryMaximumBytes:                  memoryMaximumBytes,
+		MemoryMinimumBytes:                  memoryMinimumBytes,
+		MemoryStartupBytes:                  memoryStartupBytes,
+		Notes:                               notes,
+		ProcessorCount:                      processorCount,
+		SmartPagingFilePath:                 smartPagingFilePath,
+		SnapshotFileLocation:                snapshotFileLocation,
+		StaticMemory:                        staticMemory,
 	})
 
 	err = c.runFireAndForgetScript(createVMTemplate, createVMArgs{
-		VmJson:string(vmJson),
-	});
+		VmJson: string(vmJson),
+	})
 
 	return err
 }
 
 type getVMArgs struct {
-	Name		string
+	Name string
 }
 
 var getVMTemplate = template.Must(template.New("GetVM").Parse(`
@@ -258,43 +300,45 @@ $ErrorActionPreference = 'Stop'
 $vmObject = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
 	Generation=$_.Generation;
-	AllowUnverifiedPaths=$_.AllowUnverifiedPaths;
 	AutomaticCriticalErrorAction=$_.AutomaticCriticalErrorAction;
 	AutomaticCriticalErrorActionTimeout=$_.AutomaticCriticalErrorActionTimeout;
 	AutomaticStartAction=$_.AutomaticStartAction;
 	AutomaticStartDelay=$_.AutomaticStartDelay;
 	AutomaticStopAction=$_.AutomaticStopAction;
 	CheckpointType=$_.CheckpointType;
-	DynamicMemory=$_.DynamicMemory;
+	DynamicMemory=$_.DynamicMemoryEnabled;
 	GuestControlledCacheTypes=$_.GuestControlledCacheTypes;
 	HighMemoryMappedIoSpace=$_.HighMemoryMappedIoSpace;
 	LockOnDisconnect=$_.LockOnDisconnect;
 	LowMemoryMappedIoSpace=$_.LowMemoryMappedIoSpace;
-	MemoryMaximumBytes=$_.MemoryMaximumBytes;
-	MemoryMinimumBytes=$_.MemoryMinimumBytes;
-	MemoryStartupBytes=$_.MemoryStartupBytes;
+	MemoryMaximumBytes=$_.MemoryMaximum;
+	MemoryMinimumBytes=$_.MemoryMinimum;
+	MemoryStartupBytes=$_.MemoryStartup;
 	Notes=$_.Notes;
 	ProcessorCount=$_.ProcessorCount;
 	SmartPagingFilePath=$_.SmartPagingFilePath;
 	SnapshotFileLocation=$_.SnapshotFileLocation;
-	StaticMemory=$_.StaticMemory;
+	StaticMemory=!$_.DynamicMemoryEnabled;
 }}
 
-$vm = ConvertTo-Json -InputObject $vmObject
-
-$vm
+if ($vmObject) {
+	$vm = ConvertTo-Json -InputObject $vmObject
+	$vm
+} else {
+	"{}"
+}
 `))
 
 func (c *HypervClient) GetVM(name string) (result vm, err error) {
 	err = c.runScriptWithResult(getVMTemplate, getVMArgs{
-		Name:name,
-	}, &result);
+		Name: name,
+	}, &result)
 
 	return result, err
 }
 
 type updateVMArgs struct {
-	VmJson		string
+	VmJson string
 }
 
 var updateVMTemplate = template.Must(template.New("UpdateVM").Parse(`
@@ -306,20 +350,56 @@ $automaticStartAction = [Microsoft.HyperV.PowerShell.StartAction]$vm.AutomaticSt
 $automaticStopAction = [Microsoft.HyperV.PowerShell.StopAction]$vm.AutomaticStopAction
 $checkpointType = [Microsoft.HyperV.PowerShell.CheckpointType]$vm.CheckpointType
 $lockOnDisconnect = [Microsoft.HyperV.PowerShell.OnOffState]$vm.LockOnDisconnect
-
+$allowUnverifiedPaths = $true #Not a property set on the vm object, skips validation when changing path
 $vmObject = Get-VM | ?{$_.Name -eq $vm.Name}
 
 if (!$vmObject){
 	throw "VM does not exist - $($vm.Name)"
 }
 
-Set-Vm -Name $vm.Name -GuestControlledCacheTypes:$vm.GuestControlledCacheTypes -LowMemoryMappedIoSpace $vm.LowMemoryMappedIoSpace -HighMemoryMappedIoSpace $vm.HighMemoryMappedIoSpace -ProcessorCount $vm.ProcessorCount -DynamicMemory:$vm.DynamicMemory -StaticMemory:$vm.StaticMemory -MemoryMinimumBytes $vm.MemoryMinimumBytes -MemoryMaximumBytes $vm.MemoryMaximumBytes -MemoryStartupBytes $vm.MemoryStartupBytes -AutomaticStartAction $automaticStartAction -AutomaticStopAction $automaticStopAction -AutomaticStartDelay $vm.AutomaticStartDelay -AutomaticCriticalErrorAction $automaticCriticalErrorAction -AutomaticCriticalErrorActionTimeout $vm.AutomaticCriticalErrorActionTimeout -LockOnDisconnect $lockOnDisconnect -Notes $vm.Notes -SnapshotFileLocation $vm.SnapshotFileLocation -SmartPagingFilePath $vm.SmartPagingFilePath -CheckpointType $checkpointType -AllowUnverifiedPaths $vm.AllowUnverifiedPaths
+#Set static and dynamic properties can't be set at the same time, but we need the values to match terraforms state
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.StaticMemory=$true
+$SetVmArgs.MemoryStartupBytes=$vm.MemoryStartupBytes
+Set-Vm @SetVmArgs
+
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.DynamicMemory=$true
+$SetVmArgs.MemoryMinimumBytes=$vm.MemoryMinimumBytes
+$SetVmArgs.MemoryMaximumBytes=$vm.MemoryMaximumBytes
+Set-Vm @SetVmArgs
+
+$SetVmArgs = @{}
+$SetVmArgs.Name=$vm.Name
+$SetVmArgs.GuestControlledCacheTypes=$vm.GuestControlledCacheTypes
+$SetVmArgs.LowMemoryMappedIoSpace=$vm.LowMemoryMappedIoSpace
+$SetVmArgs.HighMemoryMappedIoSpace=$vm.HighMemoryMappedIoSpace
+$SetVmArgs.ProcessorCount=$vm.ProcessorCount
+$SetVmArgs.AutomaticStartAction=$automaticStartAction
+$SetVmArgs.AutomaticStopAction=$automaticStopAction
+$SetVmArgs.AutomaticStartDelay=$vm.AutomaticStartDelay
+$SetVmArgs.AutomaticCriticalErrorAction=$automaticCriticalErrorAction
+$SetVmArgs.AutomaticCriticalErrorActionTimeout=$vm.AutomaticCriticalErrorActionTimeout
+$SetVmArgs.LockOnDisconnect=$lockOnDisconnect
+$SetVmArgs.Notes=$vm.Notes
+$SetVmArgs.SnapshotFileLocation=$vm.SnapshotFileLocation
+$SetVmArgs.SmartPagingFilePath=$vm.SmartPagingFilePath
+$SetVmArgs.CheckpointType=$checkpointType
+$SetVmArgs.AllowUnverifiedPaths=$allowUnverifiedPaths
+if ($vm.StaticMemory) {
+	$SetVmArgs.StaticMemory = $vm.StaticMemory
+} else {
+	$SetVmArgs.DynamicMemory = $vm.DynamicMemory
+}
+
+Set-Vm @SetVmArgs
 `))
 
 func (c *HypervClient) UpdateVM(
 	name string,
-//	generation int,
-	allowUnverifiedPaths bool,
+	//	generation int,
 	automaticCriticalErrorAction CriticalErrorAction,
 	automaticCriticalErrorActionTimeout int32,
 	automaticStartAction StartAction,
@@ -342,50 +422,49 @@ func (c *HypervClient) UpdateVM(
 ) (err error) {
 
 	vmJson, err := json.Marshal(vm{
-		Name:name,
+		Name: name,
 		//Generation:generation,
-		AllowUnverifiedPaths: allowUnverifiedPaths,
-		AutomaticCriticalErrorAction: automaticCriticalErrorAction,
+		AutomaticCriticalErrorAction:        automaticCriticalErrorAction,
 		AutomaticCriticalErrorActionTimeout: automaticCriticalErrorActionTimeout,
-		AutomaticStartAction: automaticStartAction,
-		AutomaticStartDelay: automaticStartDelay,
-		AutomaticStopAction: automaticStopAction,
-		CheckpointType: checkpointType,
-		DynamicMemory: dynamicMemory,
-		GuestControlledCacheTypes: guestControlledCacheTypes,
-		HighMemoryMappedIoSpace: highMemoryMappedIoSpace,
-		LockOnDisconnect: lockOnDisconnect,
-		LowMemoryMappedIoSpace: lowMemoryMappedIoSpace,
-		MemoryMaximumBytes: memoryMaximumBytes,
-		MemoryMinimumBytes: memoryMinimumBytes,
-		MemoryStartupBytes: memoryStartupBytes,
-		Notes: notes,
-		ProcessorCount: processorCount,
-		SmartPagingFilePath: smartPagingFilePath,
-		SnapshotFileLocation: snapshotFileLocation,
-		StaticMemory: staticMemory,
+		AutomaticStartAction:                automaticStartAction,
+		AutomaticStartDelay:                 automaticStartDelay,
+		AutomaticStopAction:                 automaticStopAction,
+		CheckpointType:                      checkpointType,
+		DynamicMemory:                       dynamicMemory,
+		GuestControlledCacheTypes:           guestControlledCacheTypes,
+		HighMemoryMappedIoSpace:             highMemoryMappedIoSpace,
+		LockOnDisconnect:                    lockOnDisconnect,
+		LowMemoryMappedIoSpace:              lowMemoryMappedIoSpace,
+		MemoryMaximumBytes:                  memoryMaximumBytes,
+		MemoryMinimumBytes:                  memoryMinimumBytes,
+		MemoryStartupBytes:                  memoryStartupBytes,
+		Notes:                               notes,
+		ProcessorCount:                      processorCount,
+		SmartPagingFilePath:                 smartPagingFilePath,
+		SnapshotFileLocation:                snapshotFileLocation,
+		StaticMemory:                        staticMemory,
 	})
 
 	err = c.runFireAndForgetScript(updateVMTemplate, updateVMArgs{
-		VmJson:string(vmJson),
-	});
+		VmJson: string(vmJson),
+	})
 
 	return err
 }
 
 type deleteVMArgs struct {
-	Name		string
+	Name string
 }
 
 var deleteVMTemplate = template.Must(template.New("DeleteVM").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-VM | ?{$_.Name -eq '{{.Name}}'} | Remove-VM
+Get-VM | ?{$_.Name -eq '{{.Name}}'} | Remove-VM -force
 `))
 
 func (c *HypervClient) DeleteVM(name string) (err error) {
 	err = c.runFireAndForgetScript(deleteVMTemplate, deleteVMArgs{
-		Name:name,
-	});
+		Name: name,
+	})
 
 	return err
 }

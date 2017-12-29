@@ -1,13 +1,15 @@
 package api
 
 import (
-	"text/template"
-	"encoding/json"
 	"bytes"
+	"encoding/json"
+	"fmt"
+	"log"
+	"strings"
+	"text/template"
+
 	"github.com/masterzen/winrm"
 	"github.com/taliesins/terraform-provider-hyperv/powershell"
-	"strings"
-	"fmt"
 )
 
 type HypervClient struct {
@@ -17,7 +19,7 @@ type HypervClient struct {
 	Vars             string
 }
 
-func (c *HypervClient) runFireAndForgetScript(script  *template.Template, args interface{})(error){
+func (c *HypervClient) runFireAndForgetScript(script *template.Template, args interface{}) error {
 	var scriptRendered bytes.Buffer
 	err := script.Execute(&scriptRendered, args)
 
@@ -26,6 +28,8 @@ func (c *HypervClient) runFireAndForgetScript(script  *template.Template, args i
 	}
 
 	command := string(scriptRendered.Bytes())
+
+	log.Printf("\nRunning fire and forget script:\n%s\n", command)
 
 	_, _, _, err = powershell.RunPowershell(c.WinrmClient, c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
 
@@ -36,7 +40,7 @@ func (c *HypervClient) runFireAndForgetScript(script  *template.Template, args i
 	return nil
 }
 
-func (c *HypervClient) runScriptWithResult(script  *template.Template, args interface{}, result interface{})(err error){
+func (c *HypervClient) runScriptWithResult(script *template.Template, args interface{}, result interface{}) (err error) {
 	var scriptRendered bytes.Buffer
 	err = script.Execute(&scriptRendered, args)
 
@@ -45,6 +49,8 @@ func (c *HypervClient) runScriptWithResult(script  *template.Template, args inte
 	}
 
 	command := string(scriptRendered.Bytes())
+
+	log.Printf("\nRunning script with result:\n%s\n", command)
 
 	_, stdout, _, err := powershell.RunPowershell(c.WinrmClient, c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
 
@@ -58,5 +64,6 @@ func (c *HypervClient) runScriptWithResult(script  *template.Template, args inte
 	if err != nil {
 		return fmt.Errorf("%s\n%s", err, stdout)
 	}
+
 	return nil
 }
