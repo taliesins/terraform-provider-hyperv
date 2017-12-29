@@ -74,7 +74,6 @@ type vmSwitch struct {
 	PacketDirectEnabled                 bool
 	BandwidthReservationMode            VMSwitchBandwidthMode
 	SwitchType                          VMSwitchType
-	NetAdapterInterfaceDescriptions     []string
 	NetAdapterNames                     []string
 	DefaultFlowMinimumBandwidthAbsolute int64
 	DefaultFlowMinimumBandwidthWeight   int64
@@ -93,7 +92,6 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterInterfaceDescriptions = @($vmSwitch.NetAdapterInterfaceDescriptions)
 $NetAdapterNames = @($vmSwitch.$NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
@@ -110,9 +108,8 @@ $NewVmSwitchArgs.EnableEmbeddedTeaming=$vmSwitch.EmbeddedTeamingEnabled
 $NewVmSwitchArgs.EnableIov=$vmSwitch.IovEnabled
 $NewVmSwitchArgs.EnablePacketDirect=$vmSwitch.PacketDirectEnabled
 
-if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
+if ($NetAdapterNames) {
 	$NewVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
-	$NewVmSwitchArgs.NetAdapterInterfaceDescription=$NetAdapterInterfaceDescriptions
 	$NewVmSwitchArgs.NetAdapterName=$NetAdapterNames
 } else {
 	$NewVmSwitchArgs.SwitchType=$switchType
@@ -130,10 +127,10 @@ if (!$switchObject){
 $SetVmSwitchArgs = @{}
 $SetVmSwitchArgs.Name=$vmSwitch.Name
 $SetVmSwitchArgs.Notes=$vmSwitch.Notes
-if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) {
+if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) -and $switchObject.DefaultFlowMinimumBandwidthAbsolute -ne $vmSwitch.DefaultFlowMinimumBandwidthAbsolute) {
 	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthAbsolute=$vmSwitch.DefaultFlowMinimumBandwidthAbsolute
 }
-if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) {
+if ((($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) -and $switchObject.DefaultFlowMinimumBandwidthWeight -ne $vmSwitch.DefaultFlowMinimumBandwidthWeight) {
 	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthWeight=$vmSwitch.DefaultFlowMinimumBandwidthWeight
 }
 $SetVmSwitchArgs.DefaultQueueVmmqEnabled=$vmSwitch.DefaultQueueVmmqEnabled
@@ -153,7 +150,6 @@ func (c *HypervClient) CreateVMSwitch(
 	packetDirectEnabled bool,
 	bandwidthReservationMode VMSwitchBandwidthMode,
 	switchType VMSwitchType,
-	netAdapterInterfaceDescriptions []string,
 	netAdapterNames []string,
 	defaultFlowMinimumBandwidthAbsolute int64,
 	defaultFlowMinimumBandwidthWeight int64,
@@ -171,7 +167,6 @@ func (c *HypervClient) CreateVMSwitch(
 		PacketDirectEnabled:                 packetDirectEnabled,
 		BandwidthReservationMode:            bandwidthReservationMode,
 		SwitchType:                          switchType,
-		NetAdapterInterfaceDescriptions:     netAdapterInterfaceDescriptions,
 		NetAdapterNames:                     netAdapterNames,
 		DefaultFlowMinimumBandwidthAbsolute: defaultFlowMinimumBandwidthAbsolute,
 		DefaultFlowMinimumBandwidthWeight:   defaultFlowMinimumBandwidthWeight,
@@ -202,7 +197,6 @@ $vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	PacketDirectEnabled=$_.PacketDirectEnabled;
 	BandwidthReservationMode=$_.BandwidthReservationMode;
 	SwitchType=$_.SwitchType;
-	NetAdapterInterfaceDescriptions=@(if($_.NetAdapterInterfaceDescriptions){$_.NetAdapterInterfaceDescriptions});
 	NetAdapterNames=@(if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})});
 	DefaultFlowMinimumBandwidthAbsolute=$_.DefaultFlowMinimumBandwidthAbsolute;
 	DefaultFlowMinimumBandwidthWeight=$_.DefaultFlowMinimumBandwidthWeight;
@@ -237,7 +231,6 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterInterfaceDescriptions = @($vmSwitch.NetAdapterInterfaceDescriptions)
 $NetAdapterNames = @($vmSwitch.$NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
@@ -250,9 +243,8 @@ if (!$switchObject){
 $SetVmSwitchArgs = @{}
 $SetVmSwitchArgs.Name=$vmSwitch.Name
 $SetVmSwitchArgs.Notes=$vmSwitch.Notes
-if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
+if ($NetAdapterNames) {
 	$SetVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
-	$SetVmSwitchArgs.NetAdapterInterfaceDescription=$vmSwitch.NetAdapterInterfaceDescriptions
 	$SetVmSwitchArgs.NetAdapterName=$NetAdapterNames
 	#Updates not supported on:
 	#-EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled
@@ -271,10 +263,10 @@ if ($NetAdapterInterfaceDescriptions -or $NetAdapterNames) {
 	#-AllowManagementOS $vmSwitch.AllowManagementOS
 }
 
-if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) {
+if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute) -and $switchObject.DefaultFlowMinimumBandwidthAbsolute -ne $vmSwitch.DefaultFlowMinimumBandwidthAbsolute) {
 	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthAbsolute=$vmSwitch.DefaultFlowMinimumBandwidthAbsolute
 }
-if (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) {
+if ((($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight) -or (($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default) -and (-not ($vmSwitch.IovEnabled)))) -and $switchObject.DefaultFlowMinimumBandwidthWeight -ne $vmSwitch.DefaultFlowMinimumBandwidthWeight) {
 	$SetVmSwitchArgs.DefaultFlowMinimumBandwidthWeight=$vmSwitch.DefaultFlowMinimumBandwidthWeight
 }
 $SetVmSwitchArgs.DefaultQueueVmmqEnabled=$vmSwitch.DefaultQueueVmmqEnabled
@@ -293,7 +285,6 @@ func (c *HypervClient) UpdateVMSwitch(
 	//packetDirectEnabled bool,
 	//bandwidthReservationMode VMSwitchBandwidthMode,
 	switchType VMSwitchType,
-	netAdapterInterfaceDescriptions []string,
 	netAdapterNames []string,
 	defaultFlowMinimumBandwidthAbsolute int64,
 	defaultFlowMinimumBandwidthWeight int64,
@@ -311,7 +302,6 @@ func (c *HypervClient) UpdateVMSwitch(
 		//PacketDirectEnabled:packetDirectEnabled,
 		//BandwidthReservationMode:bandwidthReservationMode,
 		SwitchType:                          switchType,
-		NetAdapterInterfaceDescriptions:     netAdapterInterfaceDescriptions,
 		NetAdapterNames:                     netAdapterNames,
 		DefaultFlowMinimumBandwidthAbsolute: defaultFlowMinimumBandwidthAbsolute,
 		DefaultFlowMinimumBandwidthWeight:   defaultFlowMinimumBandwidthWeight,
