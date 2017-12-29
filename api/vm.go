@@ -192,9 +192,16 @@ $NewVmArgs = @{
 	Name=$vm.Name
 	Generation=$vm.Generation
 	MemoryStartupBytes=$vm.MemoryStartupBytes
+	NoVHD=$true
 }
 
 New-Vm @NewVmArgs
+
+#Delete any auto-generated network adapter
+Get-VMNetworkAdapter -VMName web_server | Remove-VMNetworkAdapter
+
+#Delete any auto-generated dvd drive
+Get-VMDvdDrive -VMName web_server | Remove-VMDvdDrive
 
 #Set static and dynamic properties can't be set at the same time, but we need the values to match terraforms state
 $SetVmArgs = @{}
