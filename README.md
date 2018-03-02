@@ -1,6 +1,8 @@
 HyperV Terraform Provider
 =========================
 
+#This is not even alpha yet. Don't use yet. Master is probably broken
+
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
 - Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
