@@ -165,6 +165,7 @@ type vm struct {
 	SmartPagingFilePath                 string
 	SnapshotFileLocation                string
 	StaticMemory                        bool
+	//ParentCheckpointName				string  this will allow us to set the checkpoint to use
 }
 
 type createVMArgs struct {
