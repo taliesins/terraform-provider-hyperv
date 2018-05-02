@@ -42,84 +42,84 @@ const (
 func Provider() terraform.ResourceProvider {
 	return &schema.Provider{
 		Schema: map[string]*schema.Schema{
-			"user": &schema.Schema{
+			"user": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_USER", DefaultUser),
 				Description: "The user name for HyperV API operations.",
 			},
 
-			"password": &schema.Schema{
+			"password": {
 				Type:        schema.TypeString,
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_PASSWORD", nil),
 				Description: "The user password for HyperV API operations.",
 			},
 
-			"host": &schema.Schema{
+			"host": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_HOST", DefaultHost),
 				Description: "The HyperV server host for HyperV API operations.",
 			},
 
-			"port": &schema.Schema{
+			"port": {
 				Type:        schema.TypeInt,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_PORT", DefaultPort),
 				Description: "The HyperV server port for HyperV API operations.",
 			},
 
-			"https": &schema.Schema{
+			"https": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_HTTPS", DefaultUseHTTPS),
 				Description: "Should https communication be used for HyperV API operations.",
 			},
 
-			"insecure": &schema.Schema{
+			"insecure": {
 				Type:        schema.TypeBool,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_INSECURE", DefaultAllowInsecure),
 				Description: "Should insecure communication be used for HyperV API operations.",
 			},
 
-			"tls_server_name": &schema.Schema{
+			"tls_server_name": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_TLS_SERVER_NAME", DefaultTLSServerName),
 				Description: "Should TLS server name be used for HyperV API operations.",
 			},
 
-			"cacert_path": &schema.Schema{
+			"cacert_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_CACERT_PATH", DefaultCACertFile),
 				Description: "The ca cert to use for HyperV API operations.",
 			},
 
-			"cert_path": &schema.Schema{
+			"cert_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_CERT_PATH", DefaultCertFile),
 				Description: "The cert to use for HyperV API operations.",
 			},
 
-			"key_path": &schema.Schema{
+			"key_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_KEY_PATH", DefaultKeyFile),
 				Description: "The cert key to use for HyperV API operations.",
 			},
 
-			"script_path": &schema.Schema{
+			"script_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_SCRIPT_PATH", DefaultScriptPath),
 				Description: "The script path on host for HyperV API operations.",
 			},
 
-			"timeout": &schema.Schema{
+			"timeout": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_TIMEOUT", DefaultTimeoutString),
@@ -142,7 +142,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	cacertPath := d.Get("cacert_path").(string)
 	if cacertPath != "" {
 		if _, err := os.Stat(cacertPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("cacertPath does not exist - %s.", cacertPath)
+			return nil, fmt.Errorf("cacertPath does not exist - %s", cacertPath)
 		}
 
 		cacert, err = ioutil.ReadFile(cacertPath)
@@ -155,7 +155,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	certPath := d.Get("cert_path").(string)
 	if certPath != "" {
 		if _, err := os.Stat(certPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("certPath does not exist - %s.", certPath)
+			return nil, fmt.Errorf("certPath does not exist - %s", certPath)
 		}
 
 		cert, err = ioutil.ReadFile(certPath)
@@ -168,7 +168,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	keyPath := d.Get("key_path").(string)
 	if keyPath != "" {
 		if _, err := os.Stat(keyPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("keyPath does not exist - %s.", keyPath)
+			return nil, fmt.Errorf("keyPath does not exist - %s", keyPath)
 		}
 
 		key, err = ioutil.ReadFile(keyPath)

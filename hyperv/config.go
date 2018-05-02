@@ -98,7 +98,7 @@ func parseEndpoint(addr string, https bool, insecure bool, tlsServerName string,
 	var port int
 
 	if addr == "" {
-		return nil, fmt.Errorf("Couldn't convert \"\" to an address.")
+		return nil, fmt.Errorf("couldn't convert \"\" to an address")
 	}
 	if !strings.Contains(addr, ":") || (strings.HasPrefix(addr, "[") && strings.HasSuffix(addr, "]")) {
 		host = addr
@@ -106,19 +106,19 @@ func parseEndpoint(addr string, https bool, insecure bool, tlsServerName string,
 	} else {
 		shost, sport, err := net.SplitHostPort(addr)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't convert \"%s\" to an address.", addr)
+			return nil, fmt.Errorf("couldn't convert \"%s\" to an address", addr)
 		}
 		// Check for IPv6 addresses and reformat appropriately
 		host = ipFormat(shost)
 		port, err = strconv.Atoi(sport)
 		if err != nil {
-			return nil, fmt.Errorf("Couldn't convert \"%s\" to a port number.", sport)
+			return nil, fmt.Errorf("couldn't convert \"%s\" to a port number", sport)
 		}
 	}
 
 	timeoutDuration, err := time.ParseDuration(timeout)
 	if err != nil {
-		return nil, fmt.Errorf("Couldn't convert \"%s\" to a duration.", timeout)
+		return nil, fmt.Errorf("couldn't convert \"%s\" to a duration", timeout)
 	}
 
 	return &winrm.Endpoint{

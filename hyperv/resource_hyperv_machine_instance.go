@@ -349,7 +349,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeString,
 							Required: true,
 						},
-						"enabled": &schema.Schema{
+						"enabled": {
 							Type:     schema.TypeBool,
 							Required: true,
 						},
@@ -408,7 +408,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  "",
 						},
-						"disk_number": &schema.Schema{
+						"disk_number": {
 							Type:     schema.TypeInt,
 							Required: true,
 						},
@@ -417,22 +417,22 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  "",
 						},
-						"support_persistent_reservations": &schema.Schema{
+						"support_persistent_reservations": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
-						"maximum_iops": &schema.Schema{
+						"maximum_iops": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
-						"minimum_iops": &schema.Schema{
+						"minimum_iops": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
 						},
-						"qos_policy_id": &schema.Schema{
+						"qos_policy_id": {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "",
@@ -491,10 +491,15 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
 	}
 
-	networkAdapters := api.ExpandNetworkAdapters((data.Get("network_adaptors")).([]map[string]interface{}))
-	integrationServices := ((data.Get("integration_services")).([]map[string]interface{}))
-	dvdDrives := api.ExpandDvdDrives((data.Get("dvd_drives")).([]map[string]interface{}))
-	hardDiskDrives := api.ExpandHardDiskDrives((data.Get("hard_disk_drives")).([]map[string]interface{}))
+	flattenedNetworkAdapters := (data.Get("network_adaptors")).([]map[string]interface{})
+	flattenedIntegrationServices := (data.Get("integration_services")).([]map[string]interface{})
+	flattenedDvdDrives := (data.Get("dvd_drives")).([]map[string]interface{})
+	flattenedHardDiskDrives := (data.Get("hard_disk_drives")).([]map[string]interface{})
+
+	networkAdapters := api.ExpandNetworkAdapters(&flattenedNetworkAdapters)
+	integrationServices := api.ExpandIntegrationServices(&flattenedIntegrationServices)
+	dvdDrives := api.ExpandDvdDrives(&flattenedDvdDrives)
+	hardDiskDrives := api.ExpandHardDiskDrives(&flattenedHardDiskDrives)
 
 	err = client.CreateVM(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
@@ -595,19 +600,19 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
 	}
 
-	if err := data.Set("network_adaptors", api.FlattenNetworkAdapters(networkAdapters)); err != nil {
+	if err := data.Set("network_adaptors", api.FlattenNetworkAdapters(&networkAdapters)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %#v", err)
 	}
 
-	if err := data.Set("integration_services", api.FlattenIntegrationServices(integrationServices)); err != nil {
+	if err := data.Set("integration_services", api.FlattenIntegrationServices(&integrationServices)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting integration_services error: %#v", err)
 	}
 
-	if err := data.Set("dvd_drives", api.FlattenDvdDrives(dvdDrives)); err != nil {
+	if err := data.Set("dvd_drives", api.FlattenDvdDrives(&dvdDrives)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting dvd_drives error: %#v", err)
 	}
 
-	if err := data.Set("hard_disk_drives", api.FlattenHardDiskDrives(hardDiskDrives)); err != nil {
+	if err := data.Set("hard_disk_drives", api.FlattenHardDiskDrives(&hardDiskDrives)); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting hard_disk_drives error: %#v", err)
 	}
 
@@ -655,10 +660,15 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
 	}
 
-	networkAdapters := api.ExpandNetworkAdapters((data.Get("network_adaptors")).([]map[string]interface{}))
-	integrationServices := ((data.Get("integration_services")).([]map[string]interface{}))
-	dvdDrives := api.ExpandDvdDrives((data.Get("dvd_drives")).([]map[string]interface{}))
-	hardDiskDrives := api.ExpandHardDiskDrives((data.Get("hard_disk_drives")).([]map[string]interface{}))
+	flattenedNetworkAdapters := (data.Get("network_adaptors")).([]map[string]interface{})
+	flattenedIntegrationServices := (data.Get("integration_services")).([]map[string]interface{})
+	flattenedDvdDrives := (data.Get("dvd_drives")).([]map[string]interface{})
+	flattenedHardDiskDrives := (data.Get("hard_disk_drives")).([]map[string]interface{})
+
+	networkAdapters := api.ExpandNetworkAdapters(&flattenedNetworkAdapters)
+	integrationServices := api.ExpandIntegrationServices (&flattenedIntegrationServices)
+	dvdDrives := api.ExpandDvdDrives(&flattenedDvdDrives)
+	hardDiskDrives := api.ExpandHardDiskDrives(&flattenedHardDiskDrives)
 
 	err = client.UpdateVM(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {

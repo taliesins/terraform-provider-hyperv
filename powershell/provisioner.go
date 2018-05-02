@@ -24,7 +24,7 @@ func timeOrderedUUID() string {
 	b := make([]byte, 12)
 	n, err := rand.Read(b)
 	if n != len(b) {
-		err = fmt.Errorf("Not enough entropy available")
+		err = fmt.Errorf("not enough entropy available")
 	}
 	if err != nil {
 		panic(err)
@@ -49,7 +49,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	tempFile := fmt.Sprintf("terraform-%s", timeOrderedUUID())
 
 	if err != nil {
-		return "", fmt.Errorf("Error generating unique filename: %v", err)
+		return "", fmt.Errorf("error generating unique filename: %v", err)
 	}
 
 	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
@@ -70,7 +70,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 
 	err = uploadContent(client, maxChunks, in, tempPath)
 	if err != nil {
-		return "", fmt.Errorf("Error uploading file to %s: %v", tempPath, err)
+		return "", fmt.Errorf("error uploading file to %s: %v", tempPath, err)
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
@@ -79,7 +79,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 
 	remoteAbsolutePath, err = restoreContent(client, tempPath, toPath)
 	if err != nil {
-		return "", fmt.Errorf("Error restoring file from %s to %s: %v", tempPath, toPath, err)
+		return "", fmt.Errorf("error restoring file from %s to %s: %v", tempPath, toPath, err)
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
@@ -88,7 +88,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 
 	err = cleanupContent(client, tempPath)
 	if err != nil {
-		return "", fmt.Errorf("Error removing temporary file %s: %v", tempPath, err)
+		return "", fmt.Errorf("error removing temporary file %s: %v", tempPath, err)
 	}
 
 	return remoteAbsolutePath, nil
@@ -110,7 +110,7 @@ func uploadContent(client *winrm.Client, maxChunks int, in io.Reader, toPath str
 func uploadChunks(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (bool, error) {
 	shell, err := client.CreateShell()
 	if err != nil {
-		return false, fmt.Errorf("Couldn't create shell: %v", err)
+		return false, fmt.Errorf("couldn't create shell: %v", err)
 	}
 	defer shell.Close()
 
@@ -359,16 +359,16 @@ func uploadScript(client *winrm.Client, fileName string, command string) (remote
 	tmpFile, err := ioutil.TempFile(os.TempDir(), fileName)
 	writer := bufio.NewWriter(tmpFile)
 	if _, err := writer.WriteString(command); err != nil {
-		return "", fmt.Errorf("Error preparing shell script: %s", err)
+		return "", fmt.Errorf("error preparing shell script: %s", err)
 	}
 
 	if err := writer.Flush(); err != nil {
-		return "", fmt.Errorf("Error preparing shell script: %s", err)
+		return "", fmt.Errorf("error preparing shell script: %s", err)
 	}
 	tmpFile.Close()
 	f, err := os.Open(tmpFile.Name())
 	if err != nil {
-		return "", fmt.Errorf("Error opening temporary shell script: %s", err)
+		return "", fmt.Errorf("error opening temporary shell script: %s", err)
 	}
 	defer f.Close()
 	defer os.Remove(tmpFile.Name())
@@ -379,7 +379,7 @@ func uploadScript(client *winrm.Client, fileName string, command string) (remote
 
 	remoteAbsolutePath, err = doCopy(client, 15, f, winPath(remotePath))
 	if err != nil {
-		return "", fmt.Errorf("Error uploading shell script: %s", err)
+		return "", fmt.Errorf("error uploading shell script: %s", err)
 	}
 
 	return remoteAbsolutePath, nil
@@ -412,7 +412,7 @@ func createElevatedCommand(client *winrm.Client, elevatedUser string, elevatedPa
 
 	elevatedRemotePath, err = generateElevatedRunner(client, elevatedUser, elevatedPassword, remotePath)
 	if err != nil {
-		return "", "", fmt.Errorf("Error generating elevated runner: %s", err)
+		return "", "", fmt.Errorf("error generating elevated runner: %s", err)
 	}
 
 	commandText, err = createCommand(vars, elevatedRemotePath)
@@ -506,7 +506,7 @@ func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword s
 
 	err = cleanupContent(client, path)
 	if err != nil {
-		return 0, "", "", fmt.Errorf("Error removing temporary file %s: %v", path, err)
+		return 0, "", "", fmt.Errorf("error removing temporary file %s: %v", path, err)
 	}
 
 	return commandExitCode, stdOutPut, errorOutPut, nil

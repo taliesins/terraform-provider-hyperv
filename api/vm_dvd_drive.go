@@ -201,9 +201,9 @@ $ErrorActionPreference = 'Stop'
 @(Get-VMDvdDrive -VMName '{{.VMName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive -Force
 `))
 
-func (c *HypervClient) DeleteVMDvdDrive(vmname string, controllerNumber int, controllerLocation int) (err error) {
+func (c *HypervClient) DeleteVMDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error) {
 	err = c.runFireAndForgetScript(deleteVMDvdDriveTemplate, deleteVMDvdDriveArgs{
-		VMName:             vmname,
+		VMName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
 	})
@@ -231,8 +231,8 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 
 		err = c.UpdateVMDvdDrive(
 			currentDvdDrive.VMName,
-			currentDvdDrive.ControllerLocation,
 			currentDvdDrive.ControllerNumber,
+			currentDvdDrive.ControllerLocation,
 			dvdDrive.ControllerNumber,
 			dvdDrive.ControllerLocation,
 			dvdDrive.Path,

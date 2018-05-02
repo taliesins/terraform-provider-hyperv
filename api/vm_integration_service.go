@@ -24,17 +24,17 @@ func ExpandIntegrationServices(integrationServices *[]map[string]interface{}) []
 }
 
 func FlattenIntegrationServices(integrationServices *[]vmIntegrationService) []map[string]interface{} {
-	flattenedintegrationServices := make([]map[string]interface{}, 0)
+	flattenedIntegrationServices := make([]map[string]interface{}, 0)
 
 	for _, integrationService := range *integrationServices {
-		flattenedintegrationService := make(map[string]interface{})
-		flattenedintegrationService["name"] = integrationService.Name
-		flattenedintegrationService["enabled"] = integrationService.Enabled
-		flattenedintegrationServices = append(flattenedintegrationServices, flattenedintegrationService)
+		flattenedIntegrationService := make(map[string]interface{})
+		flattenedIntegrationService["name"] = integrationService.Name
+		flattenedIntegrationService["enabled"] = integrationService.Enabled
+		flattenedIntegrationServices = append(flattenedIntegrationServices, flattenedIntegrationService)
 	}
 
-	if len(flattenedintegrationServices) > 0 {
-		return flattenedintegrationServices
+	if len(flattenedIntegrationServices) > 0 {
+		return flattenedIntegrationServices
 	}
 
 	return nil
