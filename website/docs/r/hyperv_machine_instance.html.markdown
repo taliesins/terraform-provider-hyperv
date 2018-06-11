@@ -63,7 +63,21 @@ The following arguments are supported:
 
 * `static_memory` - (Optional) `false` (default). Specifies if the machine instance will use static memory.
 
+* `integration_services` - (optional) nothing (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  integration_services {
+    "Guest Service Interface" = false
+    "Heartbeat"               = true
+    "Key-Value Pair Exchange" = true
+    "Shutdown"                = true
+    "Time Synchronization"    = true
+    "VSS"                     = true
+  }
+}
+```
 
 
 
