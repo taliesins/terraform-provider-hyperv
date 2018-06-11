@@ -146,6 +146,14 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Default:  true,
 			},
 
+			"integration_services": {
+				Type:     schema.TypeMap,
+				Optional: true,
+				DefaultFunc: api.DefaultVmIntegrationServices,
+				DiffSuppressFunc: api.DiffSuppressVmIntegrationServices,
+				Elem:     schema.TypeBool,
+			},
+
 			"network_adaptors": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -339,14 +347,6 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				},
 			},
 
-			"integration_services": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				DefaultFunc: api.DefaultVmIntegrationServices,
-				DiffSuppressFunc: api.DiffSuppressVmIntegrationServices,
-				Elem:     schema.TypeBool,
-			},
-
 			"dvd_drives": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -481,12 +481,12 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
 	}
 
-	networkAdapters, err := api.ExpandNetworkAdapters(data)
+	integrationServices, err := api.ExpandIntegrationServices(data)
 	if err != nil {
 		return err
 	}
 
-	integrationServices, err := api.ExpandIntegrationServices(data)
+	networkAdapters, err := api.ExpandNetworkAdapters(data)
 	if err != nil {
 		return err
 	}
@@ -543,12 +543,12 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return err
 	}
 
-	networkAdapters, err := client.GetVMNetworkAdapters(name)
+	integrationServices, err := client.GetVMIntegrationServices(name)
 	if err != nil {
 		return err
 	}
 
-	integrationServices, err := client.GetVMIntegrationServices(name)
+	networkAdapters, err := client.GetVMNetworkAdapters(name)
 	if err != nil {
 		return err
 	}
@@ -686,18 +686,6 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 	}
 
-	if data.HasChange("network_adaptors") {
-		networkAdapters, err := api.ExpandNetworkAdapters(data)
-		if err != nil {
-			return err
-		}
-
-		err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
-		if err != nil {
-			return err
-		}
-	}
-
 	if data.HasChange("integration_services") {
 		integrationServices, err := api.ExpandIntegrationServices(data)
 		if err != nil {
@@ -707,6 +695,18 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		changedIntegrationServices := api.GetChangedIntegrationServices(integrationServices, data)
 
 		err = client.CreateOrUpdateVMIntegrationServices(name, changedIntegrationServices)
+		if err != nil {
+			return err
+		}
+	}
+
+	if data.HasChange("network_adaptors") {
+		networkAdapters, err := api.ExpandNetworkAdapters(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
 		if err != nil {
 			return err
 		}
