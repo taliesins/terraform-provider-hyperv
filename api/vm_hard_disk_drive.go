@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"text/template"
+	"github.com/hashicorp/terraform/helper/schema"
+	"fmt"
 )
 
 type ControllerType int
@@ -62,58 +64,65 @@ func ToCacheAttributes(x string) CacheAttributes {
 	return CacheAttributes_value[strings.ToLower(x)]
 }
 
-func ExpandHardDiskDrives(hardDiskDrives *[]map[string]interface{}) []vmHardDiskDrive {
+func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
 	expandedHardDiskDrives := make([]vmHardDiskDrive, 0)
 
-	for _, hardDiskDrive := range *hardDiskDrives {
-		expandedHardDiskDrive := vmHardDiskDrive{
-			ControllerType:                ToControllerType(hardDiskDrive["controller_type"].(string)),
-			ControllerNumber:              hardDiskDrive["controller_number"].(int),
-			ControllerLocation:            hardDiskDrive["controller_location"].(int),
-			Path:                          hardDiskDrive["path"].(string),
-			DiskNumber:                    hardDiskDrive["disk_number"].(int),
-			ResourcePoolName:              hardDiskDrive["resource_pool_name"].(string),
-			SupportPersistentReservations: hardDiskDrive["support_persistent_reservations"].(bool),
-			MaximumIops:                   hardDiskDrive["maximum_iops"].(int),
-			MinimumIops:                   hardDiskDrive["minimum_iops"].(int),
-			QosPolicyId:                   hardDiskDrive["qos_policy_id"].(string),
-			OverrideCacheAttributes:       ToCacheAttributes(hardDiskDrive["override_cache_attributes"].(string)),
-		}
+	if v, ok := d.GetOk("hard_disk_drives"); ok {
+		hardDiskDrives := v.(*schema.Set).List()
 
-		expandedHardDiskDrives = append(expandedHardDiskDrives, expandedHardDiskDrive)
+		for _, hardDiskDrive := range hardDiskDrives {
+			hardDiskDrive, ok := hardDiskDrive.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("[ERROR][hyperv] hard_disk_drives should be a Hash - was '%+v'", hardDiskDrive)
+			}
+
+			expandedHardDiskDrive := vmHardDiskDrive{
+				ControllerType:                ToControllerType(hardDiskDrive["controller_type"].(string)),
+				ControllerNumber:              hardDiskDrive["controller_number"].(int),
+				ControllerLocation:            hardDiskDrive["controller_location"].(int),
+				Path:                          hardDiskDrive["path"].(string),
+				DiskNumber:                    hardDiskDrive["disk_number"].(int),
+				ResourcePoolName:              hardDiskDrive["resource_pool_name"].(string),
+				SupportPersistentReservations: hardDiskDrive["support_persistent_reservations"].(bool),
+				MaximumIops:                   hardDiskDrive["maximum_iops"].(int),
+				MinimumIops:                   hardDiskDrive["minimum_iops"].(int),
+				QosPolicyId:                   hardDiskDrive["qos_policy_id"].(string),
+				OverrideCacheAttributes:       ToCacheAttributes(hardDiskDrive["override_cache_attributes"].(string)),
+			}
+
+			expandedHardDiskDrives = append(expandedHardDiskDrives, expandedHardDiskDrive)
+		}
 	}
 
 	if len(expandedHardDiskDrives) > 0 {
-		return expandedHardDiskDrives
+		return expandedHardDiskDrives, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
-func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []map[string]interface{} {
-	flattenedHardDiskDrives := make([]map[string]interface{}, 0)
+func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
+	flattenedHardDiskDrives := make([]interface{}, 0)
 
-	for _, hardDiskDrive := range *hardDiskDrives {
-		flattenedHardDiskDrive := make(map[string]interface{})
-		flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType
-		flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
-		flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
-		flattenedHardDiskDrive["path"] = hardDiskDrive.Path
-		flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
-		flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
-		flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
-		flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
-		flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
-		flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
-		flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes
-		flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
+	if hardDiskDrives != nil {
+		for _, hardDiskDrive := range *hardDiskDrives {
+			flattenedHardDiskDrive := make(map[string]interface{})
+			flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType
+			flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
+			flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
+			flattenedHardDiskDrive["path"] = hardDiskDrive.Path
+			flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
+			flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
+			flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
+			flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
+			flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
+			flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
+			flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes
+			flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
+		}
 	}
 
-	if len(flattenedHardDiskDrives) > 0 {
-		return flattenedHardDiskDrives
-	}
-
-	return nil
+	return flattenedHardDiskDrives
 }
 
 type vmHardDiskDrive struct {
@@ -222,7 +231,7 @@ if ($vmHardDiskDrivesObject) {
 	$vmHardDiskDrives = ConvertTo-Json -InputObject $vmHardDiskDrivesObject
 	$vmHardDiskDrives
 } else {
-	"{}"
+	"[]"
 }
 `))
 

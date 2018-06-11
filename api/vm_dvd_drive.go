@@ -3,46 +3,54 @@ package api
 import (
 	"encoding/json"
 	"text/template"
+	"github.com/hashicorp/terraform/helper/schema"
+	"fmt"
 )
 
-func ExpandDvdDrives(dvdDrives *[]map[string]interface{}) []vmDvdDrive {
+func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
 	expandedDvdDrives := make([]vmDvdDrive, 0)
 
-	for _, dvdDrive := range *dvdDrives {
-		expandedDvdDrive := vmDvdDrive{
-			ControllerNumber:   dvdDrive["controller_number"].(int),
-			ControllerLocation: dvdDrive["controller_location"].(int),
-			Path:               dvdDrive["path"].(string),
-			ResourcePoolName:   dvdDrive["resource_pool_name"].(string),
-		}
+	if v, ok := d.GetOk("dvd_drives"); ok {
+		dvdDrives := v.(*schema.Set).List()
+		for _, dvdDrive := range dvdDrives {
+			dvdDrive, ok := dvdDrive.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("[ERROR][hyperv] network_adaptors should be a Hash - was '%+v'", dvdDrive)
+			}
 
-		expandedDvdDrives = append(expandedDvdDrives, expandedDvdDrive)
+			expandedDvdDrive := vmDvdDrive{
+				ControllerNumber:   dvdDrive["controller_number"].(int),
+				ControllerLocation: dvdDrive["controller_location"].(int),
+				Path:               dvdDrive["path"].(string),
+				ResourcePoolName:   dvdDrive["resource_pool_name"].(string),
+			}
+
+			expandedDvdDrives = append(expandedDvdDrives, expandedDvdDrive)
+		}
 	}
 
 	if len(expandedDvdDrives) > 0 {
-		return expandedDvdDrives
+		return expandedDvdDrives, nil
 	}
 
-	return nil
+	return nil, nil
 }
 
-func FlattenDvdDrives(dvdDrives *[]vmDvdDrive) []map[string]interface{} {
-	flattenedDvdDrives := make([]map[string]interface{}, 0)
+func FlattenDvdDrives(dvdDrives *[]vmDvdDrive) []interface{} {
+	flattenedDvdDrives := make([]interface{}, 0)
 
-	for _, dvdDrive := range *dvdDrives {
-		flattenedDvdDrive := make(map[string]interface{})
-		flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
-		flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
-		flattenedDvdDrive["path"] = dvdDrive.Path
-		flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
-		flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
+	if dvdDrives != nil {
+		for _, dvdDrive := range *dvdDrives {
+			flattenedDvdDrive := make(map[string]interface{})
+			flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
+			flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
+			flattenedDvdDrive["path"] = dvdDrive.Path
+			flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
+			flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
+		}
 	}
 
-	if len(flattenedDvdDrives) > 0 {
-		return flattenedDvdDrives
-	}
-
-	return nil
+	return flattenedDvdDrives
 }
 
 type vmDvdDrive struct {
@@ -117,7 +125,7 @@ if ($vmDvdDrivesObject) {
 	$vmDvdDrives = ConvertTo-Json -InputObject $vmDvdDrivesObject
 	$vmDvdDrives
 } else {
-	"{}"
+	"[]"
 }
 `))
 

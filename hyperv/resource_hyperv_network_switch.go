@@ -198,7 +198,7 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 	d.SetId(switchName)
 	log.Printf("[INFO][hyperv][create] created hyperv switch: %#v", d)
 
-	return nil
+	return resourceHyperVNetworkSwitchRead(d, meta)
 }
 
 func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (err error) {
@@ -375,7 +375,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 
 	log.Printf("[INFO][hyperv][update] updated hyperv switch: %#v", d)
 
-	return nil
+	return resourceHyperVNetworkSwitchRead(d, meta)
 }
 
 func resourceHyperVNetworkSwitchDelete(d *schema.ResourceData, meta interface{}) (err error) {

@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"text/template"
+	"github.com/hashicorp/terraform/helper/schema"
+	"fmt"
 )
 
 type PortMirroring int
@@ -71,108 +73,112 @@ func ToIovInterruptModerationValue(x string) IovInterruptModerationValue {
 	return IovInterruptModerationValue_value[strings.ToLower(x)]
 }
 
-func ExpandNetworkAdapters(networkAdapters *[]map[string]interface{}) []vmNetworkAdapter {
+func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 	expandedNetworkAdapters := make([]vmNetworkAdapter, 0)
 
-	for _, networkAdapter := range *networkAdapters {
-		expandedNetworkAdapter := vmNetworkAdapter{
-			Name:                   networkAdapter["name"].(string),
-			SwitchName:             networkAdapter["switch_name"].(string),
-			ManagementOs:           networkAdapter["management_os"].(bool),
-			IsLegacy:               networkAdapter["is_legacy"].(bool),
-			DynamicMacAddress:      networkAdapter["dynamic_mac_address"].(bool),
-			StaticMacAddress:       networkAdapter["static_mac_address"].(string),
-			DhcpGuard:              ToOnOffState(networkAdapter["dhcp_guard"].(string)),
-			RouterGuard:            ToOnOffState(networkAdapter["router_guard"].(string)),
-			PortMirroring:          ToPortMirroring(networkAdapter["port_mirroring"].(string)),
-			IeeePriorityTag:        ToOnOffState(networkAdapter["ieee_priority_tag"].(string)),
-			VmqWeigth:              networkAdapter["vmq_weigth"].(int),
-			IovQueuePairsRequested: networkAdapter["iov_queue_pairs_requested"].(int),
-			IovInterruptModeration: ToIovInterruptModerationValue(networkAdapter["iov_interrupt_moderation"].(string)),
-			IovWeight:              networkAdapter["iov_weight"].(int),
-			IpsecOffloadMaximumSecurityAssociation: networkAdapter["ipsec_offload_maximum_security_association"].(int),
-			MaximumBandwidth:                       networkAdapter["maximum_bandwidth"].(int),
-			MinimumBandwidthAbsolute:               networkAdapter["minimum_bandwidth_absolute"].(int),
-			MinimumBandwidthWeight:                 networkAdapter["minimum_bandwidth_weight"].(int),
-			MandatoryFeatureId:                     networkAdapter["mandatory_feature_id"].(string),
-			ResourcePoolName:                       networkAdapter["resource_pool_name"].(string),
-			TestReplicaPoolName:                    networkAdapter["test_replica_pool_name"].(string),
-			TestReplicaSwitchName:                  networkAdapter["test_replica_switch_name"].(string),
-			VirtualSubnetId:                        networkAdapter["virtual_subnet_id"].(int),
-			AllowTeaming:                           ToOnOffState(networkAdapter["allow_teaming"].(string)),
-			NotMonitoredInCluster:                  networkAdapter["not_monitored_in_cluster"].(bool),
-			StormLimit:                             networkAdapter["storm_limit"].(int),
-			DynamicIpAddressLimit:                  networkAdapter["dynamic_ip_address_limit"].(int),
-			DeviceNaming:                           ToOnOffState(networkAdapter["device_naming"].(string)),
-			FixSpeed10G:                            ToOnOffState(networkAdapter["fix_speed_10g"].(string)),
-			PacketDirectNumProcs:                   networkAdapter["packet_direct_num_procs"].(int),
-			PacketDirectModerationCount:            networkAdapter["packet_direct_moderation_count"].(int),
-			PacketDirectModerationInterval:         networkAdapter["packet_direct_moderation_interval"].(int),
-			VrssEnabled:                            networkAdapter["vrss_enabled"].(bool),
-			VmmqEnabled:                            networkAdapter["vmmq_enabled"].(bool),
-			VmmqQueuePairs:                         networkAdapter["vmmq_queue_pairs"].(int),
+	if v, ok := d.GetOk("network_adaptors"); ok {
+		networkAdapters := v.(*schema.Set).List()
+
+		for _, networkAdapter := range networkAdapters {
+			networkAdapter, ok := networkAdapter.(map[string]interface{})
+			if !ok {
+				return nil, fmt.Errorf("[ERROR][hyperv] network_adaptors should be a Hash - was '%+v'", networkAdapter)
+			}
+
+			expandedNetworkAdapter := vmNetworkAdapter{
+				Name:                                   networkAdapter["name"].(string),
+				SwitchName:                             networkAdapter["switch_name"].(string),
+				ManagementOs:                           networkAdapter["management_os"].(bool),
+				IsLegacy:                               networkAdapter["is_legacy"].(bool),
+				DynamicMacAddress:                      networkAdapter["dynamic_mac_address"].(bool),
+				StaticMacAddress:                       networkAdapter["static_mac_address"].(string),
+				DhcpGuard:                              ToOnOffState(networkAdapter["dhcp_guard"].(string)),
+				RouterGuard:                            ToOnOffState(networkAdapter["router_guard"].(string)),
+				PortMirroring:                          ToPortMirroring(networkAdapter["port_mirroring"].(string)),
+				IeeePriorityTag:                        ToOnOffState(networkAdapter["ieee_priority_tag"].(string)),
+				VmqWeigth:                              networkAdapter["vmq_weigth"].(int),
+				IovQueuePairsRequested:                 networkAdapter["iov_queue_pairs_requested"].(int),
+				IovInterruptModeration:                 ToIovInterruptModerationValue(networkAdapter["iov_interrupt_moderation"].(string)),
+				IovWeight:                              networkAdapter["iov_weight"].(int),
+				IpsecOffloadMaximumSecurityAssociation: networkAdapter["ipsec_offload_maximum_security_association"].(int),
+				MaximumBandwidth:                       networkAdapter["maximum_bandwidth"].(int),
+				MinimumBandwidthAbsolute:               networkAdapter["minimum_bandwidth_absolute"].(int),
+				MinimumBandwidthWeight:                 networkAdapter["minimum_bandwidth_weight"].(int),
+				MandatoryFeatureId:                     networkAdapter["mandatory_feature_id"].(string),
+				ResourcePoolName:                       networkAdapter["resource_pool_name"].(string),
+				TestReplicaPoolName:                    networkAdapter["test_replica_pool_name"].(string),
+				TestReplicaSwitchName:                  networkAdapter["test_replica_switch_name"].(string),
+				VirtualSubnetId:                        networkAdapter["virtual_subnet_id"].(int),
+				AllowTeaming:                           ToOnOffState(networkAdapter["allow_teaming"].(string)),
+				NotMonitoredInCluster:                  networkAdapter["not_monitored_in_cluster"].(bool),
+				StormLimit:                             networkAdapter["storm_limit"].(int),
+				DynamicIpAddressLimit:                  networkAdapter["dynamic_ip_address_limit"].(int),
+				DeviceNaming:                           ToOnOffState(networkAdapter["device_naming"].(string)),
+				FixSpeed10G:                            ToOnOffState(networkAdapter["fix_speed_10g"].(string)),
+				PacketDirectNumProcs:                   networkAdapter["packet_direct_num_procs"].(int),
+				PacketDirectModerationCount:            networkAdapter["packet_direct_moderation_count"].(int),
+				PacketDirectModerationInterval:         networkAdapter["packet_direct_moderation_interval"].(int),
+				VrssEnabled:                            networkAdapter["vrss_enabled"].(bool),
+				VmmqEnabled:                            networkAdapter["vmmq_enabled"].(bool),
+				VmmqQueuePairs:                         networkAdapter["vmmq_queue_pairs"].(int),
+			}
+
+			expandedNetworkAdapters = append(expandedNetworkAdapters, expandedNetworkAdapter)
 		}
-
-		expandedNetworkAdapters = append(expandedNetworkAdapters, expandedNetworkAdapter)
 	}
 
-	if len(expandedNetworkAdapters) > 0 {
-		return expandedNetworkAdapters
-	}
-
-	return nil
+	return expandedNetworkAdapters, nil
 }
 
-func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []map[string]interface{} {
-	flattenedNetworkAdapters := make([]map[string]interface{}, 0)
 
-	for _, networkAdapter := range *networkAdapters {
-		flattenedNetworkAdapter := make(map[string]interface{})
+func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
+	flattenedNetworkAdapters := make([]interface{}, 0)
 
-		flattenedNetworkAdapter["name"] = networkAdapter.Name
-		flattenedNetworkAdapter["switch_name"] = networkAdapter.SwitchName
-		flattenedNetworkAdapter["management_os"] = networkAdapter.ManagementOs
-		flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
-		flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
-		flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
-		flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard
-		flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard
-		flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring
-		flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag
-		flattenedNetworkAdapter["vmq_weigth"] = networkAdapter.VmqWeigth
-		flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
-		flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration
-		flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
-		flattenedNetworkAdapter["ipsec_offload_maximum_security_association"] = networkAdapter.IpsecOffloadMaximumSecurityAssociation
-		flattenedNetworkAdapter["maximum_bandwidth"] = networkAdapter.MaximumBandwidth
-		flattenedNetworkAdapter["minimum_bandwidth_absolute"] = networkAdapter.MinimumBandwidthAbsolute
-		flattenedNetworkAdapter["minimum_bandwidth_weight"] = networkAdapter.MinimumBandwidthWeight
-		flattenedNetworkAdapter["mandatory_feature_id"] = networkAdapter.MandatoryFeatureId
-		flattenedNetworkAdapter["resource_pool_name"] = networkAdapter.ResourcePoolName
-		flattenedNetworkAdapter["test_replica_pool_name"] = networkAdapter.TestReplicaPoolName
-		flattenedNetworkAdapter["test_replica_switch_name"] = networkAdapter.TestReplicaSwitchName
-		flattenedNetworkAdapter["virtual_subnet_id"] = networkAdapter.VirtualSubnetId
-		flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming
-		flattenedNetworkAdapter["not_monitored_in_cluster"] = networkAdapter.NotMonitoredInCluster
-		flattenedNetworkAdapter["storm_limit"] = networkAdapter.StormLimit
-		flattenedNetworkAdapter["dynamic_ip_address_limit"] = networkAdapter.DynamicIpAddressLimit
-		flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming
-		flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G
-		flattenedNetworkAdapter["packet_direct_num_procs"] = networkAdapter.PacketDirectNumProcs
-		flattenedNetworkAdapter["packet_direct_moderation_count"] = networkAdapter.PacketDirectModerationCount
-		flattenedNetworkAdapter["packet_direct_moderation_interval"] = networkAdapter.PacketDirectModerationInterval
-		flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
-		flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
-		flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+	if networkAdapters != nil {
+		for _, networkAdapter := range *networkAdapters {
+			flattenedNetworkAdapter := make(map[string]interface{})
 
-		flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
+			flattenedNetworkAdapter["name"] = networkAdapter.Name
+			flattenedNetworkAdapter["switch_name"] = networkAdapter.SwitchName
+			flattenedNetworkAdapter["management_os"] = networkAdapter.ManagementOs
+			flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
+			flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
+			flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
+			flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard
+			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard
+			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring
+			flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag
+			flattenedNetworkAdapter["vmq_weigth"] = networkAdapter.VmqWeigth
+			flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
+			flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration
+			flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
+			flattenedNetworkAdapter["ipsec_offload_maximum_security_association"] = networkAdapter.IpsecOffloadMaximumSecurityAssociation
+			flattenedNetworkAdapter["maximum_bandwidth"] = networkAdapter.MaximumBandwidth
+			flattenedNetworkAdapter["minimum_bandwidth_absolute"] = networkAdapter.MinimumBandwidthAbsolute
+			flattenedNetworkAdapter["minimum_bandwidth_weight"] = networkAdapter.MinimumBandwidthWeight
+			flattenedNetworkAdapter["mandatory_feature_id"] = networkAdapter.MandatoryFeatureId
+			flattenedNetworkAdapter["resource_pool_name"] = networkAdapter.ResourcePoolName
+			flattenedNetworkAdapter["test_replica_pool_name"] = networkAdapter.TestReplicaPoolName
+			flattenedNetworkAdapter["test_replica_switch_name"] = networkAdapter.TestReplicaSwitchName
+			flattenedNetworkAdapter["virtual_subnet_id"] = networkAdapter.VirtualSubnetId
+			flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming
+			flattenedNetworkAdapter["not_monitored_in_cluster"] = networkAdapter.NotMonitoredInCluster
+			flattenedNetworkAdapter["storm_limit"] = networkAdapter.StormLimit
+			flattenedNetworkAdapter["dynamic_ip_address_limit"] = networkAdapter.DynamicIpAddressLimit
+			flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming
+			flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G
+			flattenedNetworkAdapter["packet_direct_num_procs"] = networkAdapter.PacketDirectNumProcs
+			flattenedNetworkAdapter["packet_direct_moderation_count"] = networkAdapter.PacketDirectModerationCount
+			flattenedNetworkAdapter["packet_direct_moderation_interval"] = networkAdapter.PacketDirectModerationInterval
+			flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
+			flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
+			flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+
+			flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
+		}
 	}
 
-	if len(flattenedNetworkAdapters) > 0 {
-		return flattenedNetworkAdapters
-	}
-
-	return nil
+	return flattenedNetworkAdapters
 }
 
 type vmNetworkAdapter struct {
@@ -418,7 +424,7 @@ if ($vmNetworkAdaptersObject) {
 	$vmNetworkAdapters = ConvertTo-Json -InputObject $vmNetworkAdaptersObject
 	$vmNetworkAdapters
 } else {
-	"{}"
+	"[]"
 }
 `))
 

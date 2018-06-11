@@ -3,9 +3,8 @@ package hyperv
 import (
 	"fmt"
 	"log"
-
-	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func resourceHyperVMachineInstance() *schema.Resource {
@@ -341,20 +340,11 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"integration_services": {
-				Type:     schema.TypeSet,
+				Type:     schema.TypeMap,
 				Optional: true,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"name": {
-							Type:     schema.TypeString,
-							Required: true,
-						},
-						"enabled": {
-							Type:     schema.TypeBool,
-							Required: true,
-						},
-					},
-				},
+				DefaultFunc: api.DefaultVmIntegrationServices,
+				DiffSuppressFunc: api.DiffSuppressVmIntegrationServices,
+				Elem:     schema.TypeBool,
 			},
 
 			"dvd_drives": {
@@ -491,15 +481,25 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
 	}
 
-	flattenedNetworkAdapters := (data.Get("network_adaptors")).([]map[string]interface{})
-	flattenedIntegrationServices := (data.Get("integration_services")).([]map[string]interface{})
-	flattenedDvdDrives := (data.Get("dvd_drives")).([]map[string]interface{})
-	flattenedHardDiskDrives := (data.Get("hard_disk_drives")).([]map[string]interface{})
+	networkAdapters, err := api.ExpandNetworkAdapters(data)
+	if err != nil {
+		return err
+	}
 
-	networkAdapters := api.ExpandNetworkAdapters(&flattenedNetworkAdapters)
-	integrationServices := api.ExpandIntegrationServices(&flattenedIntegrationServices)
-	dvdDrives := api.ExpandDvdDrives(&flattenedDvdDrives)
-	hardDiskDrives := api.ExpandHardDiskDrives(&flattenedHardDiskDrives)
+	integrationServices, err := api.ExpandIntegrationServices(data)
+	if err != nil {
+		return err
+	}
+
+	dvdDrives, err := api.ExpandDvdDrives(data)
+	if err != nil {
+		return err
+	}
+
+	hardDiskDrives, err := api.ExpandHardDiskDrives(data)
+	if err != nil {
+		return err
+	}
 
 	err = client.CreateVM(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
@@ -529,7 +529,7 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 	data.SetId(name)
 	log.Printf("[INFO][hyperv][create] created hyperv machine: %#v", data)
 
-	return nil
+	return resourceHyperVMachineInstanceRead(data, meta)
 }
 
 func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface{}) (err error) {
@@ -571,6 +571,35 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return nil
 	}
 
+	if vm.DynamicMemory && vm.StaticMemory {
+		return fmt.Errorf("[ERROR][hyperv][read] Dynamic and static can't be both selected at the same time")
+	}
+
+	if !vm.DynamicMemory && !vm.StaticMemory {
+		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
+	}
+
+	flattenedNetworkAdapters := api.FlattenNetworkAdapters(&networkAdapters)
+	if err := data.Set("network_adaptors", flattenedNetworkAdapters); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %v", err)
+	}
+
+	flattenedIntegrationServices := api.FlattenIntegrationServices(&integrationServices)
+	if err := data.Set("integration_services", flattenedIntegrationServices); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting integration_services error: %v", err)
+	}
+	log.Printf("[INFO][hyperv][read] flattenedIntegrationServices: %v", flattenedIntegrationServices)
+
+	flattenedDvdDrives := api.FlattenDvdDrives(&dvdDrives)
+	if err := data.Set("dvd_drives", flattenedDvdDrives); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting dvd_drives error: %v", err)
+	}
+
+	flattenedHardDiskDrives := api.FlattenHardDiskDrives(&hardDiskDrives)
+	if err := data.Set("hard_disk_drives", flattenedHardDiskDrives); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting hard_disk_drives error: %v", err)
+	}
+
 	data.Set("generation", vm.Generation)
 	data.Set("automatic_critical_error_action", vm.AutomaticCriticalErrorAction.String())
 	data.Set("automatic_critical_error_action_timeout", vm.AutomaticCriticalErrorActionTimeout)
@@ -592,34 +621,6 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	data.Set("snapshot_file_location", vm.SnapshotFileLocation)
 	data.Set("static_memory", vm.StaticMemory)
 
-	if vm.DynamicMemory && vm.StaticMemory {
-		return fmt.Errorf("[ERROR][hyperv][read] Dynamic and static can't be both selected at the same time")
-	}
-
-	if !vm.DynamicMemory && !vm.StaticMemory {
-		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
-	}
-
-	if err := data.Set("network_adaptors", api.FlattenNetworkAdapters(&networkAdapters)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %#v", err)
-	}
-
-	if err := data.Set("integration_services", api.FlattenIntegrationServices(&integrationServices)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting integration_services error: %#v", err)
-	}
-
-	if err := data.Set("dvd_drives", api.FlattenDvdDrives(&dvdDrives)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting dvd_drives error: %#v", err)
-	}
-
-	if err := data.Set("hard_disk_drives", api.FlattenHardDiskDrives(&hardDiskDrives)); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting hard_disk_drives error: %#v", err)
-	}
-
-	if err != nil {
-		return err
-	}
-
 	log.Printf("[INFO][hyperv][read] read hyperv machine: %#v", data)
 
 	return nil
@@ -631,73 +632,113 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 
 	name := data.Id()
 
-	//generation := (d.Get("generation")).(int)
-	automaticCriticalErrorAction := api.ToCriticalErrorAction((data.Get("automatic_critical_error_action")).(string))
-	automaticCriticalErrorActionTimeout := int32((data.Get("automatic_critical_error_action_timeout")).(int))
-	automaticStartAction := api.ToStartAction((data.Get("automatic_start_action")).(string))
-	automaticStartDelay := int32((data.Get("automatic_start_delay")).(int))
-	automaticStopAction := api.ToStopAction((data.Get("automatic_stop_action")).(string))
-	checkpointType := api.ToCheckpointType((data.Get("checkpoint_type")).(string))
-	dynamicMemory := (data.Get("dynamic_memory")).(bool)
-	guestControlledCacheTypes := (data.Get("guest_controlled_cache_types")).(bool)
-	highMemoryMappedIoSpace := int64((data.Get("high_memory_mapped_io_space")).(int))
-	lockOnDisconnect := api.ToOnOffState((data.Get("lock_on_disconnect")).(string))
-	lowMemoryMappedIoSpace := int32((data.Get("low_memory_mapped_io_space")).(int))
-	memoryMaximumBytes := int64((data.Get("memory_maximum_bytes")).(int))
-	memoryMinimumBytes := int64((data.Get("memory_minimum_bytes")).(int))
-	memoryStartupBytes := int64((data.Get("memory_startup_bytes")).(int))
-	notes := (data.Get("notes")).(string)
-	processorCount := int64((data.Get("processor_count")).(int))
-	smartPagingFilePath := (data.Get("smart_paging_file_path")).(string)
-	snapshotFileLocation := (data.Get("snapshot_file_location")).(string)
-	staticMemory := (data.Get("static_memory")).(bool)
+	if data.HasChange("automatic_critical_error_action") ||
+		data.HasChange("automatic_critical_error_action_timeout") ||
+		data.HasChange("automatic_start_action") ||
+		data.HasChange("automatic_start_delay") ||
+		data.HasChange("automatic_stop_action") ||
+		data.HasChange("checkpoint_type") ||
+		data.HasChange("dynamic_memory") ||
+		data.HasChange("guest_controlled_cache_types") ||
+		data.HasChange("high_memory_mapped_io_space") ||
+		data.HasChange("lock_on_disconnect") ||
+		data.HasChange("low_memory_mapped_io_space") ||
+		data.HasChange("memory_maximum_bytes") ||
+		data.HasChange("memory_minimum_bytes") ||
+		data.HasChange("memory_startup_bytes") ||
+		data.HasChange("notes") ||
+		data.HasChange("processor_count") ||
+		data.HasChange("smart_paging_file_path") ||
+		data.HasChange("snapshot_file_location") ||
+		data.HasChange("static_memory") {
+		//generation := (d.Get("generation")).(int)
+		automaticCriticalErrorAction := api.ToCriticalErrorAction((data.Get("automatic_critical_error_action")).(string))
+		automaticCriticalErrorActionTimeout := int32((data.Get("automatic_critical_error_action_timeout")).(int))
+		automaticStartAction := api.ToStartAction((data.Get("automatic_start_action")).(string))
+		automaticStartDelay := int32((data.Get("automatic_start_delay")).(int))
+		automaticStopAction := api.ToStopAction((data.Get("automatic_stop_action")).(string))
+		checkpointType := api.ToCheckpointType((data.Get("checkpoint_type")).(string))
+		dynamicMemory := (data.Get("dynamic_memory")).(bool)
+		guestControlledCacheTypes := (data.Get("guest_controlled_cache_types")).(bool)
+		highMemoryMappedIoSpace := int64((data.Get("high_memory_mapped_io_space")).(int))
+		lockOnDisconnect := api.ToOnOffState((data.Get("lock_on_disconnect")).(string))
+		lowMemoryMappedIoSpace := int32((data.Get("low_memory_mapped_io_space")).(int))
+		memoryMaximumBytes := int64((data.Get("memory_maximum_bytes")).(int))
+		memoryMinimumBytes := int64((data.Get("memory_minimum_bytes")).(int))
+		memoryStartupBytes := int64((data.Get("memory_startup_bytes")).(int))
+		notes := (data.Get("notes")).(string)
+		processorCount := int64((data.Get("processor_count")).(int))
+		smartPagingFilePath := (data.Get("smart_paging_file_path")).(string)
+		snapshotFileLocation := (data.Get("snapshot_file_location")).(string)
+		staticMemory := (data.Get("static_memory")).(bool)
 
-	if dynamicMemory && staticMemory {
-		return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static can't be both selected at the same time")
+		if dynamicMemory && staticMemory {
+			return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static can't be both selected at the same time")
+		}
+
+		if !dynamicMemory && !staticMemory {
+			return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
+		}
+
+		err = client.UpdateVM(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		if err != nil {
+			return err
+		}
 	}
 
-	if !dynamicMemory && !staticMemory {
-		return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
+	if data.HasChange("network_adaptors") {
+		networkAdapters, err := api.ExpandNetworkAdapters(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
+		if err != nil {
+			return err
+		}
 	}
 
-	flattenedNetworkAdapters := (data.Get("network_adaptors")).([]map[string]interface{})
-	flattenedIntegrationServices := (data.Get("integration_services")).([]map[string]interface{})
-	flattenedDvdDrives := (data.Get("dvd_drives")).([]map[string]interface{})
-	flattenedHardDiskDrives := (data.Get("hard_disk_drives")).([]map[string]interface{})
+	if data.HasChange("integration_services") {
+		integrationServices, err := api.ExpandIntegrationServices(data)
+		if err != nil {
+			return err
+		}
 
-	networkAdapters := api.ExpandNetworkAdapters(&flattenedNetworkAdapters)
-	integrationServices := api.ExpandIntegrationServices (&flattenedIntegrationServices)
-	dvdDrives := api.ExpandDvdDrives(&flattenedDvdDrives)
-	hardDiskDrives := api.ExpandHardDiskDrives(&flattenedHardDiskDrives)
+		changedIntegrationServices := api.GetChangedIntegrationServices(integrationServices, data)
 
-	err = client.UpdateVM(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
-	if err != nil {
-		return err
+		err = client.CreateOrUpdateVMIntegrationServices(name, changedIntegrationServices)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
-	if err != nil {
-		return err
+	if data.HasChange("dvd_drives") {
+		dvdDrives, err := api.ExpandDvdDrives(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVMDvdDrives(name, dvdDrives)
+		if err != nil {
+			return err
+		}
 	}
 
-	err = client.CreateOrUpdateVMIntegrationServices(name, integrationServices)
-	if err != nil {
-		return err
-	}
+	if data.HasChange("hard_disk_drives") {
+		hardDiskDrives, err := api.ExpandHardDiskDrives(data)
+		if err != nil {
+			return err
+		}
 
-	err = client.CreateOrUpdateVMDvdDrives(name, dvdDrives)
-	if err != nil {
-		return err
-	}
-
-	err = client.CreateOrUpdateVMHardDiskDrives(name, hardDiskDrives)
-	if err != nil {
-		return err
+		err = client.CreateOrUpdateVMHardDiskDrives(name, hardDiskDrives)
+		if err != nil {
+			return err
+		}
 	}
 
 	log.Printf("[INFO][hyperv][update] updated hyperv machine: %#v", data)
 
-	return nil
+	return resourceHyperVMachineInstanceRead(data, meta)
 }
 
 func resourceHyperVMachineInstanceDelete(data *schema.ResourceData, meta interface{}) (err error) {
