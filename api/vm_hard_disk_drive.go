@@ -68,7 +68,7 @@ func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
 	expandedHardDiskDrives := make([]vmHardDiskDrive, 0)
 
 	if v, ok := d.GetOk("hard_disk_drives"); ok {
-		hardDiskDrives := v.(*schema.Set).List()
+		hardDiskDrives := v.([]interface{})
 
 		for _, hardDiskDrive := range hardDiskDrives {
 			hardDiskDrive, ok := hardDiskDrive.(map[string]interface{})
@@ -236,9 +236,11 @@ if ($vmHardDiskDrivesObject) {
 `))
 
 func (c *HypervClient) GetVMHardDiskDrives(vmName string) (result []vmHardDiskDrive, err error) {
+	result = make([]vmHardDiskDrive, 0)
+
 	err = c.runScriptWithResult(getVMHardDiskDrivesTemplate, getVMHardDiskDrivesArgs{
 		VMName: vmName,
-	}, &result)
+	}, result)
 
 	return result, err
 }
@@ -352,20 +354,27 @@ func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDri
 		return err
 	}
 
-	for i := len(currentHardDiskDrives) - 1; i > len(hardDiskDrives)-1; i-- {
+	currentHardDiskDrivesLength := len(currentHardDiskDrives)
+	desiredHardDiskDrivesLength := len(hardDiskDrives)
+
+	for i := currentHardDiskDrivesLength - 1; i > desiredHardDiskDrivesLength-1; i-- {
 		currentHardDiskDrive := currentHardDiskDrives[i]
-		err = c.DeleteVMHardDiskDrive(currentHardDiskDrive.VMName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
+		err = c.DeleteVMHardDiskDrive(vmName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
 	}
 
-	for i := 0; i < len(currentHardDiskDrives)-1; i++ {
+	if currentHardDiskDrivesLength > desiredHardDiskDrivesLength {
+		currentHardDiskDrivesLength = desiredHardDiskDrivesLength
+	}
+
+	for i := 0; i <= currentHardDiskDrivesLength-1; i++ {
 		currentHardDiskDrive := currentHardDiskDrives[i]
 		hardDiskDrive := hardDiskDrives[i]
 
 		err = c.UpdateVMHardDiskDrive(
-			currentHardDiskDrive.VMName,
+			vmName,
 			currentHardDiskDrive.ControllerNumber,
 			currentHardDiskDrive.ControllerLocation,
 			hardDiskDrive.ControllerType,
@@ -385,10 +394,10 @@ func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDri
 		}
 	}
 
-	for i := len(currentHardDiskDrives) - 1; i < len(hardDiskDrives)-1; i++ {
+	for i := currentHardDiskDrivesLength - 1 + 1; i <= desiredHardDiskDrivesLength-1; i++ {
 		hardDiskDrive := hardDiskDrives[i]
 		err = c.CreateVMHardDiskDrive(
-			hardDiskDrive.VMName,
+			vmName,
 			hardDiskDrive.ControllerType,
 			hardDiskDrive.ControllerNumber,
 			hardDiskDrive.ControllerLocation,

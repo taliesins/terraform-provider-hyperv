@@ -214,7 +214,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Default:      api.OnOffState_name[api.OnOffState_Off],
 							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
 						},
-						"vmq_weigth": {
+						"vmq_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,

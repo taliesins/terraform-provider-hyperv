@@ -11,7 +11,7 @@ func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
 	expandedDvdDrives := make([]vmDvdDrive, 0)
 
 	if v, ok := d.GetOk("dvd_drives"); ok {
-		dvdDrives := v.(*schema.Set).List()
+		dvdDrives := v.([]interface{})
 		for _, dvdDrive := range dvdDrives {
 			dvdDrive, ok := dvdDrive.(map[string]interface{})
 			if !ok {
@@ -130,9 +130,11 @@ if ($vmDvdDrivesObject) {
 `))
 
 func (c *HypervClient) GetVMDvdDrives(vmName string) (result []vmDvdDrive, err error) {
+	result = make([]vmDvdDrive, 0)
+
 	err = c.runScriptWithResult(getVMDvdDrivesTemplate, getVMDvdDrivesArgs{
 		VMName: vmName,
-	}, &result)
+	}, result)
 
 	return result, err
 }
@@ -225,20 +227,27 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 		return err
 	}
 
-	for i := len(currentDvdDrives) - 1; i > len(dvdDrives)-1; i-- {
+	currentDvdDrivesLength := len(currentDvdDrives)
+	desiredDvdDrivesLength := len(dvdDrives)
+
+	for i := currentDvdDrivesLength - 1; i > desiredDvdDrivesLength-1; i-- {
 		currentDvdDrive := currentDvdDrives[i]
-		err = c.DeleteVMDvdDrive(currentDvdDrive.VMName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
+		err = c.DeleteVMDvdDrive(vmName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
 	}
 
-	for i := 0; i < len(currentDvdDrives)-1; i++ {
+	if currentDvdDrivesLength > desiredDvdDrivesLength {
+		currentDvdDrivesLength = desiredDvdDrivesLength
+	}
+
+	for i := 0; i <= currentDvdDrivesLength-1; i++ {
 		currentDvdDrive := currentDvdDrives[i]
 		dvdDrive := dvdDrives[i]
 
 		err = c.UpdateVMDvdDrive(
-			currentDvdDrive.VMName,
+			vmName,
 			currentDvdDrive.ControllerNumber,
 			currentDvdDrive.ControllerLocation,
 			dvdDrive.ControllerNumber,
@@ -251,10 +260,10 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 		}
 	}
 
-	for i := len(currentDvdDrives) - 1; i < len(dvdDrives)-1; i++ {
+	for i := currentDvdDrivesLength - 1 + 1; i <= desiredDvdDrivesLength-1; i++ {
 		dvdDrive := dvdDrives[i]
 		err = c.CreateVMDvdDrive(
-			dvdDrive.VMName,
+			vmName,
 			dvdDrive.ControllerNumber,
 			dvdDrive.ControllerLocation,
 			dvdDrive.Path,

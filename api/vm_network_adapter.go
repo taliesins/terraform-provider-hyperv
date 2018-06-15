@@ -77,7 +77,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 	expandedNetworkAdapters := make([]vmNetworkAdapter, 0)
 
 	if v, ok := d.GetOk("network_adaptors"); ok {
-		networkAdapters := v.(*schema.Set).List()
+		networkAdapters := v.([]interface{})
 
 		for _, networkAdapter := range networkAdapters {
 			networkAdapter, ok := networkAdapter.(map[string]interface{})
@@ -96,7 +96,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				RouterGuard:                            ToOnOffState(networkAdapter["router_guard"].(string)),
 				PortMirroring:                          ToPortMirroring(networkAdapter["port_mirroring"].(string)),
 				IeeePriorityTag:                        ToOnOffState(networkAdapter["ieee_priority_tag"].(string)),
-				VmqWeigth:                              networkAdapter["vmq_weigth"].(int),
+				VmqWeight:                              networkAdapter["vmq_weight"].(int),
 				IovQueuePairsRequested:                 networkAdapter["iov_queue_pairs_requested"].(int),
 				IovInterruptModeration:                 ToIovInterruptModerationValue(networkAdapter["iov_interrupt_moderation"].(string)),
 				IovWeight:                              networkAdapter["iov_weight"].(int),
@@ -148,7 +148,7 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard
 			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring
 			flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag
-			flattenedNetworkAdapter["vmq_weigth"] = networkAdapter.VmqWeigth
+			flattenedNetworkAdapter["vmq_weight"] = networkAdapter.VmqWeight
 			flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
 			flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration
 			flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
@@ -194,7 +194,7 @@ type vmNetworkAdapter struct {
 	RouterGuard                            OnOffState
 	PortMirroring                          PortMirroring
 	IeeePriorityTag                        OnOffState
-	VmqWeigth                              int
+	VmqWeight                              int
 	IovQueuePairsRequested                 int
 	IovInterruptModeration                 IovInterruptModerationValue
 	IovWeight                              int
@@ -232,7 +232,7 @@ $vmNetworkAdapter = '{{.VmNetworkAdapterJson}}' | ConvertFrom-Json
 
 $dhcpGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DhcpGuard
 $routerGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.RouterGuard
-$portMirroring = [Microsoft.HyperV.PowerShell.PortMirroring]$vmNetworkAdapter.PortMirroring
+$portMirroring = [Microsoft.HyperV.PowerShell.VMNetworkAdapterPortMirroringMode]$vmNetworkAdapter.PortMirroring
 $ieeePriorityTag = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.IeeePriorityTag
 $iovInterruptModeration = [Microsoft.HyperV.PowerShell.IovInterruptModerationValue]$vmNetworkAdapter.IovInterruptModeration
 $allowTeaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.AllowTeaming
@@ -256,7 +256,9 @@ if ($vmNetworkAdapter.DynamicMacAddress) {
 } else {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
-$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
+if ($vmNetworkAdapter.MacAddressSpoofing) {
+	$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
+}
 $SetVmNetworkAdapterArgs.DhcpGuard=$dhcpGuard
 $SetVmNetworkAdapterArgs.RouterGuard=$routerGuard
 $SetVmNetworkAdapterArgs.PortMirroring=$portMirroring
@@ -270,7 +272,9 @@ $SetVmNetworkAdapterArgs.MaximumBandwidth=$vmNetworkAdapter.MaximumBandwidth
 $SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
 $SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
 $SetVmNetworkAdapterArgs.MandatoryFeatureId=$vmNetworkAdapter.MandatoryFeatureId
-$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+if ($vmNetworkAdapter.ResourcePoolName) {
+	$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+}
 $SetVmNetworkAdapterArgs.TestReplicaPoolName=$vmNetworkAdapter.TestReplicaPoolName
 $SetVmNetworkAdapterArgs.TestReplicaSwitchName=$vmNetworkAdapter.TestReplicaSwitchName
 $SetVmNetworkAdapterArgs.VirtualSubnetId=$vmNetworkAdapter.VirtualSubnetId
@@ -303,7 +307,7 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 	routerGuard OnOffState,
 	portMirroring PortMirroring,
 	ieeePriorityTag OnOffState,
-	vmqWeigth int,
+	vmqWeight int,
 	iovQueuePairsRequested int,
 	iovInterruptModeration IovInterruptModerationValue,
 	iovWeight int,
@@ -331,21 +335,21 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
-		VMName:                 vmName,
-		Name:                   name,
-		SwitchName:             switchName,
-		ManagementOs:           managementOs,
-		IsLegacy:               isLegacy,
-		DynamicMacAddress:      dynamicMacAddress,
-		StaticMacAddress:       staticMacAddress,
-		DhcpGuard:              dhcpGuard,
-		RouterGuard:            routerGuard,
-		PortMirroring:          portMirroring,
-		IeeePriorityTag:        ieeePriorityTag,
-		VmqWeigth:              vmqWeigth,
-		IovQueuePairsRequested: iovQueuePairsRequested,
-		IovInterruptModeration: iovInterruptModeration,
-		IovWeight:              iovWeight,
+		VMName:                                 vmName,
+		Name:                                   name,
+		SwitchName:                             switchName,
+		ManagementOs:                           managementOs,
+		IsLegacy:                               isLegacy,
+		DynamicMacAddress:                      dynamicMacAddress,
+		StaticMacAddress:                       staticMacAddress,
+		DhcpGuard:                              dhcpGuard,
+		RouterGuard:                            routerGuard,
+		PortMirroring:                          portMirroring,
+		IeeePriorityTag:                        ieeePriorityTag,
+		VmqWeight:                              vmqWeight,
+		IovQueuePairsRequested:                 iovQueuePairsRequested,
+		IovInterruptModeration:                 iovInterruptModeration,
+		IovWeight:                              iovWeight,
 		IpsecOffloadMaximumSecurityAssociation: ipsecOffloadMaximumSecurityAssociation,
 		MaximumBandwidth:                       maximumBandwidth,
 		MinimumBandwidthAbsolute:               minimumBandwidthAbsolute,
@@ -393,7 +397,7 @@ $vmNetworkAdaptersObject = Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
 	RouterGuard=$_.RouterGuard;
 	PortMirroring=$_.PortMirroring;
 	IeeePriorityTag=$_.IeeePriorityTag;
-	VmqWeigth=$_.VmqWeigth;
+	VmqWeight=$_.VmqWeight;
 	IovQueuePairsRequested=$_.IovQueuePairsRequested;
 	IovInterruptModeration=$_.IovInterruptModeration;
 	IovWeight=$_.IovWeight;
@@ -429,9 +433,11 @@ if ($vmNetworkAdaptersObject) {
 `))
 
 func (c *HypervClient) GetVMNetworkAdapters(vmname string) (result []vmNetworkAdapter, err error) {
+	result = make([]vmNetworkAdapter, 0)
+
 	err = c.runScriptWithResult(getVMNetworkAdaptersTemplate, getVMNetworkAdaptersArgs{
 		VMName: vmname,
-	}, &result)
+	}, result)
 
 	return result, err
 }
@@ -449,7 +455,7 @@ $vmNetworkAdapter = '{{.VmNetworkAdapterJson}}' | ConvertFrom-Json
 
 $dhcpGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DhcpGuard
 $routerGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.RouterGuard
-$portMirroring = [Microsoft.HyperV.PowerShell.PortMirroring]$vmNetworkAdapter.PortMirroring
+$portMirroring = [Microsoft.HyperV.PowerShell.VMNetworkAdapterPortMirroringMode]$vmNetworkAdapter.PortMirroring
 $ieeePriorityTag = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.IeeePriorityTag
 $iovInterruptModeration = [Microsoft.HyperV.PowerShell.IovInterruptModerationValue]$vmNetworkAdapter.IovInterruptModeration
 $allowTeaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.AllowTeaming
@@ -470,7 +476,9 @@ if ($vmNetworkAdapter.DynamicMacAddress) {
 } else {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
-$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
+if ($vmNetworkAdapter.MacAddressSpoofing) {
+	$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
+}
 $SetVmNetworkAdapterArgs.DhcpGuard=$dhcpGuard
 $SetVmNetworkAdapterArgs.RouterGuard=$routerGuard
 $SetVmNetworkAdapterArgs.PortMirroring=$portMirroring
@@ -484,7 +492,9 @@ $SetVmNetworkAdapterArgs.MaximumBandwidth=$vmNetworkAdapter.MaximumBandwidth
 $SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
 $SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
 $SetVmNetworkAdapterArgs.MandatoryFeatureId=$vmNetworkAdapter.MandatoryFeatureId
-$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+if ($vmNetworkAdapter.ResourcePoolName) {
+	$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+}
 $SetVmNetworkAdapterArgs.TestReplicaPoolName=$vmNetworkAdapter.TestReplicaPoolName
 $SetVmNetworkAdapterArgs.TestReplicaSwitchName=$vmNetworkAdapter.TestReplicaSwitchName
 $SetVmNetworkAdapterArgs.VirtualSubnetId=$vmNetworkAdapter.VirtualSubnetId
@@ -518,7 +528,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 	routerGuard OnOffState,
 	portMirroring PortMirroring,
 	ieeePriorityTag OnOffState,
-	vmqWeigth int,
+	vmqWeight int,
 	iovQueuePairsRequested int,
 	iovInterruptModeration IovInterruptModerationValue,
 	iovWeight int,
@@ -546,22 +556,22 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
-		VMName:                 vmName,
-		Index:                  index,
-		Name:                   name,
-		SwitchName:             switchName,
-		ManagementOs:           managementOs,
-		IsLegacy:               isLegacy,
-		DynamicMacAddress:      dynamicMacAddress,
-		StaticMacAddress:       staticMacAddress,
-		DhcpGuard:              dhcpGuard,
-		RouterGuard:            routerGuard,
-		PortMirroring:          portMirroring,
-		IeeePriorityTag:        ieeePriorityTag,
-		VmqWeigth:              vmqWeigth,
-		IovQueuePairsRequested: iovQueuePairsRequested,
-		IovInterruptModeration: iovInterruptModeration,
-		IovWeight:              iovWeight,
+		VMName:                                 vmName,
+		Index:                                  index,
+		Name:                                   name,
+		SwitchName:                             switchName,
+		ManagementOs:                           managementOs,
+		IsLegacy:                               isLegacy,
+		DynamicMacAddress:                      dynamicMacAddress,
+		StaticMacAddress:                       staticMacAddress,
+		DhcpGuard:                              dhcpGuard,
+		RouterGuard:                            routerGuard,
+		PortMirroring:                          portMirroring,
+		IeeePriorityTag:                        ieeePriorityTag,
+		VmqWeight:                              vmqWeight,
+		IovQueuePairsRequested:                 iovQueuePairsRequested,
+		IovInterruptModeration:                 iovInterruptModeration,
+		IovWeight:                              iovWeight,
 		IpsecOffloadMaximumSecurityAssociation: ipsecOffloadMaximumSecurityAssociation,
 		MaximumBandwidth:                       maximumBandwidth,
 		MinimumBandwidthAbsolute:               minimumBandwidthAbsolute,
@@ -620,19 +630,27 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 		return err
 	}
 
-	for i := len(currentNetworkAdapters) - 1; i > len(networkAdapters)-1; i-- {
+	currentNetworkAdaptersLength := len(currentNetworkAdapters)
+	desiredNetworkAdaptersLength := len(networkAdapters)
+
+	for i := currentNetworkAdaptersLength - 1; i > desiredNetworkAdaptersLength-1; i-- {
 		currentNetworkAdapter := currentNetworkAdapters[i]
-		err = c.DeleteVMNetworkAdapter(currentNetworkAdapter.VMName, currentNetworkAdapter.Index)
+		err = c.DeleteVMNetworkAdapter(vmName, currentNetworkAdapter.Index)
 		if err != nil {
 			return err
 		}
 	}
 
-	for i := 0; i < len(currentNetworkAdapters)-1; i++ {
+	if currentNetworkAdaptersLength > desiredNetworkAdaptersLength {
+		currentNetworkAdaptersLength = desiredNetworkAdaptersLength
+	}
+
+	for i := 0; i <= currentNetworkAdaptersLength-1; i++ {
+		currentNetworkAdapter := currentNetworkAdapters[i]
 		networkAdapter := networkAdapters[i]
 		err = c.UpdateVMNetworkAdapter(
-			networkAdapter.VMName,
-			networkAdapter.Index,
+			vmName,
+			currentNetworkAdapter.Index,
 			networkAdapter.Name,
 			networkAdapter.SwitchName,
 			networkAdapter.ManagementOs,
@@ -643,7 +661,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 			networkAdapter.RouterGuard,
 			networkAdapter.PortMirroring,
 			networkAdapter.IeeePriorityTag,
-			networkAdapter.VmqWeigth,
+			networkAdapter.VmqWeight,
 			networkAdapter.IovQueuePairsRequested,
 			networkAdapter.IovInterruptModeration,
 			networkAdapter.IovWeight,
@@ -674,10 +692,10 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 		}
 	}
 
-	for i := len(currentNetworkAdapters) - 1; i < len(networkAdapters)-1; i++ {
+	for i := currentNetworkAdaptersLength - 1 + 1; i <= desiredNetworkAdaptersLength-1; i++ {
 		networkAdapter := networkAdapters[i]
 		err = c.CreateVMNetworkAdapter(
-			networkAdapter.VMName,
+			vmName,
 			networkAdapter.Name,
 			networkAdapter.SwitchName,
 			networkAdapter.ManagementOs,
@@ -688,7 +706,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 			networkAdapter.RouterGuard,
 			networkAdapter.PortMirroring,
 			networkAdapter.IeeePriorityTag,
-			networkAdapter.VmqWeigth,
+			networkAdapter.VmqWeight,
 			networkAdapter.IovQueuePairsRequested,
 			networkAdapter.IovInterruptModeration,
 			networkAdapter.IovWeight,
