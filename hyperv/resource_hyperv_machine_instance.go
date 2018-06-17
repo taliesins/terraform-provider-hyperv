@@ -217,12 +217,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"vmq_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  0,
+							Default:  100,
 						},
 						"iov_queue_pairs_requested": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  0,
+							Default:  1,
 						},
 						"iov_interrupt_moderation": {
 							Type:         schema.TypeString,
@@ -233,12 +233,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"iov_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  0,
+							Default:  100,
 						},
 						"ipsec_offload_maximum_security_association": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  0,
+							Default:  512,
 						},
 						"maximum_bandwidth": {
 							Type:     schema.TypeInt,
@@ -256,9 +256,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Default:  0,
 						},
 						"mandatory_feature_id": {
-							Type:     schema.TypeString,
+							Type:     schema.TypeSet,
 							Optional: true,
-							Default:  "",
+							Elem:     &schema.Schema{Type: schema.TypeString},
+							Set:      schema.HashString,
 						},
 						"resource_pool_name": {
 							Type:     schema.TypeString,
@@ -283,7 +284,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"allow_teaming": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      api.OnOffState_name[api.OnOffState_Off],
+							Default:      api.OnOffState_name[api.OnOffState_On],
 							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
 						},
 						"not_monitored_in_cluster": {
@@ -331,7 +332,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"vrss_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
-							Default:  false,
+							Default:  true,
 						},
 						"vmmq_enabled": {
 							Type:     schema.TypeBool,
@@ -341,7 +342,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"vmmq_queue_pairs": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default:  0,
+							Default:  16,
 						},
 					},
 				},

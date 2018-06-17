@@ -85,6 +85,12 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				return nil, fmt.Errorf("[ERROR][hyperv] network_adaptors should be a Hash - was '%+v'", networkAdapter)
 			}
 
+			mandatoryFeatureIdSet := networkAdapter["mandatory_feature_id"].(*schema.Set).List()
+			mandatoryFeatureIds := make([]string, 0)
+			for _, mandatoryFeatureId := range mandatoryFeatureIdSet {
+				mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId.(string))
+			}
+
 			expandedNetworkAdapter := vmNetworkAdapter{
 				Name:                                   networkAdapter["name"].(string),
 				SwitchName:                             networkAdapter["switch_name"].(string),
@@ -104,7 +110,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				MaximumBandwidth:                       networkAdapter["maximum_bandwidth"].(int),
 				MinimumBandwidthAbsolute:               networkAdapter["minimum_bandwidth_absolute"].(int),
 				MinimumBandwidthWeight:                 networkAdapter["minimum_bandwidth_weight"].(int),
-				MandatoryFeatureId:                     networkAdapter["mandatory_feature_id"].(string),
+				MandatoryFeatureId:                     mandatoryFeatureIds,
 				ResourcePoolName:                       networkAdapter["resource_pool_name"].(string),
 				TestReplicaPoolName:                    networkAdapter["test_replica_pool_name"].(string),
 				TestReplicaSwitchName:                  networkAdapter["test_replica_switch_name"].(string),
@@ -202,7 +208,7 @@ type vmNetworkAdapter struct {
 	MaximumBandwidth                       int
 	MinimumBandwidthAbsolute               int
 	MinimumBandwidthWeight                 int
-	MandatoryFeatureId                     string
+	MandatoryFeatureId                     []string
 	ResourcePoolName                       string
 	TestReplicaPoolName                    string
 	TestReplicaSwitchName                  string
@@ -248,6 +254,15 @@ $NewVmNetworkAdapterArgs = @{
 
 Add-VmNetworkAdapter @NewVmNetworkAdapterArgs
 
+$minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::None
+
+if ($vmNetworkAdapter.SwitchName) {
+	$vmSwitch = Get-VMSwitch -Name $vmNetworkAdapter.SwitchName
+	if ($vmSwitch) {
+		$minimumBandwidthMode = $vmSwitch.BandwidthReservationMode
+	}
+}
+
 $SetVmNetworkAdapterArgs = @{}
 $SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
@@ -269,8 +284,12 @@ $SetVmNetworkAdapterArgs.IovInterruptModeration=$iovInterruptModeration
 $SetVmNetworkAdapterArgs.IovWeight=$vmNetworkAdapter.IovWeight
 $SetVmNetworkAdapterArgs.IPsecOffloadMaximumSecurityAssociation=$vmNetworkAdapter.IPsecOffloadMaximumSecurityAssociation
 $SetVmNetworkAdapterArgs.MaximumBandwidth=$vmNetworkAdapter.MaximumBandwidth
-$SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
-$SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute){
+	$SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
+}
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight -or $minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default){
+	$SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
+}
 $SetVmNetworkAdapterArgs.MandatoryFeatureId=$vmNetworkAdapter.MandatoryFeatureId
 if ($vmNetworkAdapter.ResourcePoolName) {
 	$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
@@ -315,7 +334,7 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 	maximumBandwidth int,
 	minimumBandwidthAbsolute int,
 	minimumBandwidthWeight int,
-	mandatoryFeatureId string,
+	mandatoryFeatureId []string,
 	resourcePoolName string,
 	testReplicaPoolName string,
 	testReplicaSwitchName string,
@@ -468,6 +487,13 @@ if (!$vmNetworkAdaptersObject){
 	throw "VM network adapter does not exist - {{.Index}}"
 }
 
+if ($vmNetworkAdapter.SwitchName) {
+	$vmSwitch = Get-VMSwitch -Name $vmNetworkAdapter.SwitchName
+	if ($vmSwitch) {
+		$minimumBandwidthMode = $vmSwitch.BandwidthReservationMode
+	}
+}
+
 $SetVmNetworkAdapterArgs = @{}
 $SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
@@ -489,8 +515,12 @@ $SetVmNetworkAdapterArgs.IovInterruptModeration=$iovInterruptModeration
 $SetVmNetworkAdapterArgs.IovWeight=$vmNetworkAdapter.IovWeight
 $SetVmNetworkAdapterArgs.IPsecOffloadMaximumSecurityAssociation=$vmNetworkAdapter.IPsecOffloadMaximumSecurityAssociation
 $SetVmNetworkAdapterArgs.MaximumBandwidth=$vmNetworkAdapter.MaximumBandwidth
-$SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
-$SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Absolute){
+	$SetVmNetworkAdapterArgs.MinimumBandwidthAbsolute=$vmNetworkAdapter.MinimumBandwidthAbsolute
+}
+if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Weight -or $minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]::Default){
+	$SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
+}
 $SetVmNetworkAdapterArgs.MandatoryFeatureId=$vmNetworkAdapter.MandatoryFeatureId
 if ($vmNetworkAdapter.ResourcePoolName) {
 	$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
@@ -536,7 +566,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 	maximumBandwidth int,
 	minimumBandwidthAbsolute int,
 	minimumBandwidthWeight int,
-	mandatoryFeatureId string,
+	mandatoryFeatureId []string,
 	resourcePoolName string,
 	testReplicaPoolName string,
 	testReplicaSwitchName string,
