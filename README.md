@@ -1,7 +1,7 @@
 HyperV Terraform Provider
 =========================
 
-#This is not even alpha yet. Don't use yet. Master is probably broken
+#This is alpha code. Experiment, but don't use if for production yet. Sample should be able to create switch, vm and network card connected to the switch. Working on getting hard drives and dvd drives working next.
 
 - Website: https://www.terraform.io
 - [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
