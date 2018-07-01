@@ -6,6 +6,8 @@ import (
 	"text/template"
 	"github.com/hashicorp/terraform/helper/schema"
 	"fmt"
+	"bytes"
+	"strconv"
 )
 
 type PortMirroring int
@@ -33,7 +35,34 @@ func (x PortMirroring) String() string {
 }
 
 func ToPortMirroring(x string) PortMirroring {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return PortMirroring(integerValue)
+	}
 	return PortMirroring_value[strings.ToLower(x)]
+}
+
+func (d *PortMirroring) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *PortMirroring) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = PortMirroring(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToPortMirroring(s)
+	return nil
 }
 
 type IovInterruptModerationValue int
@@ -70,7 +99,34 @@ func (x IovInterruptModerationValue) String() string {
 }
 
 func ToIovInterruptModerationValue(x string) IovInterruptModerationValue {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return IovInterruptModerationValue(integerValue)
+	}
 	return IovInterruptModerationValue_value[strings.ToLower(x)]
+}
+
+func (d *IovInterruptModerationValue) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *IovInterruptModerationValue) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = IovInterruptModerationValue(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToIovInterruptModerationValue(s)
+	return nil
 }
 
 func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
@@ -405,7 +461,7 @@ type getVMNetworkAdaptersArgs struct {
 
 var getVMNetworkAdaptersTemplate = template.Must(template.New("GetVMNetworkAdapters").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmNetworkAdaptersObject = Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
+$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
 	Name=$_.Name;
 	SwitchName=$_.SwitchName;
 	ManagementOs=$_.ManagementOs;
@@ -441,7 +497,7 @@ $vmNetworkAdaptersObject = Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
 	VrssEnabled=$_.VrssEnabled;
 	VmmqEnabled=$_.VmmqEnabled;
 	VmmqQueuePairs=$_.VmmqQueuePairs;
-}}
+}})
 
 if ($vmNetworkAdaptersObject) {
 	$vmNetworkAdapters = ConvertTo-Json -InputObject $vmNetworkAdaptersObject
@@ -456,7 +512,7 @@ func (c *HypervClient) GetVMNetworkAdapters(vmname string) (result []vmNetworkAd
 
 	err = c.runScriptWithResult(getVMNetworkAdaptersTemplate, getVMNetworkAdaptersArgs{
 		VMName: vmname,
-	}, result)
+	}, &result)
 
 	return result, err
 }

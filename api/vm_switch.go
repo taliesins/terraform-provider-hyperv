@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"text/template"
+	"bytes"
+	"strconv"
 )
 
 type VMSwitchBandwidthMode int
@@ -34,7 +36,35 @@ func (x VMSwitchBandwidthMode) String() string {
 }
 
 func ToVMSwitchBandwidthMode(x string) VMSwitchBandwidthMode {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return VMSwitchBandwidthMode(integerValue)
+	}
+
 	return VMSwitchBandwidthMode_value[strings.ToLower(x)]
+}
+
+func (d *VMSwitchBandwidthMode) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *VMSwitchBandwidthMode) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = VMSwitchBandwidthMode(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToVMSwitchBandwidthMode(s)
+	return nil
 }
 
 type VMSwitchType int
@@ -62,7 +92,35 @@ func (x VMSwitchType) String() string {
 }
 
 func ToVMSwitchType(x string) VMSwitchType {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return VMSwitchType(integerValue)
+	}
+
 	return VMSwitchType_value[strings.ToLower(x)]
+}
+
+func (d *VMSwitchType) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *VMSwitchType) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = VMSwitchType(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToVMSwitchType(s)
+	return nil
 }
 
 type vmSwitch struct {

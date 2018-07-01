@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"text/template"
+	"bytes"
+	"strconv"
 )
 
 type CriticalErrorAction int
@@ -28,7 +30,35 @@ func (x CriticalErrorAction) String() string {
 }
 
 func ToCriticalErrorAction(x string) CriticalErrorAction {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return CriticalErrorAction(integerValue)
+	}
+
 	return CriticalErrorAction_value[strings.ToLower(x)]
+}
+
+func (d *CriticalErrorAction) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *CriticalErrorAction) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = CriticalErrorAction(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToCriticalErrorAction(s)
+	return nil
 }
 
 type StartAction int
@@ -56,7 +86,35 @@ func (x StartAction) String() string {
 }
 
 func ToStartAction(x string) StartAction {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return StartAction(integerValue)
+	}
+
 	return StartAction_value[strings.ToLower(x)]
+}
+
+func (d *StartAction) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *StartAction) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = StartAction(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToStartAction(s)
+	return nil
 }
 
 type StopAction int
@@ -84,7 +142,34 @@ func (x StopAction) String() string {
 }
 
 func ToStopAction(x string) StopAction {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return StopAction(integerValue)
+	}
 	return StopAction_value[strings.ToLower(x)]
+}
+
+func (d *StopAction) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *StopAction) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = StopAction(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToStopAction(s)
+	return nil
 }
 
 type CheckpointType int
@@ -115,7 +200,34 @@ func (x CheckpointType) String() string {
 }
 
 func ToCheckpointType(x string) CheckpointType {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return CheckpointType(integerValue)
+	}
 	return CheckpointType_value[strings.ToLower(x)]
+}
+
+func (d *CheckpointType) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *CheckpointType) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = CheckpointType(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToCheckpointType(s)
+	return nil
 }
 
 type OnOffState int
@@ -140,7 +252,34 @@ func (x OnOffState) String() string {
 }
 
 func ToOnOffState(x string) OnOffState {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return OnOffState(integerValue)
+	}
 	return OnOffState_value[strings.ToLower(x)]
+}
+
+func (d *OnOffState) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *OnOffState) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = OnOffState(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToOnOffState(s)
+	return nil
 }
 
 type vm struct {

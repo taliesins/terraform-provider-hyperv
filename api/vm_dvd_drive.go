@@ -112,14 +112,14 @@ type getVMDvdDrivesArgs struct {
 
 var getVMDvdDrivesTemplate = template.Must(template.New("GetVMDvdDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmDvdDrivesObject = Get-VMDvdDrive -VMName '{{.VMName}}' | %{ @{
+$vmDvdDrivesObject = @(Get-VMDvdDrive -VMName '{{.VMName}}' | %{ @{
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
 	Path=$_.Path;
 	#ControllerType=$_.ControllerType; not able to set it
 	#DvdMediaType=$_.DvdMediaType; not able to set it
 	ResourcePoolName=$_.PoolName;
-}}
+}})
 
 if ($vmDvdDrivesObject) {
 	$vmDvdDrives = ConvertTo-Json -InputObject $vmDvdDrivesObject

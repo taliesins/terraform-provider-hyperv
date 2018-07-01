@@ -537,7 +537,13 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	log.Printf("[INFO][hyperv][read] reading hyperv machine: %#v", data)
 	client := meta.(*api.HypervClient)
 
-	name := data.Id()
+	name := ""
+
+	if v, ok := data.GetOk("name"); ok {
+		name = v.(string)
+	} else {
+		return fmt.Errorf("[ERROR][hyperv][read] name argument is required")
+	}
 
 	vm, err := client.GetVM(name)
 	if err != nil {
@@ -580,16 +586,17 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
 	}
 
-	flattenedNetworkAdapters := api.FlattenNetworkAdapters(&networkAdapters)
-	if err := data.Set("network_adaptors", flattenedNetworkAdapters); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %v", err)
-	}
-
 	flattenedIntegrationServices := api.FlattenIntegrationServices(&integrationServices)
 	if err := data.Set("integration_services", flattenedIntegrationServices); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting integration_services error: %v", err)
 	}
-	log.Printf("[INFO][hyperv][read] flattenedIntegrationServices: %v", flattenedIntegrationServices)
+
+	flattenedNetworkAdapters := api.FlattenNetworkAdapters(&networkAdapters)
+	if err := data.Set("network_adaptors", flattenedNetworkAdapters); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %v", err)
+	}
+	log.Printf("[INFO][hyperv][read] networkAdapters: %v", networkAdapters)
+	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
 
 	flattenedDvdDrives := api.FlattenDvdDrives(&dvdDrives)
 	if err := data.Set("dvd_drives", flattenedDvdDrives); err != nil {
@@ -631,7 +638,13 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 	log.Printf("[INFO][hyperv][update] updating hyperv machine: %#v", data)
 	client := meta.(*api.HypervClient)
 
-	name := data.Id()
+	name := ""
+
+	if v, ok := data.GetOk("name"); ok {
+		name = v.(string)
+	} else {
+		return fmt.Errorf("[ERROR][hyperv][update] name argument is required")
+	}
 
 	if data.HasChange("automatic_critical_error_action") ||
 		data.HasChange("automatic_critical_error_action_timeout") ||
@@ -747,7 +760,13 @@ func resourceHyperVMachineInstanceDelete(data *schema.ResourceData, meta interfa
 
 	client := meta.(*api.HypervClient)
 
-	name := data.Id()
+	name := ""
+
+	if v, ok := data.GetOk("name"); ok {
+		name = v.(string)
+	} else {
+		return fmt.Errorf("[ERROR][hyperv][delete] name argument is required")
+	}
 
 	err = client.DeleteVM(name)
 

@@ -123,10 +123,10 @@ type getVMIntegrationServicesArgs struct {
 
 var getVMIntegrationServicesTemplate = template.Must(template.New("GetVMIntegrationServices").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmIntegrationServicesObject = Get-VMIntegrationService -VMName '{{.VMName}}' | %{ @{
+$vmIntegrationServicesObject = @(Get-VMIntegrationService -VMName '{{.VMName}}' | %{ @{
 	Name=$_.Name;
 	Enabled=$_.Enabled;
-}}
+}})
 
 if ($vmIntegrationServicesObject) {
 	$vmIntegrationServices = ConvertTo-Json -InputObject $vmIntegrationServicesObject

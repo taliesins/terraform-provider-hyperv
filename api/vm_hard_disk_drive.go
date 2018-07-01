@@ -6,6 +6,8 @@ import (
 	"text/template"
 	"github.com/hashicorp/terraform/helper/schema"
 	"fmt"
+	"bytes"
+	"strconv"
 )
 
 type ControllerType int
@@ -30,7 +32,34 @@ func (x ControllerType) String() string {
 }
 
 func ToControllerType(x string) ControllerType {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return ControllerType(integerValue)
+	}
 	return ControllerType_value[strings.ToLower(x)]
+}
+
+func (d *ControllerType) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *ControllerType) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = ControllerType(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToControllerType(s)
+	return nil
 }
 
 type CacheAttributes int
@@ -61,7 +90,34 @@ func (x CacheAttributes) String() string {
 }
 
 func ToCacheAttributes(x string) CacheAttributes {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return CacheAttributes(integerValue)
+	}
 	return CacheAttributes_value[strings.ToLower(x)]
+}
+
+func (d *CacheAttributes) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *CacheAttributes) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = CacheAttributes(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToCacheAttributes(s)
+	return nil
 }
 
 func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
@@ -213,7 +269,7 @@ type getVMHardDiskDrivesArgs struct {
 
 var getVMHardDiskDrivesTemplate = template.Must(template.New("GetVMHardDiskDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmHardDiskDrivesObject = Get-VMHardDiskDrive -VMName '{{.VMName}}' | %{ @{
+$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VMName '{{.VMName}}' | %{ @{
 	ControllerType=$_.ControllerType;
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
@@ -225,7 +281,7 @@ $vmHardDiskDrivesObject = Get-VMHardDiskDrive -VMName '{{.VMName}}' | %{ @{
 	MinimumIops=$_.MinimumIops;
 	QosPolicyId=$_.QosPolicyId;	
 	OverrideCacheAttributes=$_.WriteHardeningMethod;
-}}
+}})
 
 if ($vmHardDiskDrivesObject) {
 	$vmHardDiskDrives = ConvertTo-Json -InputObject $vmHardDiskDrivesObject
