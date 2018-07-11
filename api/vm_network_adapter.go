@@ -192,6 +192,16 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 	return expandedNetworkAdapters, nil
 }
 
+func FlattenMandatoryFeatureIds(mandatoryFeatureIdStrings []string) *schema.Set {
+	var mandatoryFeatureIds []interface{}
+	if mandatoryFeatureIdStrings != nil {
+		for _, mandatoryFeatureId := range mandatoryFeatureIdStrings {
+			mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId)
+		}
+	}
+
+	return schema.NewSet(schema.HashString, mandatoryFeatureIds)
+}
 
 func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 	flattenedNetworkAdapters := make([]interface{}, 0)
@@ -199,36 +209,35 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 	if networkAdapters != nil {
 		for _, networkAdapter := range *networkAdapters {
 			flattenedNetworkAdapter := make(map[string]interface{})
-
 			flattenedNetworkAdapter["name"] = networkAdapter.Name
 			flattenedNetworkAdapter["switch_name"] = networkAdapter.SwitchName
 			flattenedNetworkAdapter["management_os"] = networkAdapter.ManagementOs
 			flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
 			flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
 			flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
-			flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard
-			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard
-			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring
-			flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag
+			flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard.String()
+			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard.String()
+			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring.String()
+			flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag.String()
 			flattenedNetworkAdapter["vmq_weight"] = networkAdapter.VmqWeight
 			flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
-			flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration
+			flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration.String()
 			flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
 			flattenedNetworkAdapter["ipsec_offload_maximum_security_association"] = networkAdapter.IpsecOffloadMaximumSecurityAssociation
 			flattenedNetworkAdapter["maximum_bandwidth"] = networkAdapter.MaximumBandwidth
 			flattenedNetworkAdapter["minimum_bandwidth_absolute"] = networkAdapter.MinimumBandwidthAbsolute
 			flattenedNetworkAdapter["minimum_bandwidth_weight"] = networkAdapter.MinimumBandwidthWeight
-			flattenedNetworkAdapter["mandatory_feature_id"] = networkAdapter.MandatoryFeatureId
+			flattenedNetworkAdapter["mandatory_feature_id"] = FlattenMandatoryFeatureIds(networkAdapter.MandatoryFeatureId)
 			flattenedNetworkAdapter["resource_pool_name"] = networkAdapter.ResourcePoolName
 			flattenedNetworkAdapter["test_replica_pool_name"] = networkAdapter.TestReplicaPoolName
 			flattenedNetworkAdapter["test_replica_switch_name"] = networkAdapter.TestReplicaSwitchName
 			flattenedNetworkAdapter["virtual_subnet_id"] = networkAdapter.VirtualSubnetId
-			flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming
+			flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming.String()
 			flattenedNetworkAdapter["not_monitored_in_cluster"] = networkAdapter.NotMonitoredInCluster
 			flattenedNetworkAdapter["storm_limit"] = networkAdapter.StormLimit
 			flattenedNetworkAdapter["dynamic_ip_address_limit"] = networkAdapter.DynamicIpAddressLimit
-			flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming
-			flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G
+			flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming.String()
+			flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G.String()
 			flattenedNetworkAdapter["packet_direct_num_procs"] = networkAdapter.PacketDirectNumProcs
 			flattenedNetworkAdapter["packet_direct_moderation_count"] = networkAdapter.PacketDirectModerationCount
 			flattenedNetworkAdapter["packet_direct_moderation_interval"] = networkAdapter.PacketDirectModerationInterval
@@ -462,41 +471,41 @@ type getVMNetworkAdaptersArgs struct {
 var getVMNetworkAdaptersTemplate = template.Must(template.New("GetVMNetworkAdapters").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
-	Name=$_.Name;
-	SwitchName=$_.SwitchName;
-	ManagementOs=$_.ManagementOs;
-	IsLegacy=$_.IsLegacy;
-	DynamicMacAddress=$_.DynamicMacAddress;
-	StaticMacAddress=$_.StaticMacAddress;
-	DhcpGuard=$_.DhcpGuard;
-	RouterGuard=$_.RouterGuard;
-	PortMirroring=$_.PortMirroring;
-	IeeePriorityTag=$_.IeeePriorityTag;
-	VmqWeight=$_.VmqWeight;
-	IovQueuePairsRequested=$_.IovQueuePairsRequested;
-	IovInterruptModeration=$_.IovInterruptModeration;
-	IovWeight=$_.IovWeight;
-	IpsecOffloadMaximumSecurityAssociation=$_.IpsecOffloadMaximumSecurityAssociation;
-	MaximumBandwidth=$_.MaximumBandwidth;
-	MinimumBandwidthAbsolute=$_.MinimumBandwidthAbsolute;
-	MinimumBandwidthWeight=$_.MinimumBandwidthWeight;
-	MandatoryFeatureId=$_.MandatoryFeatureId;
-	ResourcePoolName=$_.ResourcePoolName;
-	TestReplicaPoolName=$_.TestReplicaPoolName;
-	TestReplicaSwitchName=$_.TestReplicaSwitchName;
-	VirtualSubnetId=$_.VirtualSubnetId;
-	AllowTeaming=$_.AllowTeaming;
-	NotMonitoredInCluster=$_.NotMonitoredInCluster;
-	StormLimit=$_.StormLimit;
-	DynamicIpAddressLimit=$_.DynamicIpAddressLimit;
-	DeviceNaming=$_.DeviceNaming;
-	FixSpeed10G=$_.FixSpeed10G;
-	PacketDirectNumProcs=$_.PacketDirectNumProcs;
-	PacketDirectModerationCount=$_.PacketDirectModerationCount;
-	PacketDirectModerationInterval=$_.PacketDirectModerationInterval;
-	VrssEnabled=$_.VrssEnabled;
-	VmmqEnabled=$_.VmmqEnabled;
-	VmmqQueuePairs=$_.VmmqQueuePairs;
+     Name=$_.Name;
+     SwitchName=$_.SwitchName;
+     ManagementOs=$_.IsManagementOs;
+     IsLegacy=$_.IsLegacy;
+     DynamicMacAddress=$_.DynamicMacAddressEnabled;
+     StaticMacAddress=if ($_.MacAddress -eq '000000000000') { '' } else { $_.MacAddress };
+     DhcpGuard=$_.DhcpGuard;
+     RouterGuard=$_.RouterGuard;
+     PortMirroring=$_.PortMirroringMode;
+     IeeePriorityTag=$_.IeeePriorityTag;
+     VmqWeight=$_.VmqWeight;
+     IovQueuePairsRequested=$_.IovQueuePairsRequested;
+     IovInterruptModeration=$_.IovInterruptModeration;
+     IovWeight=$_.IovWeight;
+     IpsecOffloadMaximumSecurityAssociation=$_.IPsecOffloadMaxSA;
+     MaximumBandwidth=$_.BandwidthSetting.MaximumBandwidth;
+     MinimumBandwidthAbsolute=$_.BandwidthSetting.MinimumBandwidthAbsolute;
+     MinimumBandwidthWeight=$_.BandwidthSetting.MinimumBandwidthWeight;
+     MandatoryFeatureId=$_.MandatoryFeatureId;
+     ResourcePoolName=$_.PoolName;
+     TestReplicaPoolName=$_.TestReplicaPoolName;
+     TestReplicaSwitchName=$_.TestReplicaSwitchName;
+     VirtualSubnetId=$_.VirtualSubnetId;
+     AllowTeaming=$_.AllowTeaming;
+     NotMonitoredInCluster=!$_.ClusterMonitored;
+     StormLimit=$_.StormLimit;
+     DynamicIpAddressLimit=$_.DynamicIpAddressLimit;
+     DeviceNaming=$_.DeviceNaming;
+     FixSpeed10G=$_.FixSpeed10G;
+     PacketDirectNumProcs=$_.PacketDirectNumProcs;
+     PacketDirectModerationCount=$_.PacketDirectModerationCount;
+     PacketDirectModerationInterval=$_.PacketDirectModerationInterval;
+     VrssEnabled=$_.VrssEnabled;
+     VmmqEnabled=$_.VmmqEnabled;
+     VmmqQueuePairs=$_.VmmqQueuePairsRequested;
 }})
 
 if ($vmNetworkAdaptersObject) {

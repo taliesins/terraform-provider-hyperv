@@ -163,7 +163,7 @@ func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
 	if hardDiskDrives != nil {
 		for _, hardDiskDrive := range *hardDiskDrives {
 			flattenedHardDiskDrive := make(map[string]interface{})
-			flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType
+			flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType.String()
 			flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
 			flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
 			flattenedHardDiskDrive["path"] = hardDiskDrive.Path
@@ -173,7 +173,7 @@ func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
 			flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
 			flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
 			flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
-			flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes
+			flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
 			flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
 		}
 	}
