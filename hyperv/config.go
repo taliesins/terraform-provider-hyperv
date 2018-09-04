@@ -2,16 +2,16 @@ package hyperv
 
 import (
 	"fmt"
+	"github.com/dylanmei/iso8601"
+	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/masterzen/winrm"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 	"log"
 	"net"
+	"reflect"
+	"strconv"
 	"strings"
 	"time"
-	"github.com/masterzen/winrm"
-	"github.com/dylanmei/iso8601"
-	"github.com/taliesins/terraform-provider-hyperv/api"
-	"strconv"
-	"github.com/hashicorp/terraform/helper/schema"
-	"reflect"
 )
 
 type Config struct {

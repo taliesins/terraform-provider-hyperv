@@ -1,19 +1,19 @@
 package powershell
 
 import (
-	"bytes"
-	"fmt"
-	"log"
-	"github.com/masterzen/winrm"
-	"io/ioutil"
-	"os"
 	"bufio"
-	"time"
+	"bytes"
 	"crypto/rand"
-	"strings"
 	"encoding/base64"
-	"sync"
+	"fmt"
+	"github.com/masterzen/winrm"
 	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"strings"
+	"sync"
+	"time"
 )
 
 // Generates a time ordered UUID. Top 32 bits are a timestamp,

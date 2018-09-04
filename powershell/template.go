@@ -1,8 +1,8 @@
 package powershell
 
 import (
-	"text/template"
 	"strings"
+	"text/template"
 )
 
 type executePowershellFromCommandLineTemplateOptions struct {

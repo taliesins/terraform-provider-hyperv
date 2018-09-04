@@ -8,125 +8,125 @@ import (
 	"text/template"
 )
 
-type VMVhdType int
+type VhdType int
 
 const (
-	VMVhdType_Unknown      VMVhdType = 0
-	VMVhdType_Fixed        VMVhdType = 2
-	VMVhdType_Dynamic      VMVhdType = 3
-	VMVhdType_Differencing VMVhdType = 4
+	VhdType_Unknown      VhdType = 0
+	VhdType_Fixed        VhdType = 2
+	VhdType_Dynamic      VhdType = 3
+	VhdType_Differencing VhdType = 4
 )
 
-var VMVhdType_name = map[VMVhdType]string{
-	VMVhdType_Unknown:      "Unknown",
-	VMVhdType_Fixed:        "Fixed",
-	VMVhdType_Dynamic:      "Dynamic",
-	VMVhdType_Differencing: "Differencing",
+var VhdType_name = map[VhdType]string{
+	VhdType_Unknown:      "Unknown",
+	VhdType_Fixed:        "Fixed",
+	VhdType_Dynamic:      "Dynamic",
+	VhdType_Differencing: "Differencing",
 }
 
-var VMVhdType_value = map[string]VMVhdType{
-	"unknown":      VMVhdType_Unknown,
-	"fixed":        VMVhdType_Fixed,
-	"dynamic":      VMVhdType_Dynamic,
-	"differencing": VMVhdType_Differencing,
+var VhdType_value = map[string]VhdType{
+	"unknown":      VhdType_Unknown,
+	"fixed":        VhdType_Fixed,
+	"dynamic":      VhdType_Dynamic,
+	"differencing": VhdType_Differencing,
 }
 
-func (x VMVhdType) String() string {
-	return VMVhdType_name[x]
+func (x VhdType) String() string {
+	return VhdType_name[x]
 }
 
-func ToVMVhdType(x string) VMVhdType {
+func ToVhdType(x string) VhdType {
 	if integerValue, err := strconv.Atoi(x); err == nil {
-		return VMVhdType(integerValue)
+		return VhdType(integerValue)
 	}
 
-	return VMVhdType_value[strings.ToLower(x)]
+	return VhdType_value[strings.ToLower(x)]
 }
 
-func (d *VMVhdType) MarshalJSON() ([]byte, error) {
+func (d *VhdType) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
 	buffer.WriteString(d.String())
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
 }
 
-func (d *VMVhdType) UnmarshalJSON(b []byte) error {
+func (d *VhdType) UnmarshalJSON(b []byte) error {
 	var s string
 	err := json.Unmarshal(b, &s)
 	if err != nil {
 		var i int
 		err2 := json.Unmarshal(b, &i)
 		if err2 == nil {
-			*d = VMVhdType(i)
+			*d = VhdType(i)
 			return nil
 		}
 
 		return err
 	}
-	*d = ToVMVhdType(s)
+	*d = ToVhdType(s)
 	return nil
 }
 
-type VMVhdFormat int
+type VhdFormat int
 
 const (
-	VMVhdFormat_Unknown VMVhdFormat = 0
-	VMVhdFormat_VHD     VMVhdFormat = 2 //extension ".vhd"
-	VMVhdFormat_VHDX    VMVhdFormat = 3 //extension ".vhdx"
-	VMVhdFormat_VHDSet  VMVhdFormat = 4 //extension ".vhds"
+	VhdFormat_Unknown VhdFormat = 0
+	VhdFormat_VHD     VhdFormat = 2 //extension ".vhd"
+	VhdFormat_VHDX    VhdFormat = 3 //extension ".vhdx"
+	VhdFormat_VHDSet  VhdFormat = 4 //extension ".vhds"
 )
 
-var VMVhdFormat_name = map[VMVhdFormat]string{
-	VMVhdFormat_Unknown: "Unknown",
-	VMVhdFormat_VHD:     "VHD",
-	VMVhdFormat_VHDX:    "VHDX",
-	VMVhdFormat_VHDSet:  "VHDSet",
+var VhdFormat_name = map[VhdFormat]string{
+	VhdFormat_Unknown: "Unknown",
+	VhdFormat_VHD:     "VHD",
+	VhdFormat_VHDX:    "VHDX",
+	VhdFormat_VHDSet:  "VHDSet",
 }
 
-var VMVhdFormat_value = map[string]VMVhdFormat{
-	"unknown": VMVhdFormat_Unknown,
-	"vhd":     VMVhdFormat_VHD,
-	"vhdx":    VMVhdFormat_VHDX,
-	"vhdset":  VMVhdFormat_VHDSet,
+var VhdFormat_value = map[string]VhdFormat{
+	"unknown": VhdFormat_Unknown,
+	"vhd":     VhdFormat_VHD,
+	"vhdx":    VhdFormat_VHDX,
+	"vhdset":  VhdFormat_VHDSet,
 }
 
-func (x VMVhdFormat) String() string {
-	return VMVhdFormat_name[x]
+func (x VhdFormat) String() string {
+	return VhdFormat_name[x]
 }
 
-func ToVMVhdFormat(x string) VMVhdFormat {
+func ToVhdFormat(x string) VhdFormat {
 	if integerValue, err := strconv.Atoi(x); err == nil {
-		return VMVhdFormat(integerValue)
+		return VhdFormat(integerValue)
 	}
 
-	return VMVhdFormat_value[strings.ToLower(x)]
+	return VhdFormat_value[strings.ToLower(x)]
 }
 
-func (d *VMVhdFormat) MarshalJSON() ([]byte, error) {
+func (d *VhdFormat) MarshalJSON() ([]byte, error) {
 	buffer := bytes.NewBufferString(`"`)
 	buffer.WriteString(d.String())
 	buffer.WriteString(`"`)
 	return buffer.Bytes(), nil
 }
 
-func (d *VMVhdFormat) UnmarshalJSON(b []byte) error {
+func (d *VhdFormat) UnmarshalJSON(b []byte) error {
 	var s string
 	err := json.Unmarshal(b, &s)
 	if err != nil {
 		var i int
 		err2 := json.Unmarshal(b, &i)
 		if err2 == nil {
-			*d = VMVhdFormat(i)
+			*d = VhdFormat(i)
 			return nil
 		}
 
 		return err
 	}
-	*d = ToVMVhdFormat(s)
+	*d = ToVhdFormat(s)
 	return nil
 }
 
-type vmVhd struct {
+type vhd struct {
 	Path                    string
 	BlockSize               uint32
 	LogicalSectorSize       uint32
@@ -141,18 +141,18 @@ type vmVhd struct {
 	FragmentationPercentage int
 	Alignment               int
 	DiskIdentifier          string
-	VhdType                 VMVhdType
-	VhdFormat               VMVhdFormat
+	VhdType                 VhdType
+	VhdFormat               VhdFormat
 }
 
-type createOrUpdateVMVhdArgs struct {
+type createOrUpdateVhdArgs struct {
 	SourcePath string
 	SourceUrl  string
 	SourceDisk int
 	VhdJson   string
 }
 
-var createOrUpdateVMVhdTemplate = template.Must(template.New("CreateOrUpdateVMVhd").Parse(`
+var createOrUpdateVhdTemplate = template.Must(template.New("CreateOrUpdateVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 
 Get-VM | Out-Null
@@ -205,8 +205,8 @@ if (!(Test-Path -Path $vhd.Path)) {
 }
 `))
 
-func (c *HypervClient) CreateOrUpdateVMVhd(path string, sourcePath string, sourceUrl string, sourceDisk int, vhdType VMVhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
-	vhdJson, err := json.Marshal(vmVhd{
+func (c *HypervClient) CreateOrUpdateVhd(path string, sourcePath string, sourceUrl string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
+	vhdJson, err := json.Marshal(vhd{
 		Path:               path,
 		VhdType:            vhdType,
 		ParentPath:         parentPath,
@@ -216,7 +216,7 @@ func (c *HypervClient) CreateOrUpdateVMVhd(path string, sourcePath string, sourc
 		PhysicalSectorSize: physicalSectorSize,
 	})
 
-	err = c.runFireAndForgetScript(createOrUpdateVMVhdTemplate, createOrUpdateVMVhdArgs{
+	err = c.runFireAndForgetScript(createOrUpdateVhdTemplate, createOrUpdateVhdArgs{
 		SourcePath: sourcePath,
 		SourceUrl:  sourceUrl,
 		SourceDisk: sourceDisk,
@@ -226,18 +226,18 @@ func (c *HypervClient) CreateOrUpdateVMVhd(path string, sourcePath string, sourc
 	return err
 }
 
-type resizeVMVhdArgs struct {
+type resizeVhdArgs struct {
 	Path string
 	Size uint64
 }
 
-var resizeVMVhdTemplate = template.Must(template.New("ResizeVMVhd").Parse(`
+var resizeVhdTemplate = template.Must(template.New("ResizeVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 Resize-VHD –Path '{{.Path}}' –SizeBytes {{.Size}}
 `))
 
-func (c *HypervClient) ResizeVMVhd(path string, size uint64) (err error) {
-	err = c.runFireAndForgetScript(resizeVMVhdTemplate, resizeVMVhdArgs{
+func (c *HypervClient) ResizeVhd(path string, size uint64) (err error) {
+	err = c.runFireAndForgetScript(resizeVhdTemplate, resizeVhdArgs{
 		Path: path,
 		Size: size,
 	})
@@ -245,15 +245,15 @@ func (c *HypervClient) ResizeVMVhd(path string, size uint64) (err error) {
 	return err
 }
 
-type getVMVhdArgs struct {
+type getVhdArgs struct {
 	Path string
 }
 
-var getVMVhdTemplate = template.Must(template.New("GetVMVhd").Parse(`
+var getVhdTemplate = template.Must(template.New("GetVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 $path='{{.Path}}'
 
-$vmVhdObject =  Get-VHD -path $path | %{ @{
+$vhdObject =  Get-VHD -path $path | %{ @{
 	Path=$_.Path;
 	BlockSize=$_.BlockSize;
 	LogicalSectorSize=$_.LogicalSectorSize;
@@ -272,35 +272,35 @@ $vmVhdObject =  Get-VHD -path $path | %{ @{
 	VhdFormat=$_.VhdFormat;
 }}
 
-if ($vmVhdObject){
-	$vmVhd = ConvertTo-Json -InputObject $vmVhdObject
-	$vmVhd
+if ($vhdObject){
+	$vhd = ConvertTo-Json -InputObject $vhdObject
+	$vhd
 } else {
 	"{}"
 }
 `))
 
-func (c *HypervClient) GetVMVhd(path string) (result vmVhd, err error) {
-	err = c.runScriptWithResult(getVMVhdTemplate, getVMVhdArgs{
+func (c *HypervClient) GetVhd(path string) (result vhd, err error) {
+	err = c.runScriptWithResult(getVhdTemplate, getVhdArgs{
 		Path: path,
 	}, &result)
 
 	return result, err
 }
 
-type deleteVMVhdArgs struct {
+type deleteVhdArgs struct {
 	Path string
 }
 
-var deleteVMVhdTemplate = template.Must(template.New("DeleteVMVhd").Parse(`
+var deleteVhdTemplate = template.Must(template.New("DeleteVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 if (Test-Path -Path '{{.Path}}') {
 	Remove-Item -Path '{{.Path}}' -Force
 }
 `))
 
-func (c *HypervClient) DeleteVMVhd(path string) (err error) {
-	err = c.runFireAndForgetScript(deleteVMVhdTemplate, deleteVMVhdArgs{
+func (c *HypervClient) DeleteVhd(path string) (err error) {
+	err = c.runFireAndForgetScript(deleteVhdTemplate, deleteVhdArgs{
 		Path: path,
 	})
 

@@ -2,9 +2,9 @@ package hyperv
 
 import (
 	"fmt"
-	"log"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/taliesins/terraform-provider-hyperv/api"
+	"log"
 )
 
 func resourceHyperVMachineInstance() *schema.Resource {
