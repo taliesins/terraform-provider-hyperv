@@ -130,6 +130,7 @@ func Provider() terraform.ResourceProvider {
 		ResourcesMap: map[string]*schema.Resource{
 			"hyperv_network_switch":   resourceHyperVNetworkSwitch(),
 			"hyperv_machine_instance": resourceHyperVMachineInstance(),
+			"hyperv_vhd":              resourceHyperVVhd(),
 		},
 
 		ConfigureFunc: providerConfigure,

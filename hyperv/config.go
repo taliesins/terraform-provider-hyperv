@@ -191,3 +191,22 @@ func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateFun
 		return
 	}
 }
+
+func IntInSlice(valid []int) schema.SchemaValidateFunc {
+	return func(i interface{}, k string) (s []string, es []error) {
+		value, ok := i.(int)
+		if !ok {
+			es = append(es, fmt.Errorf("expected type of %s to be int", k))
+			return
+		}
+
+		for _, validValue := range valid {
+			if value == validValue {
+				return
+			}
+		}
+
+		es = append(es, fmt.Errorf("expected %s to be one of %v, got %s", k, valid, value))
+		return
+	}
+}
