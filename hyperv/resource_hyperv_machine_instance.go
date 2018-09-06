@@ -7,6 +7,8 @@ import (
 	"log"
 )
 
+const MaxUint32  = 4294967295
+
 func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
 		Create: resourceHyperVMachineInstanceCreate,
@@ -401,12 +403,13 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						},
 						"disk_number": {
 							Type:     schema.TypeInt,
-							Required: true,
+							Optional: true,
+							Default: MaxUint32,
 						},
 						"resource_pool_name": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
+							Default:  "Primordial",
 						},
 						"support_persistent_reservations": {
 							Type:     schema.TypeBool,
@@ -426,7 +429,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"qos_policy_id": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
+							Default:  "00000000-0000-0000-0000-000000000000",
 						},
 						"override_cache_attributes": {
 							Type:         schema.TypeString,
@@ -602,11 +605,15 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	if err := data.Set("dvd_drives", flattenedDvdDrives); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting dvd_drives error: %v", err)
 	}
+	log.Printf("[INFO][hyperv][read] dvdDrives: %v", dvdDrives)
+	log.Printf("[INFO][hyperv][read] flattenedDvdDrives: %v", flattenedDvdDrives)
 
 	flattenedHardDiskDrives := api.FlattenHardDiskDrives(&hardDiskDrives)
 	if err := data.Set("hard_disk_drives", flattenedHardDiskDrives); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting hard_disk_drives error: %v", err)
 	}
+	log.Printf("[INFO][hyperv][read] hardDiskDrives: %v", hardDiskDrives)
+	log.Printf("[INFO][hyperv][read] flattenedHardDiskDrives: %v", flattenedHardDiskDrives)
 
 	data.Set("generation", vm.Generation)
 	data.Set("automatic_critical_error_action", vm.AutomaticCriticalErrorAction.String())

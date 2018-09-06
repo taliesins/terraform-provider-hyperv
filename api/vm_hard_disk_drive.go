@@ -134,14 +134,14 @@ func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
 
 			expandedHardDiskDrive := vmHardDiskDrive{
 				ControllerType:                ToControllerType(hardDiskDrive["controller_type"].(string)),
-				ControllerNumber:              hardDiskDrive["controller_number"].(int),
-				ControllerLocation:            hardDiskDrive["controller_location"].(int),
+				ControllerNumber:              int32(hardDiskDrive["controller_number"].(int)),
+				ControllerLocation:            int32(hardDiskDrive["controller_location"].(int)),
 				Path:                          hardDiskDrive["path"].(string),
-				DiskNumber:                    hardDiskDrive["disk_number"].(int),
+				DiskNumber:                    uint32(hardDiskDrive["disk_number"].(int)),
 				ResourcePoolName:              hardDiskDrive["resource_pool_name"].(string),
 				SupportPersistentReservations: hardDiskDrive["support_persistent_reservations"].(bool),
-				MaximumIops:                   hardDiskDrive["maximum_iops"].(int),
-				MinimumIops:                   hardDiskDrive["minimum_iops"].(int),
+				MaximumIops:                   uint64(hardDiskDrive["maximum_iops"].(int)),
+				MinimumIops:                   uint64(hardDiskDrive["minimum_iops"].(int)),
 				QosPolicyId:                   hardDiskDrive["qos_policy_id"].(string),
 				OverrideCacheAttributes:       ToCacheAttributes(hardDiskDrive["override_cache_attributes"].(string)),
 			}
@@ -150,11 +150,7 @@ func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
 		}
 	}
 
-	if len(expandedHardDiskDrives) > 0 {
-		return expandedHardDiskDrives, nil
-	}
-
-	return nil, nil
+	return expandedHardDiskDrives, nil
 }
 
 func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
@@ -184,14 +180,14 @@ func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
 type vmHardDiskDrive struct {
 	VMName                        string
 	ControllerType                ControllerType
-	ControllerNumber              int
-	ControllerLocation            int
+	ControllerNumber              int32
+	ControllerLocation            int32
 	Path                          string
-	DiskNumber                    int
+	DiskNumber                    uint32
 	ResourcePoolName              string
 	SupportPersistentReservations bool
-	MaximumIops                   int
-	MinimumIops                   int
+	MaximumIops                   uint64
+	MinimumIops                   uint64
 	QosPolicyId                   string
 	OverrideCacheAttributes       CacheAttributes
 	//AllowUnverifiedPaths          bool no way of checking if its turned on so always turn on
@@ -212,14 +208,17 @@ $NewVmHardDiskDriveArgs = @{
 	ControllerNumber=$vmHardDiskDrive.ControllerNumber
 	ControllerLocation=$vmHardDiskDrive.ControllerLocation
 	Path=$vmHardDiskDrive.Path
-	DiskNumber=$vmHardDiskDrive.DiskNumber
 	ResourcePoolName=$vmHardDiskDrive.ResourcePoolName
 	SupportPersistentReservations=$vmHardDiskDrive.SupportPersistentReservations
-	MaximumIops=$vmHardDiskDrive.MaximumIops
-	MinimumIops=$vmHardDiskDrive.MinimumIops
-	QosPolicyId=$vmHardDiskDrive.QosPolicyId
+	MaximumIops=$_.MaximumIops;
+	MinimumIops=$_.MinimumIops;
+	QosPolicyId=$_.QosPolicyId;
 	OverrideCacheAttributes=$vmHardDiskDrive.OverrideCacheAttributes
 	AllowUnverifiedPaths=$true
+}
+
+if ($vmHardDiskDrive.DiskNumber -lt 4294967295){
+	$NewVmHardDiskDriveArgs.DiskNumber=$vmHardDiskDrive.DiskNumber
 }
 
 Add-VmHardDiskDrive @NewVmHardDiskDriveArgs
@@ -228,14 +227,14 @@ Add-VmHardDiskDrive @NewVmHardDiskDriveArgs
 func (c *HypervClient) CreateVMHardDiskDrive(
 	vmName string,
 	controllerType ControllerType,
-	controllerNumber int,
-	controllerLocation int,
+	controllerNumber int32,
+	controllerLocation int32,
 	path string,
-	diskNumber int,
+	diskNumber uint32,
 	resourcePoolName string,
 	supportPersistentReservations bool,
-	maximumIops int,
-	minimumIops int,
+	maximumIops uint64,
+	minimumIops uint64,
 	qosPolicyId string,
 	overrideCacheAttributes CacheAttributes,
 
@@ -274,7 +273,7 @@ $vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VMName '{{.VMName}}' | %{ @{
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
 	Path=$_.Path;
-	DiskNumber=$_.DiskNumber;
+	DiskNumber=if ($_.DiskNumber -eq $null) { 4294967295 } else { $_.DiskNumber };
 	ResourcePoolName=$_.PoolName;
 	SupportPersistentReservations=$_.SupportPersistentReservations;
 	MaximumIops=$_.MaximumIops;
@@ -296,15 +295,15 @@ func (c *HypervClient) GetVMHardDiskDrives(vmName string) (result []vmHardDiskDr
 
 	err = c.runScriptWithResult(getVMHardDiskDrivesTemplate, getVMHardDiskDrivesArgs{
 		VMName: vmName,
-	}, result)
+	}, &result)
 
 	return result, err
 }
 
 type updateVMHardDiskDriveArgs struct {
 	VMName              string
-	ControllerNumber    int
-	ControllerLocation  int
+	ControllerNumber    int32
+	ControllerLocation  int32
 	VmHardDiskDriveJson string
 }
 
@@ -327,7 +326,9 @@ $SetVmHardDiskDriveArgs.ControllerNumber=$vmHardDiskDrivesObject.ControllerNumbe
 $SetVmHardDiskDriveArgs.ToControllerLocation=$vmHardDiskDrive.ControllerLocation
 $SetVmHardDiskDriveArgs.ToControllerNumber=$vmHardDiskDrive.ControllerNumber
 $SetVmHardDiskDriveArgs.Path=$vmHardDiskDrive.Path
-$SetVmHardDiskDriveArgs.DiskNumber=$vmHardDiskDrive.DiskNumber
+if ($vmHardDiskDrive.DiskNumber -lt 4294967295){
+	$SetVmHardDiskDriveArgs.DiskNumber=$vmHardDiskDrive.DiskNumber
+}
 $SetVmHardDiskDriveArgs.ResourcePoolName=$vmHardDiskDrive.ResourcePoolName
 $SetVmHardDiskDriveArgs.SupportPersistentReservations=$vmHardDiskDrive.SupportPersistentReservations
 $SetVmHardDiskDriveArgs.MaximumIops=$vmHardDiskDrive.MaximumIops
@@ -342,17 +343,17 @@ Set-VMHardDiskDrive @SetVmHardDiskDriveArgs
 
 func (c *HypervClient) UpdateVMHardDiskDrive(
 	vmName string,
-	controllerNumber int,
-	controllerLocation int,
+	controllerNumber int32,
+	controllerLocation int32,
 	controllerType ControllerType,
-	toControllerNumber int,
-	toControllerLocation int,
+	toControllerNumber int32,
+	toControllerLocation int32,
 	path string,
-	diskNumber int,
+	diskNumber uint32,
 	resourcePoolName string,
 	supportPersistentReservations bool,
-	maximumIops int,
-	minimumIops int,
+	maximumIops uint64,
+	minimumIops uint64,
 	qosPolicyId string,
 	overrideCacheAttributes CacheAttributes,
 ) (err error) {
@@ -384,8 +385,8 @@ func (c *HypervClient) UpdateVMHardDiskDrive(
 
 type deleteVMHardDiskDriveArgs struct {
 	VMName             string
-	ControllerNumber   int
-	ControllerLocation int
+	ControllerNumber   int32
+	ControllerLocation int32
 }
 
 var deleteVMHardDiskDriveTemplate = template.Must(template.New("DeleteVMHardDiskDrive").Parse(`
@@ -394,7 +395,7 @@ $ErrorActionPreference = 'Stop'
 @(Get-VMHardDiskDrive -VMName '{{.VMName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive -Force
 `))
 
-func (c *HypervClient) DeleteVMHardDiskDrive(vmname string, controllerNumber int, controllerLocation int) (err error) {
+func (c *HypervClient) DeleteVMHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error) {
 	err = c.runFireAndForgetScript(deleteVMHardDiskDriveTemplate, deleteVMHardDiskDriveArgs{
 		VMName:             vmname,
 		ControllerNumber:   controllerNumber,

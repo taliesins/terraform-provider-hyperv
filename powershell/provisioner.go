@@ -53,21 +53,31 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	}
 
 	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
-
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("Resolving remote temp path of [%s]", tempPath)
+	}
 	tempPath, err = resolvePath(client, tempPath)
 	if err != nil {
 		return "", err
 	}
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("Remote temp path resolved to [%s]", tempPath)
+	}
 
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("Resolving remote to path of [%s]", toPath)
+	}
 	toPath, err = resolvePath(client, toPath)
 	if err != nil {
 		return "", err
 	}
-
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Copying file to %s\n", tempPath)
+		log.Printf("Remote to path resolved to [%s]", toPath)
 	}
 
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("Uploading file to %s", tempPath)
+	}
 	err = uploadContent(client, maxChunks, in, tempPath)
 	if err != nil {
 		return "", fmt.Errorf("error uploading file to %s: %v", tempPath, err)
@@ -76,7 +86,6 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("Moving file from %s to %s", tempPath, toPath)
 	}
-
 	remoteAbsolutePath, err = restoreContent(client, tempPath, toPath)
 	if err != nil {
 		return "", fmt.Errorf("error restoring file from %s to %s: %v", tempPath, toPath, err)
@@ -85,7 +94,6 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("Removing temporary file %s", tempPath)
 	}
-
 	err = cleanupContent(client, tempPath)
 	if err != nil {
 		return "", fmt.Errorf("error removing temporary file %s: %v", tempPath, err)

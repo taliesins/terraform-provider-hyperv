@@ -1,8 +1,8 @@
 package api
 
 import (
-	"testing"
 	"encoding/json"
+	"testing"
 )
 
 func TestSerializeVmNetworkAdapter(t *testing.T) {

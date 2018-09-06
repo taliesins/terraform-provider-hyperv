@@ -146,66 +146,155 @@ type vhd struct {
 }
 
 type createOrUpdateVhdArgs struct {
-	SourcePath string
-	SourceUrl  string
+	Source     string
+	SourceVm   string
 	SourceDisk int
-	VhdJson   string
+	VhdJson    string
 }
 
 var createOrUpdateVhdTemplate = template.Must(template.New("CreateOrUpdateVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 
 Get-VM | Out-Null
-$sourcePath='{{.SourcePath}}'
-$sourceUrl='{{.SourceUrl}}'
+$source='{{.Source}}'
+$sourceVm='{{.SourceVm}}'
 $sourceDisk={{.SourceDisk}}
 $vhd = '{{.VhdJson}}' | ConvertFrom-Json
 $vhdType = [Microsoft.Vhd.PowerShell.VhdType]$vhd.VhdType
 
+function Expand-Downloads {
+    param(
+        [Parameter(Mandatory = $true, Position = 0)]
+        [string]
+        [Alias('Folder')]
+        $FolderPath
+    )
+    process {
+        get-item *.zip | % {
+            Add-Type -AssemblyName System.IO.Compression.FileSystem
+            [System.IO.Compression.ZipFile]::ExtractToDirectory($_.FullName, $pathDirectory)
+            Remove-Item $_.FullName -Force
+        }
+
+        get-item *.7z | % {
+            & "7z" "x" $_.FullName "-o$($pathDirectory)"
+            Remove-Item $_.FullName -Force
+        }
+    }
+}
+
+function Get-FileFromUri {
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]
+        [Alias('Uri')]
+        $Url,
+        [Parameter(Mandatory = $false, Position = 1)]
+        [string]
+        [Alias('Folder')]
+        $FolderPath
+    )
+    process {
+        $req = [System.Net.HttpWebRequest]::Create($Url)
+        $req.Method = "HEAD"
+        $response = $req.GetResponse()
+        $fUri = $response.ResponseUri
+        $filename = [System.IO.Path]::GetFileName($fUri.LocalPath);
+        $response.Close()
+
+        $destination = (Get-Item -Path ".\" -Verbose).FullName
+        if ($FolderPath) { $destination = $FolderPath }
+        if ($destination.EndsWith('\')) {
+            $destination += $filename
+        }
+        else {
+            $destination += '\' + $filename
+        }
+        $webclient = New-Object System.Net.webclient
+        $webclient.downloadfile($fUri.AbsoluteUri, $destination)
+    }
+}
+
+function Test-Uri {
+    param(
+        [Parameter(Mandatory = $true, Position = 0, ValueFromPipeline = $true, ValueFromPipelineByPropertyName = $true)]
+        [string]
+        [Alias('Uri')]
+        $Url
+    )
+    process {
+        $testUri = $Url -as [System.URI]
+        $null -ne $testUri.AbsoluteURI -and $testUri.Scheme -match '[http|https]' -and ($testUri.ToString().ToLower().StartsWith("http://") -or $testUri.ToString().ToLower().StartsWith("https://"))
+    }
+}
+
 if (!(Test-Path -Path $vhd.Path)) {
-	if ($sourcePath) {
-		Copy-Item $sourcePath $vhd.Path
-	} elseif ($sourceUrl) {
-		(New-Object System.Net.WebClient).DownloadFile($sourceUrl, $vhd.Path)
-	} else {
-		$NewVhdArgs = @{}
-		$NewVhdArgs.Path=$vhd.Path
+    $pathDirectory = [System.IO.Path]::GetDirectoryName($vhd.Path)
 
-		if ($sourceDisk) {
-			$NewVhdArgs.SourceDisk=$sourceDisk
-		} elseif ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Differencing) {
-			$NewVhdArgs.Differencing=$true
-			$NewVhdArgs.ParentPath=$vhd.ParentPath
-		} else {
-			if ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Dynamic) {
-				$NewVhdArgs.Dynamic=$true
-			} elseif ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Fixed) {
-				$NewVhdArgs.Fixed=$true
-			}
+    if (!(Test-Path $pathDirectory)) {
+        New-Item -ItemType Directory -Force -Path $pathDirectory
+    }
 
-			if ($vhd.Size -gt 0) {
-				$NewVhdArgs.SizeBytes=$vhd.Size
-			} 
+    if ($sourceVm) {
+        Export-VM -Name $sourceVm -Path $pathDirectory
+        Move-Item "$pathDirectory\$sourceVm\Virtual Hard Disks\*.*" $pathDirectory
+        Remove-Item "$pathDirectory\$sourceVm" -Force -Recurse
+		Get-VHD -path $vhd.Path
+    } elseif ($source) {
+        Push-Location $pathDirectory
+        
+        if (Test-Uri -Url $source) {
+            Get-FileFromUri -Url $source -FolderPath $pathDirectory
+        }
+        else {
+            Copy-Item $source $pathDirectory
+        }
 
-			if ($vhd.BlockSize -gt 0) {
-				$NewVhdArgs.BlockSizeBytes=$vhd.BlockSize
-			} 
+        Expand-Downloads -FolderPath $pathDirectory
 
-			if ($vhd.LogicalSectorSize -gt 0) {
-				$NewVhdArgs.LogicalSectorSizeBytes=$vhd.LogicalSectorSize
-			} 
+        Pop-Location
+    } else {
+        $NewVhdArgs = @{}
+        $NewVhdArgs.Path = $vhd.Path
 
-			if ($vhd.PhysicalSectorSize -gt 0) {
-				$NewVhdArgs.PhysicalSectorSizeBytes=$vhd.PhysicalSectorSize
-			} 
-		}
+        if ($sourceDisk) {
+            $NewVhdArgs.SourceDisk = $sourceDisk
+        }
+        elseif ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Differencing) {
+            $NewVhdArgs.Differencing = $true
+            $NewVhdArgs.ParentPath = $vhd.ParentPath
+        }
+        else {
+            if ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Dynamic) {
+                $NewVhdArgs.Dynamic = $true
+            }
+            elseif ($vhdType -eq [Microsoft.Vhd.PowerShell.VhdType]::Fixed) {
+                $NewVhdArgs.Fixed = $true
+            }
 
-		New-VHD @NewVhdArgs
-	}
+            if ($vhd.Size -gt 0) {
+                $NewVhdArgs.SizeBytes = $vhd.Size
+            }
+
+            if ($vhd.BlockSize -gt 0) {
+                $NewVhdArgs.BlockSizeBytes = $vhd.BlockSize
+            }
+
+            if ($vhd.LogicalSectorSize -gt 0) {
+                $NewVhdArgs.LogicalSectorSizeBytes = $vhd.LogicalSectorSize
+            }
+
+            if ($vhd.PhysicalSectorSize -gt 0) {
+                $NewVhdArgs.PhysicalSectorSizeBytes = $vhd.PhysicalSectorSize
+            }
+        }
+
+        New-VHD @NewVhdArgs
+    }
 }
 `))
 
-func (c *HypervClient) CreateOrUpdateVhd(path string, sourcePath string, sourceUrl string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
+func (c *HypervClient) CreateOrUpdateVhd(path string, source string, sourceVm string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
 	vhdJson, err := json.Marshal(vhd{
 		Path:               path,
 		VhdType:            vhdType,
@@ -217,10 +306,10 @@ func (c *HypervClient) CreateOrUpdateVhd(path string, sourcePath string, sourceU
 	})
 
 	err = c.runFireAndForgetScript(createOrUpdateVhdTemplate, createOrUpdateVhdArgs{
-		SourcePath: sourcePath,
-		SourceUrl:  sourceUrl,
+		Source:     source,
+		SourceVm:   sourceVm,
 		SourceDisk: sourceDisk,
-		VhdJson:   string(vhdJson),
+		VhdJson:    string(vhdJson),
 	})
 
 	return err
@@ -253,24 +342,27 @@ var getVhdTemplate = template.Must(template.New("GetVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 $path='{{.Path}}'
 
-$vhdObject =  Get-VHD -path $path | %{ @{
-	Path=$_.Path;
-	BlockSize=$_.BlockSize;
-	LogicalSectorSize=$_.LogicalSectorSize;
-	PhysicalSectorSize=$_.PhysicalSectorSize;
-	ParentPath=$_.ParentPath;
-	FileSize=$_.FileSize;
-	Size=$_.Size;
-	MinimumSize=$_.MinimumSize;
-	Attached=$_.Attached;
-	DiskNumber=$_.DiskNumber;
-	Number=$_.Number;
-	FragmentationPercentage=$_.FragmentationPercentage;
-	Alignment=$_.Alignment;
-	DiskIdentifier=$_.DiskIdentifier;
-	VhdType=$_.VhdType;
-	VhdFormat=$_.VhdFormat;
-}}
+$vhdObject = $null
+if (Test-Path $path) {
+	$vhdObject = Get-VHD -path $path | %{ @{
+		Path=$_.Path;
+		BlockSize=$_.BlockSize;
+		LogicalSectorSize=$_.LogicalSectorSize;
+		PhysicalSectorSize=$_.PhysicalSectorSize;
+		ParentPath=$_.ParentPath;
+		FileSize=$_.FileSize;
+		Size=$_.Size;
+		MinimumSize=$_.MinimumSize;
+		Attached=$_.Attached;
+		DiskNumber=$_.DiskNumber;
+		Number=$_.Number;
+		FragmentationPercentage=$_.FragmentationPercentage;
+		Alignment=$_.Alignment;
+		DiskIdentifier=$_.DiskIdentifier;
+		VhdType=$_.VhdType;
+		VhdFormat=$_.VhdFormat;
+	}}
+}
 
 if ($vhdObject){
 	$vhd = ConvertTo-Json -InputObject $vhdObject

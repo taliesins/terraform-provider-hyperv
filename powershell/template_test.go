@@ -1,8 +1,8 @@
 package powershell
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
 func TestEscapeQuotesOfCommandLineTemplate(t *testing.T) {

@@ -29,11 +29,7 @@ func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
 		}
 	}
 
-	if len(expandedDvdDrives) > 0 {
-		return expandedDvdDrives, nil
-	}
-
-	return nil, nil
+	return expandedDvdDrives, nil
 }
 
 func FlattenDvdDrives(dvdDrives *[]vmDvdDrive) []interface{} {
@@ -134,7 +130,7 @@ func (c *HypervClient) GetVMDvdDrives(vmName string) (result []vmDvdDrive, err e
 
 	err = c.runScriptWithResult(getVMDvdDrivesTemplate, getVMDvdDrivesArgs{
 		VMName: vmName,
-	}, result)
+	}, &result)
 
 	return result, err
 }

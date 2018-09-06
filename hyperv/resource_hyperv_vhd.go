@@ -21,20 +21,20 @@ func resourceHyperVVhd() *schema.Resource {
 				Type:     schema.TypeString,
 				Required: true,
 			},
-			"source_path": {
+			"source": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ConflictsWith: []string{
-					"source_url",
+					"source_vm",
 					"parent_path",
 					"source_disk",
 				},
 			},
-			"source_url": {
+			"source_vm": {
 				Type:     schema.TypeString,
 				Optional: true,
 				ConflictsWith: []string{
-					"source_path",
+					"source",
 					"parent_path",
 					"source_disk",
 				},
@@ -43,8 +43,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"parent_path",
 				},
 			},
@@ -54,8 +54,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Default:      api.VhdType_name[api.VhdType_Dynamic],
 				ValidateFunc: stringKeyInMap(api.VhdType_value, true),
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"parent_path",
 				},
 			},
@@ -63,8 +63,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Type:          schema.TypeString,
 				Optional:      true,
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"source_disk",
 					"size",
 				},
@@ -82,8 +82,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Optional:      true,
 				Default:       0,
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"parent_path",
 				},
 			},
@@ -92,8 +92,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Optional:      true,
 				Default:       0,
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"parent_path",
 				},
 				ValidateFunc: IntInSlice([]int{512, 4096}),
@@ -103,8 +103,8 @@ func resourceHyperVVhd() *schema.Resource {
 				Optional:      true,
 				Default:       0,
 				ConflictsWith: []string{
-					"source_path",
-					"source_url",
+					"source",
+					"source_vm",
 					"parent_path",
 				},
 				ValidateFunc: IntInSlice([]int{512, 4096}),
@@ -149,17 +149,17 @@ func resourceHyperVVhdCreate(d *schema.ResourceData, meta interface{}) (err erro
 		return fmt.Errorf("[ERROR][hyperv][create] path argument is required")
 	}
 
-	sourcePath := (d.Get("source_path")).(string)
-	sourceUrl := (d.Get("source_url")).(string)
+	source := (d.Get("source")).(string)
+	sourceVm := (d.Get("source_vm")).(string)
 	sourceDisk := (d.Get("source_disk")).(int)
 	vhdType := api.ToVhdType((d.Get("vhd_type")).(string))
 	parentPath := (d.Get("parent_path")).(string)
-	size := (d.Get("size")).(uint64)
-	blockSize := (d.Get("block_size")).(uint32)
-	logicalSectorSize := (d.Get("logical_sector_size")).(uint32)
-	physicalSectorSize := (d.Get("physical_sector_size")).(uint32)
+	size := uint64((d.Get("size")).(int))
+	blockSize := uint32((d.Get("block_size")).(int))
+	logicalSectorSize := uint32((d.Get("logical_sector_size")).(int))
+	physicalSectorSize := uint32((d.Get("physical_sector_size")).(int))
 
-	err = c.CreateOrUpdateVhd(path, sourcePath, sourceUrl, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
+	err = c.CreateOrUpdateVhd(path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
 
 	if err != nil {
 		return err
@@ -223,21 +223,21 @@ func resourceHyperVVhdUpdate(d *schema.ResourceData, meta interface{}) (err erro
 		return fmt.Errorf("[ERROR][hyperv][update] path argument is required")
 	}
 
-	sourcePath := (d.Get("source_path")).(string)
-	sourceUrl := (d.Get("source_url")).(string)
+	source := (d.Get("source")).(string)
+	sourceVm := (d.Get("source_vm")).(string)
 	sourceDisk := (d.Get("source_disk")).(int)
 	vhdType := api.ToVhdType((d.Get("vhd_type")).(string))
 	parentPath := (d.Get("parent_path")).(string)
-	size := (d.Get("size")).(uint64)
-	blockSize := (d.Get("block_size")).(uint32)
-	logicalSectorSize := (d.Get("logical_sector_size")).(uint32)
-	physicalSectorSize := (d.Get("physical_sector_size")).(uint32)
+	size := uint64((d.Get("size")).(int))
+	blockSize := uint32((d.Get("block_size")).(int))
+	logicalSectorSize := uint32((d.Get("logical_sector_size")).(int))
+	physicalSectorSize := uint32((d.Get("physical_sector_size")).(int))
 
 	exists := (d.Get("exists")).(bool)
 
-	if !exists || d.HasChange("path") || d.HasChange("source_path") || d.HasChange("source_url") || d.HasChange("source_disk") || d.HasChange("parent_path")  {
+	if !exists || d.HasChange("path") || d.HasChange("source") || d.HasChange("source_vm") || d.HasChange("source_disk") || d.HasChange("parent_path")  {
 		//delete it as its changed
-		err = c.CreateOrUpdateVhd(path, sourcePath, sourceUrl, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
+		err = c.CreateOrUpdateVhd(path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
 
 		if err != nil {
 			return err
