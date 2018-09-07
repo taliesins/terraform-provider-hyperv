@@ -1,19 +1,33 @@
 HyperV Terraform Provider
 =========================
 
-#This is alpha code. Experiment, but don't use if for production yet. Sample should be able to create switch, vm and network card connected to the switch. Working on getting hard drives and dvd drives working next.
+#This is beta code. Working on adding acceptance tests so that I can mark it as release quality.
 
-- Website: https://www.terraform.io
-- [![Gitter chat](https://badges.gitter.im/hashicorp-terraform/Lobby.png)](https://gitter.im/hashicorp-terraform/Lobby)
-- Mailing list: [Google Groups](http://groups.google.com/group/terraform-tool)
+- Website: https://github.com/taliesins/terraform-provider-hyperv
+- Documentation: https://github.com/taliesins/terraform-provider-hyperv/blob/master/website/docs/index.html.markdown
+- Issues: https://github.com/taliesins/terraform-provider-hyperv/issues
 
-<img src="https://cdn.rawgit.com/hashicorp/terraform-website/master/content/source/assets/images/logo-hashicorp.svg" width="600px">
+![Hashi Logo](website/logo-hashicorp.svg?raw=true "Hashi Logo")
+![Windows Server Logo](website/windows-server-2016-logo.svg?raw=true "Windows Server Logo")
+
+Features
+------------
+- Remote scheduled task powershell runner does not run into issues with escaping variables or escaping between the different scripting layers.
+- Runs all HyperV commands remotely i.e. so the provider can run on a linux machine and connect remotely to a windows machine running HyperV.
+- Almost all functionality of Powershell HyperV commandlets for the resources is exposed via Terraform resources.
+- Resource - Network Switch
+- Resource - VHD
+- Resource - Virtual Machine Instance
+  - Network adaptors
+  - Hard drives
+  - Dvd drives
 
 Requirements
 ------------
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
 -	[Go](https://golang.org/doc/install) 1.8 (to build the provider plugin)
+-   Connectivity and credentials to a server running HyperV
 
 Building The Provider
 ---------------------

@@ -35,6 +35,10 @@ provider "hyperv" {
 resource "hyperv_network_switch" "dmz" {
 }
 
+# Create a vhd
+resource "hyperv_vhd" "webserver" {
+}
+
 # Create a machine
 resource "hyperv_machine_instance" "webserver" {
 }
@@ -44,29 +48,29 @@ resource "hyperv_machine_instance" "webserver" {
 
 The following arguments are supported:
 
-* `user` - (Optional) The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USERNAME` environment variable.
+* `user` - (Optional) `Administrator` (default). The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USERNAME` environment variable.
 
-* `password` - (Optional) The password associated with the username to use for HyperV api calls. It can also be sourced from the `HYPERV_PASSWORD` environment variable.
+* `password` - (Required) The password associated with the username to use for HyperV api calls. It can also be sourced from the `HYPERV_PASSWORD` environment variable.
 
-* `host` - (Optional) The host to run HyperV api calls against. It can also be sourced from the `HYPERV_HOST` environment variable.
+* `host` - (Optional) `127.0.0.1` (default). The host to run HyperV api calls against. It can also be sourced from the `HYPERV_HOST` environment variable.
 
-* `port` - (Optional) The port to run HyperV api calls against. It can also be sourced from the `HYPERV_PORT` environment variable.
+* `port` - (Optional) `5985` (default). The port to run HyperV api calls against. It can also be sourced from the `HYPERV_PORT` environment variable.
 
-* `https` - (Optional) Should https be used for HyperV api calls. It can also be sourced from `HYPERV_HTTPS` environment variable.
+* `https` - (Optional) `false` (default). Should https be used for HyperV api calls. It can also be sourced from `HYPERV_HTTPS` environment variable.
 
-* `insecure` - (Optional) Skips TLS Verification for HyperV api calls. Generally this is used for self-signed certificates. Should only be used if absolutely needed. Can also be set via setting the `HYPERV_INSECURE` environment variable to `true`.
+* `insecure` - (Optional) `false` (default). Skips TLS Verification for HyperV api calls. Generally this is used for self-signed certificates. Should only be used if absolutely needed. Can also be set via setting the `HYPERV_INSECURE` environment variable to `true`.
 
-* `tls_server_name` - (Optional) The TLS server name for the host used for HyperV api calls. It can also be sourced from the `HYPERV_TLS_SERVER_NAME` environment variable. Defaults to empty string.
+* `tls_server_name` - (Optional) empty (default). The TLS server name for the host used for HyperV api calls. It can also be sourced from the `HYPERV_TLS_SERVER_NAME` environment variable. Defaults to empty string.
 
-* `cacert_path` - (Optional) The path to the ca certificates to use for HyperV api calls. Can also be sourced from the `HYPERV_CACERT_PATH` environment variable.
+* `cacert_path` - (Optional) empty (default). The path to the ca certificates to use for HyperV api calls. Can also be sourced from the `HYPERV_CACERT_PATH` environment variable.
 
-* `cert_path` - (Optional) The path to the certificate to use for authentication for HyperV api calls. Can also be sourced from the `HYPERV_CERT_PATH` environment variable.
+* `cert_path` - (Optional) empty (default). The path to the certificate to use for authentication for HyperV api calls. Can also be sourced from the `HYPERV_CERT_PATH` environment variable.
 
-* `key_path` - (Optional) The path to the certificate private key to use for authentication for HyperV api calls. Can also be sourced from the `HYPERV_KEY_PATH` environment variable.
+* `key_path` - (Optional) empty (default). The path to the certificate private key to use for authentication for HyperV api calls. Can also be sourced from the `HYPERV_KEY_PATH` environment variable.
 
-* `script_path` - (Optional) The path used to copy scripts meant for remote execution for HyperV api calls. Can also be sourced from the `HYPERV_SCRIPT_PATH` environment variable.
+* `script_path` - (Optional) `C:/Temp/terraform_%RAND%.cmd` (default). The path used to copy scripts meant for remote execution for HyperV api calls. Can also be sourced from the `HYPERV_SCRIPT_PATH` environment variable.
 
-* `timeout` - (Optional) The timeout to wait for the connection to become available for HyperV api calls. This defaults to 5 minutes. Should be provided as a string like 30s or 5m. Can also be sourced from the `HYPERV_TIMEOUT` environment variable.
+* `timeout` - (Optional) `30s` (default). The timeout to wait for the connection to become available for HyperV api calls. This defaults to 5 minutes. Should be provided as a string like 30s or 5m. Can also be sourced from the `HYPERV_TIMEOUT` environment variable.
 
 ## Testing
 

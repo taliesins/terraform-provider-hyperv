@@ -26,6 +26,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  1,
+				ValidateFunc: IntInSlice([]int{1, 2}),
 				ForceNew: true,
 			},
 

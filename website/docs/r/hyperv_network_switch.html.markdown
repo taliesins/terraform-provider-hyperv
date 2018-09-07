@@ -24,7 +24,7 @@ The following arguments are supported:
 
 * `name` - (Required) Specifies the name of the switch to be created.
 
-* `notes` - (Optional) Specifies a note to be associated with the switch to be created.
+* `notes` - (Optional) empty (default). Specifies a note to be associated with the switch to be created.
 
 * `allow_management_os` - (Optional) `true` (default). Specifies if the HyperV host machine will have access to network switch when created. It provides this access via a virtual adaptor, so you will need to either configure static ips on the virtual adaptor or configure a dhcp on a machine connected to the network switch. This is tied to the switch type used: `internal=true`;`private=false`;`external=true or false`.
 
@@ -34,9 +34,9 @@ The following arguments are supported:
 
 * `enable_packet_direct` - (Optional) `false` (default). Specifies if the HyperV host machine will enable packet direct path for network switch when created. Increases packet throughoutput and reduces the network latency between vms on the switch.
 
-* `minimum_bandwidth_mode` - (Optional) `None`(default). Specifies how minimum bandwidth is to be configured on the virtual switch. Allowed values are `Absolute`, `Default`, `None`, or `Weight`. If `Absolute` is specified, minimum bandwidth is bits per second. If `Weight` is specified, minimum bandwidth is a value ranging from `1` to `100`. If `None` is specified, minimum bandwidth is disabled on the switch – that is, users cannot configure it on any network adapter connected to the switch. If `Default` is specified, the system will set the mode to Weight, if the switch is not IOV-enabled, or `None` if the switch is IOV-enabled.
+* `minimum_bandwidth_mode` - (Optional) `None` (default). Valid values to use are `Absolute`, `Default`, `None`, `Weight`. Specifies how minimum bandwidth is to be configured on the virtual switch. If `Absolute` is specified, minimum bandwidth is bits per second. If `Weight` is specified, minimum bandwidth is a value ranging from `1` to `100`. If `None` is specified, minimum bandwidth is disabled on the switch – that is, users cannot configure it on any network adapter connected to the switch. If `Default` is specified, the system will set the mode to Weight, if the switch is not IOV-enabled, or `None` if the switch is IOV-enabled.
 
-* `switch_type` - (Optional) `Internal`(default). Specifies the type of the switch to be created. Allowed values are `Internal` and `Private`. To create an `External` virtual switch, specify either the NetAdapterInterfaceDescription or the NetAdapterName parameter, which implicitly set the type of the virtual switch to `External`.
+* `switch_type` - (Optional) `Internal` (default). Valid values to use are `Internal` and `Private`. Specifies the type of the switch to be created. To create an `External` virtual switch, specify either the NetAdapterInterfaceDescription or the NetAdapterName parameter, which implicitly set the type of the virtual switch to `External`.
 
 * `net_adapter_names` - (Optional) `string[]` (default). Specifies the name of the network adapter to be bound to the switch to be created. You can use the Get-NetAdapter cmdlet to get the interface description of a network adapter.
 
