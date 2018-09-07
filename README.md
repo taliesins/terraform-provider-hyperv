@@ -7,8 +7,8 @@ HyperV Terraform Provider
 - Documentation: https://github.com/taliesins/terraform-provider-hyperv/blob/master/website/docs/index.html.markdown
 - Issues: https://github.com/taliesins/terraform-provider-hyperv/issues
 
-![Hashi Logo](website/logo-hashicorp.svg?raw=true "Hashi Logo")
-![Windows Server Logo](website/windows-server-2016-logo.svg?raw=true "Windows Server Logo")
+![Hashi Logo](/website/logo-hashicorp.svg?raw=true "Hashi Logo")
+![Windows Server Logo](/website/windows-server-2016-logo.svg?raw=true "Windows Server Logo")
 
 Features
 ------------
