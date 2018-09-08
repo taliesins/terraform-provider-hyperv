@@ -268,7 +268,7 @@
   revision = "fa9f258a92500514cc8e9c67020487709df92432"
 
 [[projects]]
-  digest = "1:cf72e074d479f68767f8db7694b97010be0cf54fdc2f247a5d8526812cb40760"
+  digest = "1:3af3cdeedfd1633b9623694274087decf960c958bbb3910fdc85f8916a8b5fa3"
   name = "github.com/hashicorp/terraform"
   packages = [
     "config",
@@ -280,6 +280,8 @@
     "helper/hashcode",
     "helper/hilmapstructure",
     "helper/schema",
+    "helper/structure",
+    "helper/validation",
     "httpclient",
     "moduledeps",
     "plugin",
@@ -586,6 +588,7 @@
   input-imports = [
     "github.com/dylanmei/iso8601",
     "github.com/hashicorp/terraform/helper/schema",
+    "github.com/hashicorp/terraform/helper/validation",
     "github.com/hashicorp/terraform/plugin",
     "github.com/hashicorp/terraform/terraform",
     "github.com/masterzen/winrm",
