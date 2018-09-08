@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
@@ -85,6 +86,7 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  0,
+				ValidateFunc: validation.IntBetween(0, 100),
 			},
 
 			"default_queue_vmmq_enabled": {

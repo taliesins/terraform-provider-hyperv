@@ -96,7 +96,7 @@ func resourceHyperVVhd() *schema.Resource {
 					"source_vm",
 					"parent_path",
 				},
-				ValidateFunc: IntInSlice([]int{512, 4096}),
+				ValidateFunc: IntInSlice([]int{0, 512, 4096}),
 			},
 			"physical_sector_size": {
 				Type:          schema.TypeInt,
@@ -107,7 +107,7 @@ func resourceHyperVVhd() *schema.Resource {
 					"source_vm",
 					"parent_path",
 				},
-				ValidateFunc: IntInSlice([]int{512, 4096}),
+				ValidateFunc: IntInSlice([]int{0, 512, 4096}),
 			},
 			"exists": {
 				Type:     schema.TypeBool,

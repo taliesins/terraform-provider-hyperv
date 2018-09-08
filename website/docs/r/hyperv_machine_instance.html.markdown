@@ -143,6 +143,40 @@ resource "hyperv_machine_instance" "default" {
   network_adaptors {
     name = "wan"
     switch_name = "${hyperv_network_switch.dmz_network_switch.name}"
+    management_os = false
+    is_legacy = false
+    dynamic_mac_address = true
+    static_mac_address = ""
+    mac_address_spoofing = "Off"
+    dhcp_guard = "Off"
+    router_guard = "Off"
+    port_mirroring = "None"
+    ieee_priority_tag = "Off"
+    vmq_weight=100
+    iov_queue_pairs_requested=1
+    iov_interrupt_moderation="Off"
+    iov_weight=100
+    ipsec_offload_maximum_security_association=512
+    maximum_bandwidth=0
+    minimum_bandwidth_absolute=0
+    minimum_bandwidth_weigh=0
+    mandatory_feature_id=[]
+    resource_pool_name=""
+    test_replica_pool_name=""
+    test_replica_switch_name=""
+    virtual_subnet_id=0
+    allow_teaming="On"
+    not_monitored_in_cluster=false
+    storm_limit=0
+    dynamic_ip_address_limit=0
+    device_naming="Off"
+    fix_speed_10g="Off"
+    packet_direct_num_procs=0
+    packet_direct_moderation_count=0
+    packet_direct_moderation_interval=0
+    vrss_enabled=true
+    vmmq_enabled=false
+    vmmq_queue_pairs=16
   }
 }
 ```
@@ -225,9 +259,10 @@ resource "hyperv_machine_instance" "default" {
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
   dvd_drives {
-    path = "${hyperv_vhd.web_server_vhd.path}"
     controller_number = "0"
-    controller_location = "0"
+    controller_location = "1"
+    path = "c:/iso/windows-server-2016.iso"
+    resource_pool_name = ""
   }
 }
 ```
@@ -246,9 +281,17 @@ resource "hyperv_machine_instance" "default" {
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
   hard_disk_drives {
-    path = "${hyperv_vhd.web_server_vhd.path}"
+    controller_type = "Ide"
     controller_number = "0"
     controller_location = "0"
+    path = "c:/virtual machines/WebServer/windows-server-2016.vhd"
+    disk_number = 4294967295
+    resource_pool_name = "Primordial"
+    support_persistent_reservations = false
+    maximum_iops = 0
+    minimum_iops = 0
+    qos_policy_id = "00000000-0000-0000-0000-000000000000"
+    override_cache_attributes = "Default"
   }
 }
 ```
@@ -281,4 +324,3 @@ resource "hyperv_machine_instance" "default" {
   With WriteCacheAndFUAEnabled write I/O is committed to stable media BEFORE the I/O is acknowledged as written.
 
   With WriteCacheDisabled when I/O is written it is acknowledged as written as there is no cache in between.
-
