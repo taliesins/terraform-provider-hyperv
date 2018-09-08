@@ -80,6 +80,41 @@ resource "hyperv_machine_instance" "default" {
 ```
 
 * `network_adaptors` - (Optional) empty array (default). An array of all the network adaptors connected to vm.
+
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  network_adaptors {
+    name = "wan"
+    switch_name = "${hyperv_network_switch.dmz_network_switch.name}"
+  }
+}
+
 * `dvd_drives` - (Optional) empty array (default). An array of all the dvd drives connected to vm.
+
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  dvd_drives {
+    path = "${hyperv_vhd.web_server_vhd.path}"
+    controller_number = "0"
+    controller_location = "0"
+  }
+}
+
 * `hard_disk_drives` - (Optional) empty array (default). An array of all the hard disk drives connected to vm.
 
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  hard_disk_drives {
+    path = "${hyperv_vhd.web_server_vhd.path}"
+    controller_number = "0"
+    controller_location = "0"
+  }
+}
+
+### Integration Service
+### Network Adaptors
+### Dvd drives
+### Hard Disk Drives
