@@ -3,9 +3,10 @@ HyperV Terraform Provider
 
 #This is beta code. Working on adding acceptance tests so that I can mark it as release quality.
 
-- Website: https://github.com/taliesins/terraform-provider-hyperv
-- Documentation: https://github.com/taliesins/terraform-provider-hyperv/blob/master/website/docs/index.html.markdown
-- Issues: https://github.com/taliesins/terraform-provider-hyperv/issues
+- [Website](https://github.com/taliesins/terraform-provider-hyperv)
+- [Releases](https://github.com/taliesins/terraform-provider-hyperv/releases)
+- [Documentation](https://github.com/taliesins/terraform-provider-hyperv/tree/master/website/docs)
+- [Issues](https://github.com/taliesins/terraform-provider-hyperv/issues)
 
 ![Hashi Logo](https://cdn.rawgit.com/taliesins/terraform-provider-hyperv/master/website/logo-hashicorp.svg "Hashi Logo")
 ![Windows Server Logo](https://cdn.rawgit.com/taliesins/terraform-provider-hyperv/master/website/windows-server-2016-logo.svg "Windows Server Logo")
