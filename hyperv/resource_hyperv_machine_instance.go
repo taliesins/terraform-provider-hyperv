@@ -3,6 +3,7 @@ package hyperv
 import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform/helper/validation"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"log"
 )
@@ -193,6 +194,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  "",
 						},
+						"mac_address_spoofing": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      api.OnOffState_name[api.OnOffState_Off],
+							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
+						},
 						"dhcp_guard": {
 							Type:         schema.TypeString,
 							Optional:     true,
@@ -221,11 +228,13 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  100,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"iov_queue_pairs_requested": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  1,
+							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"iov_interrupt_moderation": {
 							Type:         schema.TypeString,
@@ -237,6 +246,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  100,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"ipsec_offload_maximum_security_association": {
 							Type:     schema.TypeInt,
@@ -257,6 +267,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
+							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"mandatory_feature_id": {
 							Type:     schema.TypeSet,
@@ -283,6 +294,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
+							ValidateFunc: ValueOrIntBetween(0, 4096, 16777215),
 						},
 						"allow_teaming": {
 							Type:         schema.TypeString,

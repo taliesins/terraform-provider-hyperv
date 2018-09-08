@@ -154,6 +154,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				IsLegacy:                               networkAdapter["is_legacy"].(bool),
 				DynamicMacAddress:                      networkAdapter["dynamic_mac_address"].(bool),
 				StaticMacAddress:                       networkAdapter["static_mac_address"].(string),
+				MacAddressSpoofing:						ToOnOffState(networkAdapter["mac_address_spoofing"].(string)),
 				DhcpGuard:                              ToOnOffState(networkAdapter["dhcp_guard"].(string)),
 				RouterGuard:                            ToOnOffState(networkAdapter["router_guard"].(string)),
 				PortMirroring:                          ToPortMirroring(networkAdapter["port_mirroring"].(string)),
@@ -261,6 +262,7 @@ type vmNetworkAdapter struct {
 	IsLegacy                               bool
 	DynamicMacAddress                      bool
 	StaticMacAddress                       string
+	MacAddressSpoofing					   OnOffState
 	DhcpGuard                              OnOffState
 	RouterGuard                            OnOffState
 	PortMirroring                          PortMirroring
@@ -387,6 +389,7 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 	isLegacy bool,
 	dynamicMacAddress bool,
 	staticMacAddress string,
+	macAddressSpoofing OnOffState,
 	dhcpGuard OnOffState,
 	routerGuard OnOffState,
 	portMirroring PortMirroring,
@@ -426,6 +429,7 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 		IsLegacy:                               isLegacy,
 		DynamicMacAddress:                      dynamicMacAddress,
 		StaticMacAddress:                       staticMacAddress,
+		MacAddressSpoofing:						macAddressSpoofing,
 		DhcpGuard:                              dhcpGuard,
 		RouterGuard:                            routerGuard,
 		PortMirroring:                          portMirroring,
@@ -477,7 +481,8 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
      IsLegacy=$_.IsLegacy;
      DynamicMacAddress=$_.DynamicMacAddressEnabled;
      StaticMacAddress=if ($_.MacAddress -eq '000000000000') { '' } else { $_.MacAddress };
-     DhcpGuard=$_.DhcpGuard;
+     MacAddressSpoofing=$_.MacAddressSpoofing;
+	 DhcpGuard=$_.DhcpGuard;
      RouterGuard=$_.RouterGuard;
      PortMirroring=$_.PortMirroringMode;
      IeeePriorityTag=$_.IeeePriorityTag;
@@ -619,6 +624,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 	isLegacy bool,
 	dynamicMacAddress bool,
 	staticMacAddress string,
+	macAddressSpoofing OnOffState,
 	dhcpGuard OnOffState,
 	routerGuard OnOffState,
 	portMirroring PortMirroring,
@@ -659,6 +665,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 		IsLegacy:                               isLegacy,
 		DynamicMacAddress:                      dynamicMacAddress,
 		StaticMacAddress:                       staticMacAddress,
+		MacAddressSpoofing:						macAddressSpoofing,
 		DhcpGuard:                              dhcpGuard,
 		RouterGuard:                            routerGuard,
 		PortMirroring:                          portMirroring,
@@ -752,6 +759,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 			networkAdapter.IsLegacy,
 			networkAdapter.DynamicMacAddress,
 			networkAdapter.StaticMacAddress,
+			networkAdapter.MacAddressSpoofing,
 			networkAdapter.DhcpGuard,
 			networkAdapter.RouterGuard,
 			networkAdapter.PortMirroring,
@@ -797,6 +805,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 			networkAdapter.IsLegacy,
 			networkAdapter.DynamicMacAddress,
 			networkAdapter.StaticMacAddress,
+			networkAdapter.MacAddressSpoofing,
 			networkAdapter.DhcpGuard,
 			networkAdapter.RouterGuard,
 			networkAdapter.PortMirroring,

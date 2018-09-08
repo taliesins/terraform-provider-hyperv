@@ -15,6 +15,42 @@ The ``hyperv_machine_instance`` resource creates and manages an instance on a Hy
 ```hcl
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
+  generation = 1
+  automatic_critical_error_action = "Pause"
+  automatic_critical_error_action_timeout = 30
+  automatic_start_action = "StartIfRunning"
+  automatic_start_delay = 0
+  automatic_stop_action = "Save"
+  checkpoint_type = "Production"
+  dynamic_memory = false
+  guest_controlled_cache_types = false
+  high_memory_mapped_io_space = 536870912
+  lock_on_disconnect = "Off"
+  low_memory_mapped_io_space = 134217728
+  memory_maximum_bytes = 1099511627776
+  memory_minimum_bytes = 536870912
+  memory_startup_bytes = 536870912
+  notes = ""
+  processor_count = 1
+  smart_paging_file_path = "C:\ProgramData\Microsoft\Windows\Hyper-V"
+  snapshot_file_location = "C:\ProgramData\Microsoft\Windows\Hyper-V"
+  static_memory = true
+
+  # Configure integration services
+  integration_services {
+  }
+
+  # Create a network adaptor
+  network_adaptors {
+  }
+
+  # Create dvd drive
+  dvd_drives {
+  }
+
+  # Create a hard disk drive
+  hard_disk_drives {
+  }
 }
 ```
 ## Argument Reference
@@ -65,6 +101,14 @@ The following arguments are supported:
 
 * `integration_services` - (optional) default integration services (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 
+* `network_adaptors` - (Optional) empty array (default). An array of all the network adaptors connected to vm.
+
+* `dvd_drives` - (Optional) empty array (default). An array of all the dvd drives connected to vm.
+
+* `hard_disk_drives` - (Optional) empty array (default). An array of all the hard disk drives connected to vm.
+
+### Integration Service
+
 ```hcl
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
@@ -79,7 +123,19 @@ resource "hyperv_machine_instance" "default" {
 }
 ```
 
-* `network_adaptors` - (Optional) empty array (default). An array of all the network adaptors connected to vm.
+* `Guest Service Interface` - (Optional) `false` (default). Provides an interface for the Hyper-V host to copy files to or from the virtual machine.
+
+* `Heartbeat` - (Optional) `true` (default). Reports that the virtual machine is running correctly.
+
+* `Key-Value Pair Exchange` - (Optional) `true` (default). Provides a way to exchange basic metadata b etween the virtual machine and the host.
+
+* `Shutdown` - (Optional) `true` (default). Allows the host to trigger virtual machines shutdown.
+
+* `Time Synchronization` - (Optional) `true` (default). Synchronizes the virtual machine's clock with the host computer's clock.
+
+* `VSS` - (Optional) `true` (default). Allows Volume Shadow Copy Service to back up the virtual machine with out shutting it down.
+
+### Network Adaptors
 
 ```hcl
 resource "hyperv_machine_instance" "default" {
@@ -89,8 +145,81 @@ resource "hyperv_machine_instance" "default" {
     switch_name = "${hyperv_network_switch.dmz_network_switch.name}"
   }
 }
+```
 
-* `dvd_drives` - (Optional) empty array (default). An array of all the dvd drives connected to vm.
+* `name` - (Required). Specifies the name for the virtual network adapter.
+
+* `switch_name` - (Optional) empty (default). Specifies the name of the virtual switch to connect to the new network adapter. If the switch name is not unique, then the operation fails.
+
+* `management_os` - (Optional) `false` (default). Specifies the virtual network adapter in the management operating system to be configured.
+
+* `is_legacy` - (Optional) `false` (default). Specifies whether the virtual network adapter is the legacy type.
+
+* `dynamic_mac_address` - (Optional) `true` (default). Assigns a dynamically generated MAC address to the virtual network adapter.
+
+* `static_mac_address` - (Optional) empty (default). Assigns a specific a MAC addresss to the virtual network adapter.
+
+* `mac_address_spoofing` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether virtual machines may change the source MAC address in outgoing packets to one not assigned to them. On allows the virtual machine to use a different MAC address. Off only allows the virtual machine to use the MAC address assigned to it. 
+
+* `dhcp_guard` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether to drop DHCP messages from a virtual machine claiming to be a DHCP server. 
+
+* `router_guard` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether to drop Router Advertisement and Redirection messages from unauthorized virtual machines. If On is specified, such messages are dropped. If Off is specified, such messages are sent.
+
+* `port_mirroring` - (Optional) `None` (default). Valid values to use are `None`, `Source`, `Destination`. Specifies the port mirroring mode for the network adapter to be configured. If a virtual network adapter is configured as Source, every packet it sends or receives is copied and forwarded to a virtual network adapter configured to receive the packets. If a virtual network adapter is configured as Destination, it receives copied packets from the source virtual network adapter. The source and destination virtual network adapters must be connected to the same virtual switch. Specify None to disable the feature.
+
+* `ieee_priority_tag` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether IEEE 802.1p tagged packets from the virtual machine should be trusted. If it is on, the IEEE 802.1p tagged packets will be let go as is. If it is off, the priority value is reset to 0.
+
+* `vmq_weight` - (Optional) `100` (default). Valid values to use are between `1` to `100`. Specifies whether virtual machine queue (VMQ) is to be enabled on the virtual network adapter. The relative weight describes the affinity of the virtual network adapter to use VMQ. Specify 0 to disable VMQ on the virtual network adapter.
+
+* `iov_queue_pairs_requested` - (Optional) `1` (default). Valid values to use are between `1` to `4294967295`. Specifies the number of hardware queue pairs to be allocated to an SR-IOV virtual function. If receive-side scaling (RSS) is required, and if the physical network adapter that binds to the virtual switch supports RSS on SR-IOV virtual functions, then more than one queue pair is required.
+
+* `iov_interrupt_moderation` - (Optional) `Off` (default). Valid values to use are `Default`, `Adaptive`, `Off`, `Low `, `Medium`, `High`. Specifies the interrupt moderation value for a single-root I/O virtualization (SR-IOV) virtual function assigned to a virtual network adapter. If Default is chosen, the value is determined by the physical network adapter vendor's setting. If Adaptive is chosen, the interrupt moderation rate will be based on the runtime traffic pattern.
+
+* `iov_weight` - (Optional) `100` (default). Valid values to use are between `0` to `100`. Specifies whether single-root I/O virtualization (SR-IOV) is to be enabled on this virtual network adapter. The relative weight sets the affinity of the virtual network adapter to the assigned SR-IOV virtual function. Specify 0 to disable SR-IOV on the virtual network adapter.
+
+* `ipsec_offload_maximum_security_association` - (Optional) `512` (default). Specifies the maximum number of security associations that can be offloaded to the physical network adapter that is bound to the virtual switch and that supports IPSec Task Offload. Specify zero to disable the feature.
+
+* `maximum_bandwidth` - (Optional) `0` (default). Specifies the maximum bandwidth, in bits per second, for the virtual network adapter. The specified value is rounded to the nearest multiple of eight. Specify zero to disable the feature.
+
+* `minimum_bandwidth_absolute` - (Optional) `0` (default). Specifies the minimum bandwidth, in bits per second, for the virtual network adapter. The specified value is rounded to the nearest multiple of eight. A value larger than 100 Mbps is recommended.
+
+* `minimum_bandwidth_weight` - (Optional) `0` (default). Valid values to use are between `0` to `100`. Specifies the minimum bandwidth, in terms of relative weight, for the virtual network adapter. The weight describes how much bandwidth to provide to the virtual network adapter relative to other virtual network adapters connected to the same virtual switch. Specify 0 to disable the feature.
+
+* `mandatory_feature_id` - (Optional) array of strings (default). Specifies the unique identifiers of the virtual switch extension features that are required for this virtual network adapter to operate.
+
+* `resource_pool_name` - (Optional) empty (default). Specifies the name of the resource pool.
+
+* `test_replica_pool_name` - (Optional) empty (default). This parameter applies only to virtual machines that are enabled for replication. It specifies the name of the network resource pool that will be used by this virtual network adapter when its virtual machine is created during a test failover.
+
+* `test_replica_switch_name` - (Optional) empty (default). This parameter applies only to virtual machines that are enabled for replication. It specifies the name of the virtual switch to which the virtual network adapter should be connected when its virtual machine is created during a test failover.
+
+* `virtual_subnet_id` - (Optional) `0` (default). Valid values to use are `0` or between `4096` to `16777215` (2^24 - 1). Specifies the virtual subnet ID to use with Hyper-V Network Virtualization. Use 0 to clear this parameter.
+
+* `allow_teaming` - (Optional) `On` (default). Valid values to use are `On`, `Off`. Specifies whether the virtual network adapter can be teamed with other network adapters connected to the same virtual switch. 
+
+* `not_monitored_in_cluster` - (Optional) `false` (default). Indicates whether to not monitor the network adapter if the virtual machine that it belongs to is part of a cluster. By default, network adapters for clustered virtual machines are monitored.
+
+* `storm_limit` - (Optional) `0` (default). Specifies the number of broadcast, multicast, and unknown unicast packets per second a virtual machine is allowed to send through the specified virtual network adapter. Broadcast, multicast, and unknown unicast packets beyond the limit during that one second interval are dropped. A value of zero (0) means there is no limit.
+
+* `dynamic_ip_address_limit` - (Optional) `0` (default). Specifies the dynamic IP address limit.
+
+* `device_naming` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether this adapter uses device naming.
+
+* `fix_speed_10g` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether the adapter uses fix speed of 10G.
+
+* `packet_direct_num_procs` - (Optional) `0` (default). Specifies the number of processors to use for virtual switch processing inside of the host.
+
+* `packet_direct_moderation_count` - (Optional) `0` (default). Specifies the number of packets to wait for before signaling an interrupt.
+
+* `packet_direct_moderation_interval` - (Optional) `0` (default). Specifies the amount of time, in milliseconds, to wait before signaling an interrupt after a packet arrives.
+
+* `vrss_enabled` - (Optional) `true` (default). Should Virtual Receive Side Scaling be enabled. This configuration allows the load from a virtual network adapter to be distributed across multiple virtual processors in a virtual machine (VM), allowing the VM to process more network traffic more rapidly than it can with a single logical processor.
+
+* `vmmq_enabled` - (Optional) `false` (default). Should Virtual Machine Multi-Queue be enabled. With set to true multiple queues are allocated to a single VM with each queue affinitized to a core in the VM.
+
+* `vmmq_queue_pairs` - (Optional) `16` (default). The number of Virtual Machine Multi-Queues to create for this VM.
+
+### Dvd drives
 
 ```hcl
 resource "hyperv_machine_instance" "default" {
@@ -101,8 +230,17 @@ resource "hyperv_machine_instance" "default" {
     controller_location = "0"
   }
 }
+```
 
-* `hard_disk_drives` - (Optional) empty array (default). An array of all the hard disk drives connected to vm.
+* `controller_number` - (Required).  Specifies the number of the controller to which the DVD drive is to be added. 
+
+* `controller_location` - (Required). Specifies the number of the location on the controller at which the DVD drive is to be added. 
+
+* `path` - (Optional) empty (default). Specifies the full path to the virtual hard disk file or physical hard disk volume for the added DVD drive.
+
+* `resource_pool_name` - (Optional) empty (default). Specifies the friendly name of the ISO resource pool to which this DVD drive is to be associated.
+
+### Hard Disk Drives
 
 ```hcl
 resource "hyperv_machine_instance" "default" {
@@ -113,8 +251,34 @@ resource "hyperv_machine_instance" "default" {
     controller_location = "0"
   }
 }
+```
+* `controller_type` - (Optional) `Ide` (default). Valid values to use are `Ide`, `Scsi`. Specifies the type of the controller to which the hard disk drive is to be added. 
 
-### Integration Service
-### Network Adaptors
-### Dvd drives
-### Hard Disk Drives
+* `controller_number` - (Required).  Specifies the number of the controller to which the hard disk drive is to be added. 
+
+* `controller_location` - (Required).  Specifies the number of the location on the controller at which the hard disk drive is to be added. 
+
+* `path` - (Optional) empty (default). Specifies the full path of the hard disk drive file to be added.
+
+* `disk_number` - (Optional) `4294967295` (default). If value is 4294967295 then disk number is ignored. Specifies the disk number of the offline physical hard drive to be connected as a passthrough disk.
+
+* `resource_pool_name` - (Optional) `Primordial` (default). Specifies the friendly name of the resource pool to which this virtual hard disk is to be associated.
+
+* `support_persistent_reservations` - (Optional) `false` (default). Indicates that the hard disk supports SCSI persistent reservation semantics. Specify this parameter when the hard disk is a shared disk that is used by multiple virtual machines.
+
+* `maximum_iops` - (Optional) `0` (default). If value is 0 then iops is ignored. Specifies the maximum normalized I/O operations per second (IOPS) for the hard disk. Hyper-V calculates normalized IOPS as the total size of I/O per second divided by 8 KB.
+
+* `minimum_iops` - (Optional) `0` (default). If maximum iops value is 0 then iops is ignored. Specifies the minimum normalized I/O operations per second (IOPS) for the hard disk. Hyper-V calculates normalized IOPS as the total size of I/O per second divided by 8 KB.
+
+* `qos_policy_id` - (Optional) `00000000-0000-0000-0000-000000000000` (default). Specifies the unique ID for a storage QoS policy that this cmdlet associates with the hard disk drive. If value is 00000000-0000-0000-0000-000000000000 then qos policy id is ignored.
+
+* `override_cache_attributes` - (Optional) `Default` (default). Valid values to use are `Default`, `WriteCacheEnabled`, `WriteCacheAndFUAEnabled`, `WriteCacheDisabled`.
+
+  With Default it is equivalent of WriteCacheDisabled.
+  
+  With WriteCacheEnabled write I/O is acknowledged as written before it is committed to stable media. If your internal disks, DAS, SAN, or NAS has a battery backup system that can guarantee clean cache flushes on a power outage, write caching is generally safe. Internal batteries that report their status and/or automatically disable caching are best. UPS-backed systems are sometimes OK, but they are not foolproof.
+
+  With WriteCacheAndFUAEnabled write I/O is committed to stable media BEFORE the I/O is acknowledged as written.
+
+  With WriteCacheDisabled when I/O is written it is acknowledged as written as there is no cache in between.
+

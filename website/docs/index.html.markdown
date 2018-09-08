@@ -17,18 +17,18 @@ Use the navigation to the left to read about the available resources.
 ```hcl
 # Configure HyperV
 provider "hyperv" {
-  user            = "..."
-  password        = "..."
-  host            = "..."
-  port            = "..."
-  https           = "..."
-  insecure        = "..."
-  tls_server_name = "..."
-  cacert_path     = "..."
-  cert_path       = "..."
-  key_path        = "..."
-  script_path     = "..."
-  timeout         = "..."
+  user            = "Administator"
+  password        = "p@ssw0rd"
+  host            = "127.0.0.1"
+  port            = 5985
+  https           = false
+  insecure        = false
+  tls_server_name = ""
+  cacert_path     = ""
+  cert_path       = ""
+  key_path        = ""
+  script_path     = "C:/Temp/terraform_%RAND%.cmd"
+  timeout         = "30s"
 }
 
 # Create a switch
