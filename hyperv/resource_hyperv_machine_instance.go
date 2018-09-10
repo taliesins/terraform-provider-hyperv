@@ -202,6 +202,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "",
+							DiffSuppressFunc: api.DiffSuppressVmStaticMacAddress,
 						},
 						"mac_address_spoofing": {
 							Type:         schema.TypeString,

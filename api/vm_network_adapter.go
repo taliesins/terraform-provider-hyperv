@@ -129,6 +129,15 @@ func (d *IovInterruptModerationValue) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+func DiffSuppressVmStaticMacAddress (key, old, new string, d *schema.ResourceData) bool {
+	//Static Mac Address has not been set, so we don't mind what ever value is automatically generated
+	if new == "" {
+		return true
+	}
+
+	return new == old
+}
+
 func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 	expandedNetworkAdapters := make([]vmNetworkAdapter, 0)
 
@@ -216,6 +225,7 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 			flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
 			flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
 			flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
+			flattenedNetworkAdapter["mac_address_spoofing"] = networkAdapter.MacAddressSpoofing.String()
 			flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard.String()
 			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard.String()
 			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring.String()
@@ -335,7 +345,7 @@ $SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
 if ($vmNetworkAdapter.DynamicMacAddress) {
 	$SetVmNetworkAdapterArgs.DynamicMacAddress=$vmNetworkAdapter.DynamicMacAddress
-} else {
+} elseif ($vmNetworkAdapter.StaticMacAddress) {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
 if ($vmNetworkAdapter.MacAddressSpoofing) {
@@ -508,8 +518,8 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
      PacketDirectNumProcs=$_.PacketDirectNumProcs;
      PacketDirectModerationCount=$_.PacketDirectModerationCount;
      PacketDirectModerationInterval=$_.PacketDirectModerationInterval;
-     VrssEnabled=$_.VrssEnabled;
-     VmmqEnabled=$_.VmmqEnabled;
+     VrssEnabled=$_.VrssEnabledRequested;
+     VmmqEnabled=$_.VmmqEnabledRequested;
      VmmqQueuePairs=$_.VmmqQueuePairsRequested;
 }})
 
@@ -569,7 +579,7 @@ $SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
 if ($vmNetworkAdapter.DynamicMacAddress) {
 	$SetVmNetworkAdapterArgs.DynamicMacAddress=$vmNetworkAdapter.DynamicMacAddress
-} else {
+} elseif ($vmNetworkAdapter.StaticMacAddress) {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
 if ($vmNetworkAdapter.MacAddressSpoofing) {
