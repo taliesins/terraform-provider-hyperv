@@ -267,7 +267,7 @@ func resourceHyperVVhdDelete(d *schema.ResourceData, meta interface{}) (err erro
 
 	path := ""
 
-	if v, ok := d.GetOk("name"); ok {
+	if v, ok := d.GetOk("path"); ok {
 		path = v.(string)
 	} else {
 		return fmt.Errorf("[ERROR][hyperv][delete] path argument is required")
