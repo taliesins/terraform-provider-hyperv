@@ -1,11 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"text/template"
-	"bytes"
-	"strconv"
 )
 
 type CriticalErrorAction int
@@ -615,3 +615,4 @@ func (c *HypervClient) DeleteVM(name string) (err error) {
 
 	return err
 }
+

@@ -247,7 +247,7 @@ if (!(Test-Path -Path $vhd.Path)) {
             Get-FileFromUri -Url $source -FolderPath $pathDirectory
         }
         else {
-            Copy-Item $source $pathDirectory
+            Copy-Item $source $pathDirectory -Force
         }
 
         Expand-Downloads -FolderPath $pathDirectory

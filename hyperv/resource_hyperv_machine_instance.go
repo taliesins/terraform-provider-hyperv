@@ -9,6 +9,8 @@ import (
 )
 
 const MaxUint32  = 4294967295
+const UpdateVmStateRetryInterval  = 2
+const UpdateVmStateTimeout  = 120
 
 func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
@@ -156,6 +158,13 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				DefaultFunc: api.DefaultVmIntegrationServices,
 				DiffSuppressFunc: api.DiffSuppressVmIntegrationServices,
 				Elem:     schema.TypeBool,
+			},
+
+			"state": {
+				Type:         schema.TypeString,
+				Optional:     true,
+				Default:      api.VmState_name[api.VmState_Running],
+				ValidateFunc: stringKeyInMap(api.VmState_SettableValue, true),
 			},
 
 			"network_adaptors": {
@@ -489,6 +498,7 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 	smartPagingFilePath := (data.Get("smart_paging_file_path")).(string)
 	snapshotFileLocation := (data.Get("snapshot_file_location")).(string)
 	staticMemory := (data.Get("static_memory")).(bool)
+	state := api.ToVmState((data.Get("state")).(string))
 
 	if dynamicMemory && staticMemory {
 		return fmt.Errorf("[ERROR][hyperv][create] Dynamic and static can't be both selected at the same time")
@@ -543,6 +553,11 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return err
 	}
 
+	err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+	if err != nil {
+		return err
+	}
+
 	data.SetId(name)
 	log.Printf("[INFO][hyperv][create] created hyperv machine: %#v", data)
 
@@ -582,6 +597,11 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	}
 
 	hardDiskDrives, err := client.GetVMHardDiskDrives(name)
+	if err != nil {
+		return err
+	}
+
+	vmState, err := client.GetVMState(name)
 	if err != nil {
 		return err
 	}
@@ -648,6 +668,7 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	data.Set("smart_paging_file_path", vm.SmartPagingFilePath)
 	data.Set("snapshot_file_location", vm.SnapshotFileLocation)
 	data.Set("static_memory", vm.StaticMemory)
+	data.Set("state", vmState.State.String())
 
 	log.Printf("[INFO][hyperv][read] read hyperv machine: %#v", data)
 
@@ -770,6 +791,14 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 	}
 
+	if data.HasChange("state") {
+		state := api.ToVmState((data.Get("state")).(string))
+		err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+		if err != nil {
+			return err
+		}
+	}
+
 	log.Printf("[INFO][hyperv][update] updated hyperv machine: %#v", data)
 
 	return resourceHyperVMachineInstanceRead(data, meta)
@@ -788,8 +817,13 @@ func resourceHyperVMachineInstanceDelete(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][delete] name argument is required")
 	}
 
-	err = client.DeleteVM(name)
+	state := api.VmState_Off
+	err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+	if err != nil {
+		return err
+	}
 
+	err = client.DeleteVM(name)
 	if err != nil {
 		return err
 	}
