@@ -35,6 +35,7 @@ resource "hyperv_machine_instance" "default" {
   smart_paging_file_path = "C:\ProgramData\Microsoft\Windows\Hyper-V"
   snapshot_file_location = "C:\ProgramData\Microsoft\Windows\Hyper-V"
   static_memory = true
+  state = "Running"
 
   # Configure integration services
   integration_services {
@@ -98,6 +99,8 @@ The following arguments are supported:
 * `snapshot_file_location` - (Optional) `C:\ProgramData\Microsoft\Windows\Hyper-V` (Default). Specifies the folder in which the virtual machine is to store its snapshot files.
 
 * `static_memory` - (Optional) `true` (default). Specifies if the machine instance will use static memory.
+
+* `state` - (Optional) `Running` (default).  Valid values to use are `Running`, `Off`. Specifies if the machine instance will be running or off.
 
 * `integration_services` - (optional) default integration services (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 
