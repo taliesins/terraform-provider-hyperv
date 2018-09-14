@@ -33,7 +33,7 @@ The following arguments are supported:
 
 * `path` - (Required). Path to the new virtual hard disk file(s) that is being created or being copied to. If a filename or relative path is specified, the new virtual hard disk path is calculated relative to the current working directory. Depending on the source selected, the path will be used to determine where to copy source vhd/vhdx/vhds file to.
 
-* `source` - (Optional) empty (default). This field is mutually exclusive with the fields "source_vm", "parent_path", "source_disk". This value can be a url or a path (including wildcards). Zip and 7z files will automatically be expanded. The destination folder will be the directory portion of the path.
+* `source` - (Optional) empty (default). This field is mutually exclusive with the fields "source_vm", "parent_path", "source_disk". This value can be a url or a path (including wildcards). Box, Zip and 7z files will automatically be expanded. The destination folder will be the directory portion of the path. If expanded files have a folder called "Virtual Machines", then the "Virtual Machines" folder will be used instead of the entire archive contents. 
 
 * `source_vm` - (Optional) empty (default). This field is mutually exclusive with the fields "source", "parent_path", "source_disk". This value is the name of the vm to copy the vhds from.
 

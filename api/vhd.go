@@ -162,6 +162,18 @@ $sourceDisk={{.SourceDisk}}
 $vhd = '{{.VhdJson}}' | ConvertFrom-Json
 $vhdType = [Microsoft.Vhd.PowerShell.VhdType]$vhd.VhdType
 
+function Get-7ZipPath {
+	if (Get-Command "7z" -ErrorAction SilentlyContinue) { 
+   		return "7z"
+	} elseif (test-path "$env:ProgramFiles\7-Zip\7z.exe") {
+		return "$env:ProgramFiles\7-Zip\7z.exe"
+	} elseif (test-path "${env:ProgramFiles(x86)}\7-Zip\7z.exe") {
+		return "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
+	} else { 
+		return ""
+	}
+}
+
 function Expand-Downloads {
     param(
         [Parameter(Mandatory = $true, Position = 0)]
@@ -170,16 +182,72 @@ function Expand-Downloads {
         $FolderPath
     )
     process {
+		Push-Location $FolderPath
+
         get-item *.zip | % {
-            Add-Type -AssemblyName System.IO.Compression.FileSystem
-            [System.IO.Compression.ZipFile]::ExtractToDirectory($_.FullName, $pathDirectory)
-            Remove-Item $_.FullName -Force
+			$tempPath = join-path $FolderPath "temp"
+
+			$7zPath = Get-7ZipPath
+			if ($7zPath) {
+				$command = """$7zPath"" x ""$($_.FullName)"" -o""$tempPath""" 
+				& cmd.exe /C $command
+			} else {
+				Add-Type -AssemblyName System.IO.Compression.FileSystem
+    			if (!(Test-Path $tempPath)) {
+        			New-Item -ItemType Directory -Force -Path $tempPath
+    			}
+            	[System.IO.Compression.ZipFile]::ExtractToDirectory($_.FullName, $tempPath)
+			}
+
+            if (Test-Path "$tempPath\Virtual Hard Disks") {
+        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+			} else {
+				Move-Item "$tempPath\*.*" $FolderPath
+			}
+
+			Remove-Item $tempPath -Force -Recurse
+			Remove-Item $_.FullName -Force
         }
 
         get-item *.7z | % {
-            & "7z" "x" $_.FullName "-o$($pathDirectory)"
-            Remove-Item $_.FullName -Force
+			$7zPath = Get-7ZipPath
+			if (-not $7zPath) {
+ 				throw "7z.exe needed"
+			}
+			$tempPath = join-path $FolderPath "temp"
+			$command = """$7zPath"" x ""$($_.FullName)"" -o""$tempPath""" 
+			& cmd.exe /C $command
+
+			if (Test-Path "$tempPath\Virtual Hard Disks") {
+        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+			} else {
+				Move-Item "$tempPath\*.*" $FolderPath
+			}
+
+			Remove-Item $tempPath -Force -Recurse
+			Remove-Item $_.FullName -Force
         }
+
+        get-item *.box | % {
+			$7zPath = Get-7ZipPath
+			if (-not $7zPath) {
+ 				throw "7z.exe needed"
+			}
+			$tempPath = join-path $FolderPath "temp"
+			$command = """$7zPath"" x ""$($_.FullName)"" -so | ""$7zPath"" x -aoa -si -ttar -o""$tempPath"""
+			& cmd.exe /C $command
+
+			if (Test-Path "$tempPath\Virtual Hard Disks") {
+        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+			} else {
+				Move-Item "$tempPath\*.*" $FolderPath
+			}
+
+			Remove-Item $tempPath -Force -Recurse
+			Remove-Item $_.FullName -Force
+        }
+
+		Pop-Location
     }
 }
 

@@ -2,7 +2,6 @@
 
 FEATURES:
 
-
 * **New Resource:** `hyperv_network_switch`
 * **New Resource:** `hyperv_vhd` 
 * **New Resource:** `hyperv_machine_instance`
@@ -17,3 +16,5 @@ NOTES:
 -Changed Winrmcp to return path of files on remote box as the location of $env:temp can change in Powershell depending on the session instance.
 - Runs all HyperV commands remotely i.e. so the provider can run on a linux machine and connect remotely to a windows machine running HyperV.
 - Almost all functionality of Powershell HyperV commandlets for the resources is exposed via Terraform resources.
+- Support for downloading zip or 7z format for VHDs
+- Support for downloading Packer box format for VHDs
