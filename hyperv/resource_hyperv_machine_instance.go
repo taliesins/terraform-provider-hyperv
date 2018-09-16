@@ -369,6 +369,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  16,
 						},
+						"ip_addresses" : {
+							Type:        schema.TypeList,
+							Computed:    true,
+							Description: "The current list of IP addresses on this virtual machine.",
+							Elem: &schema.Schema{Type: schema.TypeString},
+						},
 					},
 				},
 			},

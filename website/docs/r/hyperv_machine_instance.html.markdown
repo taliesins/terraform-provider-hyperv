@@ -256,6 +256,8 @@ resource "hyperv_machine_instance" "default" {
 
 * `vmmq_queue_pairs` - (Optional) `16` (default). The number of Virtual Machine Multi-Queues to create for this VM.
 
+* `ip_addresses` - (Computed).  The current list of IP addresses on this machine. If HyperV integration tools is not running on the virtual machine, or if the VM is powered off, or has not been assigned an ip address, this list will be empty. 
+
 ### Dvd drives
 
 ```hcl

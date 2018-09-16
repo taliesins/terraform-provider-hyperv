@@ -156,6 +156,12 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId.(string))
 			}
 
+			ipAddressesSet := networkAdapter["ip_addresses"].([]interface{})
+			ipAddresses := make([]string, 0)
+			for _, ipAddress := range ipAddressesSet {
+				ipAddresses = append(ipAddresses, ipAddress.(string))
+			}
+
 			expandedNetworkAdapter := vmNetworkAdapter{
 				Name:                                   networkAdapter["name"].(string),
 				SwitchName:                             networkAdapter["switch_name"].(string),
@@ -193,6 +199,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				VrssEnabled:                            networkAdapter["vrss_enabled"].(bool),
 				VmmqEnabled:                            networkAdapter["vmmq_enabled"].(bool),
 				VmmqQueuePairs:                         networkAdapter["vmmq_queue_pairs"].(int),
+				IpAddresses:							ipAddresses,
 			}
 
 			expandedNetworkAdapters = append(expandedNetworkAdapters, expandedNetworkAdapter)
@@ -255,6 +262,7 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 			flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
 			flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
 			flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+			flattenedNetworkAdapter["ip_addresses"] = networkAdapter.IpAddresses
 
 			flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
 		}
@@ -302,6 +310,7 @@ type vmNetworkAdapter struct {
 	VrssEnabled                            bool
 	VmmqEnabled                            bool
 	VmmqQueuePairs                         int
+	IpAddresses 						   []string
 }
 
 type createVMNetworkAdapterArgs struct {
@@ -521,6 +530,7 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
      VrssEnabled=$_.VrssEnabledRequested;
      VmmqEnabled=$_.VmmqEnabledRequested;
      VmmqQueuePairs=$_.VmmqQueuePairsRequested;
+     IpAddresses=$_.IpAddresses;
 }})
 
 if ($vmNetworkAdaptersObject) {
