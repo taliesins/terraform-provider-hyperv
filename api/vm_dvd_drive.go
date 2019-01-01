@@ -50,7 +50,7 @@ func FlattenDvdDrives(dvdDrives *[]vmDvdDrive) []interface{} {
 }
 
 type vmDvdDrive struct {
-	VMName             string
+	VmName             string
 	ControllerNumber   int
 	ControllerLocation int
 	Path               string
@@ -58,17 +58,17 @@ type vmDvdDrive struct {
 	ResourcePoolName string
 }
 
-type createVMDvdDriveArgs struct {
+type createVmDvdDriveArgs struct {
 	VmDvdDriveJson string
 }
 
-var createVMDvdDriveTemplate = template.Must(template.New("CreateVMDvdDrive").Parse(`
+var createVmDvdDriveTemplate = template.Must(template.New("CreateVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
 
 $NewVmDvdDriveArgs = @{
-	VMName=$vmDvdDrive.VmName
+	VmName=$vmDvdDrive.VmName
 	ControllerNumber=$vmDvdDrive.ControllerNumber
 	ControllerLocation=$vmDvdDrive.ControllerLocation
 	Path=$vmDvdDrive.Path
@@ -79,7 +79,7 @@ $NewVmDvdDriveArgs = @{
 Add-VmDvdDrive @NewVmDvdDriveArgs
 `))
 
-func (c *HypervClient) CreateVMDvdDrive(
+func (c *HypervClient) CreateVmDvdDrive(
 	vmName string,
 	controllerNumber int,
 	controllerLocation int,
@@ -88,27 +88,27 @@ func (c *HypervClient) CreateVMDvdDrive(
 ) (err error) {
 
 	vmDvdDriveJson, err := json.Marshal(vmDvdDrive{
-		VMName:             vmName,
+		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
 		Path:               path,
 		ResourcePoolName:   resourcePoolName,
 	})
 
-	err = c.runFireAndForgetScript(createVMDvdDriveTemplate, createVMDvdDriveArgs{
+	err = c.runFireAndForgetScript(createVmDvdDriveTemplate, createVmDvdDriveArgs{
 		VmDvdDriveJson: string(vmDvdDriveJson),
 	})
 
 	return err
 }
 
-type getVMDvdDrivesArgs struct {
-	VMName string
+type getVmDvdDrivesArgs struct {
+	VmName string
 }
 
-var getVMDvdDrivesTemplate = template.Must(template.New("GetVMDvdDrives").Parse(`
+var getVmDvdDrivesTemplate = template.Must(template.New("GetVmDvdDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmDvdDrivesObject = @(Get-VMDvdDrive -VMName '{{.VMName}}' | %{ @{
+$vmDvdDrivesObject = @(Get-VMDvdDrive -VmName '{{.VmName}}' | %{ @{
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
 	Path=$_.Path;
@@ -125,36 +125,36 @@ if ($vmDvdDrivesObject) {
 }
 `))
 
-func (c *HypervClient) GetVMDvdDrives(vmName string) (result []vmDvdDrive, err error) {
+func (c *HypervClient) GetVmDvdDrives(vmName string) (result []vmDvdDrive, err error) {
 	result = make([]vmDvdDrive, 0)
 
-	err = c.runScriptWithResult(getVMDvdDrivesTemplate, getVMDvdDrivesArgs{
-		VMName: vmName,
+	err = c.runScriptWithResult(getVmDvdDrivesTemplate, getVmDvdDrivesArgs{
+		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-type updateVMDvdDriveArgs struct {
-	VMName             string
+type updateVmDvdDriveArgs struct {
+	VmName             string
 	ControllerNumber   int
 	ControllerLocation int
 	VmDvdDriveJson     string
 }
 
-var updateVMDvdDriveTemplate = template.Must(template.New("UpdateVMDvdDrive").Parse(`
+var updateVmDvdDriveTemplate = template.Must(template.New("UpdateVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
 
-$vmDvdDrivesObject = @(Get-VMDvdDrive -VMName '{{.VMName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
+$vmDvdDrivesObject = @(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
 
 if (!$vmDvdDrivesObject){
 	throw "VM dvd drive does not exist - {{.ControllerLocation}} {{.ControllerNumber}}"
 }
 
 $SetVmDvdDriveArgs = @{}
-$SetVmDvdDriveArgs.VMName=$vmDvdDrivesObject.VMName
+$SetVmDvdDriveArgs.VmName=$vmDvdDrivesObject.VmName
 $SetVmDvdDriveArgs.ControllerLocation=$vmDvdDrivesObject.ControllerLocation
 $SetVmDvdDriveArgs.ControllerNumber=$vmDvdDrivesObject.ControllerNumber
 $SetVmDvdDriveArgs.ToControllerLocation=$vmDvdDrive.ControllerLocation
@@ -167,7 +167,7 @@ Set-VMDvdDrive @SetVmDvdDriveArgs
 
 `))
 
-func (c *HypervClient) UpdateVMDvdDrive(
+func (c *HypervClient) UpdateVmDvdDrive(
 	vmName string,
 	controllerNumber int,
 	controllerLocation int,
@@ -178,15 +178,15 @@ func (c *HypervClient) UpdateVMDvdDrive(
 ) (err error) {
 
 	vmDvdDriveJson, err := json.Marshal(vmDvdDrive{
-		VMName:             vmName,
+		VmName:             vmName,
 		ControllerNumber:   toControllerNumber,
 		ControllerLocation: toControllerLocation,
 		Path:               path,
 		ResourcePoolName:   resourcePoolName,
 	})
 
-	err = c.runFireAndForgetScript(updateVMDvdDriveTemplate, updateVMDvdDriveArgs{
-		VMName:             vmName,
+	err = c.runFireAndForgetScript(updateVmDvdDriveTemplate, updateVmDvdDriveArgs{
+		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
 		VmDvdDriveJson:     string(vmDvdDriveJson),
@@ -195,21 +195,21 @@ func (c *HypervClient) UpdateVMDvdDrive(
 	return err
 }
 
-type deleteVMDvdDriveArgs struct {
-	VMName             string
+type deleteVmDvdDriveArgs struct {
+	VmName             string
 	ControllerNumber   int
 	ControllerLocation int
 }
 
-var deleteVMDvdDriveTemplate = template.Must(template.New("DeleteVMDvdDrive").Parse(`
+var deleteVmDvdDriveTemplate = template.Must(template.New("DeleteVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMDvdDrive -VMName '{{.VMName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive -Force
+@(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive -Force
 `))
 
-func (c *HypervClient) DeleteVMDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error) {
-	err = c.runFireAndForgetScript(deleteVMDvdDriveTemplate, deleteVMDvdDriveArgs{
-		VMName:             vmName,
+func (c *HypervClient) DeleteVmDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error) {
+	err = c.runFireAndForgetScript(deleteVmDvdDriveTemplate, deleteVmDvdDriveArgs{
+		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
 	})
@@ -217,8 +217,8 @@ func (c *HypervClient) DeleteVMDvdDrive(vmName string, controllerNumber int, con
 	return err
 }
 
-func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDvdDrive) (err error) {
-	currentDvdDrives, err := c.GetVMDvdDrives(vmName)
+func (c *HypervClient) CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []vmDvdDrive) (err error) {
+	currentDvdDrives, err := c.GetVmDvdDrives(vmName)
 	if err != nil {
 		return err
 	}
@@ -228,7 +228,7 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 
 	for i := currentDvdDrivesLength - 1; i > desiredDvdDrivesLength-1; i-- {
 		currentDvdDrive := currentDvdDrives[i]
-		err = c.DeleteVMDvdDrive(vmName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
+		err = c.DeleteVmDvdDrive(vmName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
@@ -242,7 +242,7 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 		currentDvdDrive := currentDvdDrives[i]
 		dvdDrive := dvdDrives[i]
 
-		err = c.UpdateVMDvdDrive(
+		err = c.UpdateVmDvdDrive(
 			vmName,
 			currentDvdDrive.ControllerNumber,
 			currentDvdDrive.ControllerLocation,
@@ -258,7 +258,7 @@ func (c *HypervClient) CreateOrUpdateVMDvdDrives(vmName string, dvdDrives []vmDv
 
 	for i := currentDvdDrivesLength - 1 + 1; i <= desiredDvdDrivesLength-1; i++ {
 		dvdDrive := dvdDrives[i]
-		err = c.CreateVMDvdDrive(
+		err = c.CreateVmDvdDrive(
 			vmName,
 			dvdDrive.ControllerNumber,
 			dvdDrive.ControllerLocation,

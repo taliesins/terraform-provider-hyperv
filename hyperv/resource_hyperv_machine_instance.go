@@ -9,8 +9,6 @@ import (
 )
 
 const MaxUint32  = 4294967295
-const UpdateVmStateRetryInterval  = 2
-const UpdateVmStateTimeout  = 120
 
 func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
@@ -165,6 +163,30 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Optional:     true,
 				Default:      api.VmState_name[api.VmState_Running],
 				ValidateFunc: stringKeyInMap(api.VmState_SettableValue, true),
+			},
+
+			"wait_for_state_timeout" : {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  120,
+			},
+
+			"wait_for_state_poll_period" : {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  2,
+			},
+
+			"wait_for_ips_timeout" : {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  300,
+			},
+
+			"wait_for_ips_poll_period" : {
+				Type:     schema.TypeInt,
+				Optional: true,
+				Default:  5,
 			},
 
 			"network_adaptors": {
@@ -369,6 +391,11 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  16,
 						},
+						"wait_for_ips" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  true,
+						},
 						"ip_addresses" : {
 							Type:        schema.TypeList,
 							Computed:    true,
@@ -535,32 +562,37 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return err
 	}
 
-	err = client.CreateVM(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
 		return err
 	}
 
-	err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
+	err = client.CreateOrUpdateVmNetworkAdapters(name, networkAdapters)
 	if err != nil {
 		return err
 	}
 
-	err = client.CreateOrUpdateVMIntegrationServices(name, integrationServices)
+	err = client.CreateOrUpdateVmIntegrationServices(name, integrationServices)
 	if err != nil {
 		return err
 	}
 
-	err = client.CreateOrUpdateVMDvdDrives(name, dvdDrives)
+	err = client.CreateOrUpdateVmDvdDrives(name, dvdDrives)
 	if err != nil {
 		return err
 	}
 
-	err = client.CreateOrUpdateVMHardDiskDrives(name, hardDiskDrives)
+	err = client.CreateOrUpdateVmHardDiskDrives(name, hardDiskDrives)
 	if err != nil {
 		return err
 	}
 
-	err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+	waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(data)
+	if err != nil {
+		return err
+	}
+
+	err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
 	if err != nil {
 		return err
 	}
@@ -576,39 +608,48 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	client := meta.(*api.HypervClient)
 
 	name := ""
-
 	if v, ok := data.GetOk("name"); ok {
 		name = v.(string)
 	} else {
 		return fmt.Errorf("[ERROR][hyperv][read] name argument is required")
 	}
 
-	vm, err := client.GetVM(name)
+	vm, err := client.GetVm(name)
 	if err != nil {
 		return err
 	}
 
-	integrationServices, err := client.GetVMIntegrationServices(name)
+	integrationServices, err := client.GetVmIntegrationServices(name)
 	if err != nil {
 		return err
 	}
 
-	networkAdapters, err := client.GetVMNetworkAdapters(name)
+	dvdDrives, err := client.GetVmDvdDrives(name)
 	if err != nil {
 		return err
 	}
 
-	dvdDrives, err := client.GetVMDvdDrives(name)
+	hardDiskDrives, err := client.GetVmHardDiskDrives(name)
 	if err != nil {
 		return err
 	}
 
-	hardDiskDrives, err := client.GetVMHardDiskDrives(name)
+	vmState, err := client.GetVmState(name)
 	if err != nil {
 		return err
 	}
 
-	vmState, err := client.GetVMState(name)
+	networkAdaptersWaitForIps, waitForIpsTimeout, waitForIpsPollPeriod, err := api.ExpandVmNetworkAdapterWaitForIps(data)
+	if err != nil {
+		return err
+	}
+
+	err = client.WaitForVmNetworkAdaptersIps(name, waitForIpsTimeout, waitForIpsPollPeriod, networkAdaptersWaitForIps)
+	if err != nil {
+		return err
+	}
+
+	networkAdapters, err := client.GetVmNetworkAdapters(name, networkAdaptersWaitForIps)
 	if err != nil {
 		return err
 	}
@@ -634,13 +675,6 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return fmt.Errorf("[DEBUG] Error setting integration_services error: %v", err)
 	}
 
-	flattenedNetworkAdapters := api.FlattenNetworkAdapters(&networkAdapters)
-	if err := data.Set("network_adaptors", flattenedNetworkAdapters); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %v", err)
-	}
-	log.Printf("[INFO][hyperv][read] networkAdapters: %v", networkAdapters)
-	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
-
 	flattenedDvdDrives := api.FlattenDvdDrives(&dvdDrives)
 	if err := data.Set("dvd_drives", flattenedDvdDrives); err != nil {
 		return fmt.Errorf("[DEBUG] Error setting dvd_drives error: %v", err)
@@ -654,6 +688,13 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	}
 	log.Printf("[INFO][hyperv][read] hardDiskDrives: %v", hardDiskDrives)
 	log.Printf("[INFO][hyperv][read] flattenedHardDiskDrives: %v", flattenedHardDiskDrives)
+
+	flattenedNetworkAdapters := api.FlattenNetworkAdapters(&networkAdapters)
+	if err := data.Set("network_adaptors", flattenedNetworkAdapters); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting network_adaptors error: %v", err)
+	}
+	log.Printf("[INFO][hyperv][read] networkAdapters: %v", networkAdapters)
+	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
 
 	data.Set("generation", vm.Generation)
 	data.Set("automatic_critical_error_action", vm.AutomaticCriticalErrorAction.String())
@@ -742,7 +783,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 			return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
 		}
 
-		err = client.UpdateVM(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 		if err != nil {
 			return err
 		}
@@ -756,7 +797,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 
 		changedIntegrationServices := api.GetChangedIntegrationServices(integrationServices, data)
 
-		err = client.CreateOrUpdateVMIntegrationServices(name, changedIntegrationServices)
+		err = client.CreateOrUpdateVmIntegrationServices(name, changedIntegrationServices)
 		if err != nil {
 			return err
 		}
@@ -768,7 +809,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 			return err
 		}
 
-		err = client.CreateOrUpdateVMNetworkAdapters(name, networkAdapters)
+		err = client.CreateOrUpdateVmNetworkAdapters(name, networkAdapters)
 		if err != nil {
 			return err
 		}
@@ -780,7 +821,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 			return err
 		}
 
-		err = client.CreateOrUpdateVMDvdDrives(name, dvdDrives)
+		err = client.CreateOrUpdateVmDvdDrives(name, dvdDrives)
 		if err != nil {
 			return err
 		}
@@ -792,15 +833,20 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 			return err
 		}
 
-		err = client.CreateOrUpdateVMHardDiskDrives(name, hardDiskDrives)
+		err = client.CreateOrUpdateVmHardDiskDrives(name, hardDiskDrives)
 		if err != nil {
 			return err
 		}
 	}
 
 	if data.HasChange("state") {
+		waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(data)
+		if err != nil {
+			return err
+		}
+
 		state := api.ToVmState((data.Get("state")).(string))
-		err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+		err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
 		if err != nil {
 			return err
 		}
@@ -824,13 +870,18 @@ func resourceHyperVMachineInstanceDelete(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][delete] name argument is required")
 	}
 
-	state := api.VmState_Off
-	err = client.UpdateVMState(name, UpdateVmStateTimeout, UpdateVmStateRetryInterval, state)
+	waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(data)
 	if err != nil {
 		return err
 	}
 
-	err = client.DeleteVM(name)
+	state := api.VmState_Off
+	err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
+	if err != nil {
+		return err
+	}
+
+	err = client.DeleteVm(name)
 	if err != nil {
 		return err
 	}

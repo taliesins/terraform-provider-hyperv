@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"github.com/hashicorp/terraform/helper/schema"
 	"strconv"
 	"strings"
 	"text/template"
@@ -144,13 +145,13 @@ type vmState struct {
 	State VmState
 }
 
-type getVMStateArgs struct {
-	VMName string
+type getVmStateArgs struct {
+	VmName string
 }
 
-var getVMStateTemplate = template.Must(template.New("GetVMState").Parse(`
+var getVmStateTemplate = template.Must(template.New("GetVmState").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmName = '{{.VMName}}'
+$vmName = '{{.VmName}}'
 
 $vmStateObject = Get-VM | ?{$_.Name -eq $vmName } | %{ @{
 	State=$_.State;
@@ -164,27 +165,27 @@ if ($vmStateObject) {
 }
 `))
 
-func (c *HypervClient) GetVMState(vmName string) (result vmState, err error) {
-	err = c.runScriptWithResult(getVMStateTemplate, getVMStateArgs{
-		VMName: vmName,
+func (c *HypervClient) GetVmState(vmName string) (result vmState, err error) {
+	err = c.runScriptWithResult(getVmStateTemplate, getVmStateArgs{
+		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-type updateVMStateArgs struct {
-	VMName        string
-	Timeout       uint32
-	RetryInterval uint32
-	VmStateJson   string
+type updateVmStateArgs struct {
+	VmName      string
+	Timeout     uint32
+	PollPeriod  uint32
+	VmStateJson string
 }
 
-var updateVMStateTemplate = template.Must(template.New("UpdateVMState").Parse(`
+var updateVmStateTemplate = template.Must(template.New("UpdateVmState").Parse(`
 $ErrorActionPreference = 'Stop'
 
 function Test-VmStateRequiresManualIntervention($state){
     $states = @([Microsoft.HyperV.PowerShell.VMState]::Other, 
-        [Microsoft.HyperV.PowerShell.VMState]::RunningCritical
+        [Microsoft.HyperV.PowerShell.VMState]::RunningCritical,
         [Microsoft.HyperV.PowerShell.VMState]::OffCritical, 
         [Microsoft.HyperV.PowerShell.VMState]::StoppingCritical,
         [Microsoft.HyperV.PowerShell.VMState]::SavedCritical,
@@ -201,7 +202,7 @@ function Test-VmStateRequiresManualIntervention($state){
     return $states -contains $state 
 }
 
-function Test-IsInNotInFinalTransitionState($State){
+function Test-IsNotInFinalTransitionState($State){
     $states = @([Microsoft.HyperV.PowerShell.VMState]::Other,
 		[Microsoft.HyperV.PowerShell.VMState]::Stopping,
 		[Microsoft.HyperV.PowerShell.VMState]::Saved,
@@ -228,10 +229,10 @@ function Test-IsInNotInFinalTransitionState($State){
     return $states -contains $State 
 }
 
-function Wait-IsInInFinalTransitionState($Name, $Timeout, $RetryInterval){
+function Wait-IsInFinalTransitionState($Name, $Timeout, $PollPeriod){
 	$timer = [Diagnostics.Stopwatch]::StartNew()
-	while (($timer.Elapsed.TotalSeconds -lt $Timeout) -and (Test-IsInNotInFinalTransitionState (Get-VM -name $Name).state)) { 
-		Start-Sleep -Seconds $RetryInterval
+	while (($timer.Elapsed.TotalSeconds -lt $Timeout) -and (Test-IsNotInFinalTransitionState (Get-VM -name $Name).state)) { 
+		Start-Sleep -Seconds $PollPeriod
 	}
 	$timer.Stop()
 
@@ -242,51 +243,62 @@ function Wait-IsInInFinalTransitionState($Name, $Timeout, $RetryInterval){
 
 Get-Vm | Out-Null
 $vm = '{{.VmStateJson}}' | ConvertFrom-Json
-$vmName = '{{.VMName}}'
+$vmName = '{{.VmName}}'
 $state = [Microsoft.HyperV.PowerShell.VMState]$vm.State
 $vmObject = Get-VM | ?{$_.Name -eq $vmName}
 $timeout = {{.Timeout}}
-$retryInterval = {{.RetryInterval}}
+$pollPeriod = {{.PollPeriod}}
 
 if (!$vmObject){
 	throw "VM does not exist - $($vmName)"
 }
 
-if (Test-VmStateRequiresManualIntervention -State $vmObject.State) {
-	throw "VM $($vmName) requires manual intervention as it is in state $($vmObject.State)"
+if ($vmObject.State -ne $state) {
+    if (Test-VmStateRequiresManualIntervention -State $vmObject.State) {
+        throw "VM $($vmName) requires manual intervention as it is in state $($vmObject.State)"
+    }
+
+    Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
+
+    $vmObject = Get-VM | ?{$_.Name -eq $vmName}
+
+    if ($vmObject.State -eq $state) {
+    } elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Running) {
+        if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
+            Start-VM -Name $vmName
+            Start-Sleep -Seconds $pollPeriod
+            Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
+        } elseif ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
+            Resume-VM -Name $vmName
+            Start-Sleep -Seconds $pollPeriod
+            Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
+        } else {
+            throw "Unable to change VM $($vmName) state $($vmObject.State) to Running state"
+        }
+    } elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
+        if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Running -or $vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Paused) { 
+            Stop-VM -Name $vmName -force
+            Start-Sleep -Seconds $pollPeriod
+            Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
+        } else {
+            throw "Unable to change VM $($vmName) state $($vmObject.State) to Off state"
+        }
+    } elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Paused) {
+        if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Running) { 
+            Suspend-VM -Name $vmName
+            Start-Sleep -Seconds $pollPeriod
+            Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
+        } else {
+            throw "Unable to change VM $($vmName) state $($vmObject.State) to Paused state"
+        }	
+    }
 }
-
-Wait-IsInInFinalTransitionState -Name $vmName -Timeout $timeout -RetryInterval $retryInterval
-
-if ($vmObject -eq $state) {
-} elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Running) {
-	if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
-		Start-VM -Name $vmName
-	} elseif ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
-		Resume-VM -Name $vmName
-	} else {
-		throw "Unable to change VM $($vmName) state $($vmObject.State) to Running state"
-	}
-} elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Off) { 
-	if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Running -or $vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Paused) { 
-		Stop-VM -Name $vmName -force
-	} else {
-		throw "Unable to change VM $($vmName) state $($vmObject.State) to Off state"
-	}
-} elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Paused) {
-	if ($vmObject.State -eq [Microsoft.HyperV.PowerShell.VMState]::Running) { 
-		Suspend-VM -Name $vmName
-	} else {
-		throw "Unable to change VM $($vmName) state $($vmObject.State) to Paused state"
-	}	
-}
-
 `))
 
-func (c *HypervClient) UpdateVMState(
+func (c *HypervClient) UpdateVmState(
 	vmName string,
 	timeout uint32,
-	retryInterval uint32,
+	pollPeriod uint32,
 	state VmState,
 ) (err error) {
 
@@ -294,13 +306,19 @@ func (c *HypervClient) UpdateVMState(
 		State: state,
 	})
 
-	err = c.runFireAndForgetScript(updateVMStateTemplate, updateVMStateArgs{
-		VMName:        vmName,
-		Timeout:       timeout,
-		RetryInterval: retryInterval,
-		VmStateJson:   string(vmStateJson),
+	err = c.runFireAndForgetScript(updateVmStateTemplate, updateVmStateArgs{
+		VmName:      vmName,
+		Timeout:     timeout,
+		PollPeriod:  pollPeriod,
+		VmStateJson: string(vmStateJson),
 	})
 
 	return err
 }
 
+func ExpandVmStateWaitForState(d *schema.ResourceData) (uint32, uint32, error) {
+	waitForIpsTimeout := uint32((d.Get("wait_for_state_timeout")).(int))
+	waitForIpsPollPeriod := uint32((d.Get("wait_for_state_poll_period")).(int))
+
+	return waitForIpsTimeout, waitForIpsPollPeriod, nil
+}
