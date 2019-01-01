@@ -102,9 +102,17 @@ The following arguments are supported:
 
 * `state` - (Optional) `Running` (default).  Valid values to use are `Running`, `Off`. Specifies if the machine instance will be running or off.
 
-* `integration_services` - (optional) default integration services (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
+* `wait_for_state_timeout` - (Optional) `120` (default). The amount of time in seconds to wait before throwing an exception when trying to change for the virtual machine to the desired state.
+
+* `wait_for_state_poll_period` - (Optional) `2` (default). The amount of time in seconds to wait between trying to change for the virtual machine to the desired state.
+
+* `wait_for_ips_timeout` - (Optional) `300` (default). The amount of time in seconds to wait before throwing an exception when trying to get ip addresses for network cards on the virtual machine.
+
+* `wait_for_ips_poll_period` - (Optional) `5` (default). The amount of time in seconds to wait between trying to get ip addresses for network cards on the virtual machine.
 
 * `network_adaptors` - (Optional) empty array (default). An array of all the network adaptors connected to vm.
+
+* `integration_services` - (optional) default integration services (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 
 * `dvd_drives` - (Optional) empty array (default). An array of all the dvd drives connected to vm.
 
@@ -255,6 +263,10 @@ resource "hyperv_machine_instance" "default" {
 * `vmmq_enabled` - (Optional) `false` (default). Should Virtual Machine Multi-Queue be enabled. With set to true multiple queues are allocated to a single VM with each queue affinitized to a core in the VM.
 
 * `vmmq_queue_pairs` - (Optional) `16` (default). The number of Virtual Machine Multi-Queues to create for this VM.
+
+* `wait_for_ips` - (Optional) `true` (default). Wait for the network card to be assigned an ip address. 
+
+* `ip_addresses` - (Computed).  The current list of IP addresses on this machine. If HyperV integration tools is not running on the virtual machine, or if the VM is powered off, or has not been assigned an ip address, this list will be empty. 
 
 ### Dvd drives
 

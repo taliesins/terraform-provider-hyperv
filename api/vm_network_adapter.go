@@ -1,13 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/hashicorp/terraform/helper/schema"
+	"strconv"
 	"strings"
 	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
-	"fmt"
-	"bytes"
-	"strconv"
 )
 
 type PortMirroring int
@@ -129,7 +129,7 @@ func (d *IovInterruptModerationValue) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func DiffSuppressVmStaticMacAddress (key, old, new string, d *schema.ResourceData) bool {
+func DiffSuppressVmStaticMacAddress(key, old, new string, d *schema.ResourceData) bool {
 	//Static Mac Address has not been set, so we don't mind what ever value is automatically generated
 	if new == "" {
 		return true
@@ -156,6 +156,12 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId.(string))
 			}
 
+			ipAddressesSet := networkAdapter["ip_addresses"].([]interface{})
+			ipAddresses := make([]string, 0)
+			for _, ipAddress := range ipAddressesSet {
+				ipAddresses = append(ipAddresses, ipAddress.(string))
+			}
+
 			expandedNetworkAdapter := vmNetworkAdapter{
 				Name:                                   networkAdapter["name"].(string),
 				SwitchName:                             networkAdapter["switch_name"].(string),
@@ -163,7 +169,7 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				IsLegacy:                               networkAdapter["is_legacy"].(bool),
 				DynamicMacAddress:                      networkAdapter["dynamic_mac_address"].(bool),
 				StaticMacAddress:                       networkAdapter["static_mac_address"].(string),
-				MacAddressSpoofing:						ToOnOffState(networkAdapter["mac_address_spoofing"].(string)),
+				MacAddressSpoofing:                     ToOnOffState(networkAdapter["mac_address_spoofing"].(string)),
 				DhcpGuard:                              ToOnOffState(networkAdapter["dhcp_guard"].(string)),
 				RouterGuard:                            ToOnOffState(networkAdapter["router_guard"].(string)),
 				PortMirroring:                          ToPortMirroring(networkAdapter["port_mirroring"].(string)),
@@ -193,6 +199,8 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				VrssEnabled:                            networkAdapter["vrss_enabled"].(bool),
 				VmmqEnabled:                            networkAdapter["vmmq_enabled"].(bool),
 				VmmqQueuePairs:                         networkAdapter["vmmq_queue_pairs"].(int),
+				WaitForIps:                             networkAdapter["wait_for_ips"].(bool),
+				IpAddresses:                            ipAddresses,
 			}
 
 			expandedNetworkAdapters = append(expandedNetworkAdapters, expandedNetworkAdapter)
@@ -255,6 +263,8 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 			flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
 			flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
 			flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+			flattenedNetworkAdapter["wait_for_ips"] = networkAdapter.WaitForIps
+			flattenedNetworkAdapter["ip_addresses"] = networkAdapter.IpAddresses
 
 			flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
 		}
@@ -263,8 +273,13 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 	return flattenedNetworkAdapters
 }
 
+type vmNetworkAdapterWaitForIp struct {
+	Name       string
+	WaitForIps bool
+}
+
 type vmNetworkAdapter struct {
-	VMName                                 string
+	VmName                                 string
 	Index                                  int
 	Name                                   string
 	SwitchName                             string
@@ -272,7 +287,7 @@ type vmNetworkAdapter struct {
 	IsLegacy                               bool
 	DynamicMacAddress                      bool
 	StaticMacAddress                       string
-	MacAddressSpoofing					   OnOffState
+	MacAddressSpoofing                     OnOffState
 	DhcpGuard                              OnOffState
 	RouterGuard                            OnOffState
 	PortMirroring                          PortMirroring
@@ -302,13 +317,15 @@ type vmNetworkAdapter struct {
 	VrssEnabled                            bool
 	VmmqEnabled                            bool
 	VmmqQueuePairs                         int
+	WaitForIps                             bool
+	IpAddresses                            []string
 }
 
-type createVMNetworkAdapterArgs struct {
+type createVmNetworkAdapterArgs struct {
 	VmNetworkAdapterJson string
 }
 
-var createVMNetworkAdapterTemplate = template.Must(template.New("CreateVMNetworkAdapter").Parse(`
+var createVmNetworkAdapterTemplate = template.Must(template.New("CreateVmNetworkAdapter").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmNetworkAdapter = '{{.VmNetworkAdapterJson}}' | ConvertFrom-Json
@@ -323,7 +340,7 @@ $deviceNaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.Device
 $fixSpeed10G = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.FixSpeed10G
 
 $NewVmNetworkAdapterArgs = @{
-	VMName=$vmNetworkAdapter.VmName
+	VmName=$vmNetworkAdapter.VmName
 	Name=$vmNetworkAdapter.Name
 	IsLegacy=$vmNetworkAdapter.IsLegacy
 	SwitchName=$vmNetworkAdapter.SwitchName
@@ -341,7 +358,7 @@ if ($vmNetworkAdapter.SwitchName) {
 }
 
 $SetVmNetworkAdapterArgs = @{}
-$SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
+$SetVmNetworkAdapterArgs.VmName=$vmNetworkAdapter.VmName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
 if ($vmNetworkAdapter.DynamicMacAddress) {
 	$SetVmNetworkAdapterArgs.DynamicMacAddress=$vmNetworkAdapter.DynamicMacAddress
@@ -391,7 +408,7 @@ Set-VmNetworkAdapter @SetVmNetworkAdapterArgs
 
 `))
 
-func (c *HypervClient) CreateVMNetworkAdapter(
+func (c *HypervClient) CreateVmNetworkAdapter(
 	vmName string,
 	name string,
 	switchName string,
@@ -432,14 +449,14 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
-		VMName:                                 vmName,
+		VmName:                                 vmName,
 		Name:                                   name,
 		SwitchName:                             switchName,
 		ManagementOs:                           managementOs,
 		IsLegacy:                               isLegacy,
 		DynamicMacAddress:                      dynamicMacAddress,
 		StaticMacAddress:                       staticMacAddress,
-		MacAddressSpoofing:						macAddressSpoofing,
+		MacAddressSpoofing:                     macAddressSpoofing,
 		DhcpGuard:                              dhcpGuard,
 		RouterGuard:                            routerGuard,
 		PortMirroring:                          portMirroring,
@@ -471,20 +488,25 @@ func (c *HypervClient) CreateVMNetworkAdapter(
 		VmmqQueuePairs:                         vmmqQueuePairs,
 	})
 
-	err = c.runFireAndForgetScript(createVMNetworkAdapterTemplate, createVMNetworkAdapterArgs{
+	err = c.runFireAndForgetScript(createVmNetworkAdapterTemplate, createVmNetworkAdapterArgs{
 		VmNetworkAdapterJson: string(vmNetworkAdapterJson),
 	})
 
 	return err
 }
 
-type getVMNetworkAdaptersArgs struct {
-	VMName string
+type getVmNetworkAdaptersArgs struct {
+	VmName string
 }
 
-var getVMNetworkAdaptersTemplate = template.Must(template.New("GetVMNetworkAdapters").Parse(`
+var getVmNetworkAdaptersTemplate = template.Must(template.New("GetVmNetworkAdapters").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
+#First 3 requests fails to get ip address
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+
+$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}' | %{ @{
      Name=$_.Name;
      SwitchName=$_.SwitchName;
      ManagementOs=$_.IsManagementOs;
@@ -492,7 +514,7 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
      DynamicMacAddress=$_.DynamicMacAddressEnabled;
      StaticMacAddress=if ($_.MacAddress -eq '000000000000') { '' } else { $_.MacAddress };
      MacAddressSpoofing=$_.MacAddressSpoofing;
-	 DhcpGuard=$_.DhcpGuard;
+     DhcpGuard=$_.DhcpGuard;
      RouterGuard=$_.RouterGuard;
      PortMirroring=$_.PortMirroringMode;
      IeeePriorityTag=$_.IeeePriorityTag;
@@ -521,6 +543,7 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}' | %{ @{
      VrssEnabled=$_.VrssEnabledRequested;
      VmmqEnabled=$_.VmmqEnabledRequested;
      VmmqQueuePairs=$_.VmmqQueuePairsRequested;
+     IpAddresses=@($_.IpAddresses);
 }})
 
 if ($vmNetworkAdaptersObject) {
@@ -531,25 +554,190 @@ if ($vmNetworkAdaptersObject) {
 }
 `))
 
-func (c *HypervClient) GetVMNetworkAdapters(vmname string) (result []vmNetworkAdapter, err error) {
+func (c *HypervClient) GetVmNetworkAdapters(vmName string, networkAdaptersWaitForIps []vmNetworkAdapterWaitForIp) (result []vmNetworkAdapter, err error) {
 	result = make([]vmNetworkAdapter, 0)
 
-	err = c.runScriptWithResult(getVMNetworkAdaptersTemplate, getVMNetworkAdaptersArgs{
-		VMName: vmname,
+	err = c.runScriptWithResult(getVmNetworkAdaptersTemplate, getVmNetworkAdaptersArgs{
+		VmName: vmName,
 	}, &result)
+
+	//Enrich network adapter with config settings that are not stored in hyperv
+	for _, networkAdapterWaitForIps := range networkAdaptersWaitForIps {
+		for networkAdapterIndex, networkAdapter := range result {
+			if networkAdapterWaitForIps.Name == networkAdapter.Name {
+				result[networkAdapterIndex].WaitForIps = networkAdapterWaitForIps.WaitForIps
+				break
+			}
+		}
+	}
 
 	return result, err
 }
 
-type updateVMNetworkAdapterArgs struct {
-	VMName               string
+type waitForVmNetworkAdaptersIpsArgs struct {
+	VmName                          string
+	Timeout                         uint32
+	PollPeriod                      uint32
+	VmNetworkAdaptersWaitForIpsJson string
+}
+
+var waitForVmNetworkAdaptersIpsTemplate = template.Must(template.New("WaitForVmNetworkAdaptersIps").Parse(`
+$ErrorActionPreference = 'Stop'
+
+function Test-CanGetIpsForState($State){
+	$states = @([Microsoft.HyperV.PowerShell.VMState]::Running,
+			[Microsoft.HyperV.PowerShell.VMState]::RunningCritical
+        )
+    return $states -contains $state 
+}
+
+function Test-CanNotGetIpsForState($State){
+    $states = @([Microsoft.HyperV.PowerShell.VMState]::Stopping,
+			[Microsoft.HyperV.PowerShell.VMState]::StoppingCritical,
+			[Microsoft.HyperV.PowerShell.VMState]::ForceShutdown,
+			[Microsoft.HyperV.PowerShell.VMState]::Off,
+			[Microsoft.HyperV.PowerShell.VMState]::OffCritical,
+			[Microsoft.HyperV.PowerShell.VMState]::Paused,
+			[Microsoft.HyperV.PowerShell.VMState]::PausedCritical
+        )
+    return $states -contains $state 
+}
+
+function Test-IsNotInFinalTransitionState($State){
+    $states = @([Microsoft.HyperV.PowerShell.VMState]::Other,
+		[Microsoft.HyperV.PowerShell.VMState]::Stopping,
+		[Microsoft.HyperV.PowerShell.VMState]::Saved,
+		[Microsoft.HyperV.PowerShell.VMState]::Starting,
+		[Microsoft.HyperV.PowerShell.VMState]::Reset,
+		[Microsoft.HyperV.PowerShell.VMState]::Saving,
+		[Microsoft.HyperV.PowerShell.VMState]::Pausing,
+		[Microsoft.HyperV.PowerShell.VMState]::Resuming,
+		[Microsoft.HyperV.PowerShell.VMState]::FastSaved,
+		[Microsoft.HyperV.PowerShell.VMState]::FastSaving,
+		[Microsoft.HyperV.PowerShell.VMState]::ForceShutdown,
+		[Microsoft.HyperV.PowerShell.VMState]::ForceReboot,
+        [Microsoft.HyperV.PowerShell.VMState]::StoppingCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::SavedCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::StartingCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::ResetCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::SavingCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::PausingCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::ResumingCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::FastSavedCritical,
+        [Microsoft.HyperV.PowerShell.VMState]::FastSavingCritical
+        )
+	   
+    return $states -contains $State 
+}
+
+function Wait-ForNetworkAdapterIps($Name, $Timeout, $PollPeriod, $VmNetworkAdaptersToWaitForIps){
+	$timer = [Diagnostics.Stopwatch]::StartNew()
+	while ($timer.Elapsed.TotalSeconds -lt $Timeout) {
+        $vmObject = Get-VM | ?{$_.Name -eq $vmName}
+
+        if (!(Test-IsNotInFinalTransitionState $vmObject.state)){
+            if (Test-CanGetIpsForState $vmObject.state) {
+                $waitForIp = $false
+
+                $VmNetworkAdaptersToWaitForIps | ?{$_.WaitForIps} | %{
+                    $name = $_.Name
+                    $ipAddresses = @($vmObject.NetworkAdapters | ?{$_.Name -eq $name} | %{$_.IPAddresses} |?{$_})
+
+                    if ((!($ipAddresses)) -or ($ipAddresses -contains '0.0.0.0')){
+                        $waitForIp = $true
+                    } 
+                }
+
+                if (!$waitForIp){
+                    break
+                }
+           	} elseif (Test-CanNotGetIpsForState $vmObject.state) {
+               	break
+           	}
+       	}
+
+        Start-Sleep -Seconds $PollPeriod
+	}
+	$timer.Stop()
+
+	if ($timer.Elapsed.TotalSeconds -gt $Timeout) {
+		throw 'Timeout while waiting for vm $($Name) to read network adapter ips'
+	} 
+}
+
+Get-Vm | Out-Null
+$vmNetworkAdaptersToWaitForIps = '{{.VmNetworkAdaptersWaitForIpsJson}}' | ConvertFrom-Json
+$vmName = '{{.VmName}}'
+$vmObject = Get-VM | ?{$_.Name -eq $vmName}
+$timeout = {{.Timeout}}
+$pollPeriod = {{.PollPeriod}}
+
+if (!$vmObject){
+	throw "VM does not exist - $($vmName)"
+}
+
+Wait-ForNetworkAdapterIps -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod -VmNetworkAdaptersToWaitForIps $vmNetworkAdaptersToWaitForIps
+
+`))
+
+func (c *HypervClient) WaitForVmNetworkAdaptersIps(
+	vmName string,
+	timeout uint32,
+	pollPeriod uint32,
+	vmNetworkAdaptersWaitForIps []vmNetworkAdapterWaitForIp,
+) (err error) {
+
+	vmNetworkAdaptersWaitForIpsJson, err := json.Marshal(vmNetworkAdaptersWaitForIps)
+
+	err = c.runFireAndForgetScript(waitForVmNetworkAdaptersIpsTemplate, waitForVmNetworkAdaptersIpsArgs{
+		VmName:                          vmName,
+		Timeout:                         timeout,
+		PollPeriod:                      pollPeriod,
+		VmNetworkAdaptersWaitForIpsJson: string(vmNetworkAdaptersWaitForIpsJson),
+	})
+
+	return err
+}
+
+func ExpandVmNetworkAdapterWaitForIps(d *schema.ResourceData) ([]vmNetworkAdapterWaitForIp, uint32, uint32, error) {
+	expandVmNetworkAdapterWaitForIps := make([]vmNetworkAdapterWaitForIp, 0)
+	waitForIpsTimeout := uint32((d.Get("wait_for_ips_timeout")).(int))
+	waitForIpsPollPeriod := uint32((d.Get("wait_for_ips_poll_period")).(int))
+
+	if v, ok := d.GetOk("network_adaptors"); ok {
+		networkAdapters := v.([]interface{})
+
+		for _, networkAdapter := range networkAdapters {
+			networkAdapter, ok := networkAdapter.(map[string]interface{})
+			if !ok {
+				return nil, waitForIpsTimeout, waitForIpsPollPeriod, fmt.Errorf("[ERROR][hyperv] network_adaptors should be a Hash - was '%+v'", networkAdapter)
+			}
+
+			expandedNetworkAdapterWaitForIp := vmNetworkAdapterWaitForIp{
+				Name:       networkAdapter["name"].(string),
+				WaitForIps: networkAdapter["wait_for_ips"].(bool),
+			}
+
+			expandVmNetworkAdapterWaitForIps = append(expandVmNetworkAdapterWaitForIps, expandedNetworkAdapterWaitForIp)
+		}
+	}
+
+	return expandVmNetworkAdapterWaitForIps, waitForIpsTimeout, waitForIpsPollPeriod, nil
+}
+
+type updateVmNetworkAdapterArgs struct {
+	VmName               string
 	Index                int
 	VmNetworkAdapterJson string
 }
 
-var updateVMNetworkAdapterTemplate = template.Must(template.New("UpdateVMNetworkAdapter").Parse(`
+var updateVmNetworkAdapterTemplate = template.Must(template.New("UpdateVmNetworkAdapter").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+#First 3 requests fails to get ip address
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
+
 $vmNetworkAdapter = '{{.VmNetworkAdapterJson}}' | ConvertFrom-Json
 
 $dhcpGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DhcpGuard
@@ -561,7 +749,7 @@ $allowTeaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.AllowT
 $deviceNaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DeviceNaming
 $fixSpeed10G = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.FixSpeed10G
 
-$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VMName '{{.VMName}}')[{{.Index}}]
+$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}]
 
 if (!$vmNetworkAdaptersObject){
 	throw "VM network adapter does not exist - {{.Index}}"
@@ -575,7 +763,7 @@ if ($vmNetworkAdapter.SwitchName) {
 }
 
 $SetVmNetworkAdapterArgs = @{}
-$SetVmNetworkAdapterArgs.VMName=$vmNetworkAdapter.VMName
+$SetVmNetworkAdapterArgs.VmName=$vmNetworkAdapter.VmName
 $SetVmNetworkAdapterArgs.Name=$vmNetworkAdapter.Name
 if ($vmNetworkAdapter.DynamicMacAddress) {
 	$SetVmNetworkAdapterArgs.DynamicMacAddress=$vmNetworkAdapter.DynamicMacAddress
@@ -625,7 +813,7 @@ Set-VmNetworkAdapter @SetVmNetworkAdapterArgs
 
 `))
 
-func (c *HypervClient) UpdateVMNetworkAdapter(
+func (c *HypervClient) UpdateVmNetworkAdapter(
 	vmName string,
 	index int,
 	name string,
@@ -667,7 +855,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
-		VMName:                                 vmName,
+		VmName:                                 vmName,
 		Index:                                  index,
 		Name:                                   name,
 		SwitchName:                             switchName,
@@ -675,7 +863,7 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 		IsLegacy:                               isLegacy,
 		DynamicMacAddress:                      dynamicMacAddress,
 		StaticMacAddress:                       staticMacAddress,
-		MacAddressSpoofing:						macAddressSpoofing,
+		MacAddressSpoofing:                     macAddressSpoofing,
 		DhcpGuard:                              dhcpGuard,
 		RouterGuard:                            routerGuard,
 		PortMirroring:                          portMirroring,
@@ -707,8 +895,8 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 		VmmqQueuePairs:                         vmmqQueuePairs,
 	})
 
-	err = c.runFireAndForgetScript(updateVMNetworkAdapterTemplate, updateVMNetworkAdapterArgs{
-		VMName:               vmName,
+	err = c.runFireAndForgetScript(updateVmNetworkAdapterTemplate, updateVmNetworkAdapterArgs{
+		VmName:               vmName,
 		Index:                index,
 		VmNetworkAdapterJson: string(vmNetworkAdapterJson),
 	})
@@ -716,28 +904,31 @@ func (c *HypervClient) UpdateVMNetworkAdapter(
 	return err
 }
 
-type deleteVMNetworkAdapterArgs struct {
-	VMName string
+type deleteVmNetworkAdapterArgs struct {
+	VmName string
 	Index  int
 }
 
-var deleteVMNetworkAdapterTemplate = template.Must(template.New("DeleteVMNetworkAdapter").Parse(`
+var deleteVmNetworkAdapterTemplate = template.Must(template.New("DeleteVmNetworkAdapter").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMNetworkAdapter -VMName '{{.VMName}}')[{{.Index}}] | Remove-VMNetworkAdapter -Force
+@(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}] | Remove-VMNetworkAdapter -Force
 `))
 
-func (c *HypervClient) DeleteVMNetworkAdapter(vmName string, index int) (err error) {
-	err = c.runFireAndForgetScript(deleteVMNetworkAdapterTemplate, deleteVMNetworkAdapterArgs{
-		VMName: vmName,
+func (c *HypervClient) DeleteVmNetworkAdapter(vmName string, index int) (err error) {
+	err = c.runFireAndForgetScript(deleteVmNetworkAdapterTemplate, deleteVmNetworkAdapterArgs{
+		VmName: vmName,
 		Index:  index,
 	})
 
 	return err
 }
 
-func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAdapters []vmNetworkAdapter) (err error) {
-	currentNetworkAdapters, err := c.GetVMNetworkAdapters(vmName)
+func (c *HypervClient) CreateOrUpdateVmNetworkAdapters(vmName string, networkAdapters []vmNetworkAdapter) (err error) {
+	networkAdaptersWaitForIps := make([]vmNetworkAdapterWaitForIp, 0)
+
+	//Empty networkAdaptersWaitForIps is ok as we aren't using the results anywhere
+	currentNetworkAdapters, err := c.GetVmNetworkAdapters(vmName, networkAdaptersWaitForIps)
 	if err != nil {
 		return err
 	}
@@ -747,7 +938,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 
 	for i := currentNetworkAdaptersLength - 1; i > desiredNetworkAdaptersLength-1; i-- {
 		currentNetworkAdapter := currentNetworkAdapters[i]
-		err = c.DeleteVMNetworkAdapter(vmName, currentNetworkAdapter.Index)
+		err = c.DeleteVmNetworkAdapter(vmName, currentNetworkAdapter.Index)
 		if err != nil {
 			return err
 		}
@@ -760,7 +951,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 	for i := 0; i <= currentNetworkAdaptersLength-1; i++ {
 		currentNetworkAdapter := currentNetworkAdapters[i]
 		networkAdapter := networkAdapters[i]
-		err = c.UpdateVMNetworkAdapter(
+		err = c.UpdateVmNetworkAdapter(
 			vmName,
 			currentNetworkAdapter.Index,
 			networkAdapter.Name,
@@ -807,7 +998,7 @@ func (c *HypervClient) CreateOrUpdateVMNetworkAdapters(vmName string, networkAda
 
 	for i := currentNetworkAdaptersLength - 1 + 1; i <= desiredNetworkAdaptersLength-1; i++ {
 		networkAdapter := networkAdapters[i]
-		err = c.CreateVMNetworkAdapter(
+		err = c.CreateVmNetworkAdapter(
 			vmName,
 			networkAdapter.Name,
 			networkAdapter.SwitchName,

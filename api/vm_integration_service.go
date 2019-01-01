@@ -117,13 +117,13 @@ type vmIntegrationService struct {
 	Enabled bool
 }
 
-type getVMIntegrationServicesArgs struct {
-	VMName string
+type getVmIntegrationServicesArgs struct {
+	VmName string
 }
 
-var getVMIntegrationServicesTemplate = template.Must(template.New("GetVMIntegrationServices").Parse(`
+var getVmIntegrationServicesTemplate = template.Must(template.New("GetVmIntegrationServices").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmIntegrationServicesObject = @(Get-VMIntegrationService -VMName '{{.VMName}}' | %{ @{
+$vmIntegrationServicesObject = @(Get-VMIntegrationService -VmName '{{.VmName}}' | %{ @{
 	Name=$_.Name;
 	Enabled=$_.Enabled;
 }})
@@ -136,60 +136,60 @@ if ($vmIntegrationServicesObject) {
 }
 `))
 
-func (c *HypervClient) GetVMIntegrationServices(vmName string) (result []vmIntegrationService, err error) {
-	err = c.runScriptWithResult(getVMIntegrationServicesTemplate, getVMIntegrationServicesArgs{
-		VMName: vmName,
+func (c *HypervClient) GetVmIntegrationServices(vmName string) (result []vmIntegrationService, err error) {
+	err = c.runScriptWithResult(getVmIntegrationServicesTemplate, getVmIntegrationServicesArgs{
+		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-type enableVMIntegrationServiceArgs struct {
-	VMName string
+type enableVmIntegrationServiceArgs struct {
+	VmName string
 	Name   string
 }
 
-var enableVMIntegrationServiceTemplate = template.Must(template.New("EnableVMIntegrationService").Parse(`
+var enableVmIntegrationServiceTemplate = template.Must(template.New("EnableVmIntegrationService").Parse(`
 $ErrorActionPreference = 'Stop'
 
-Enable-VMIntegrationService -VMName '{{.VMName}}' -Name '{{.Name}}'
+Enable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
 `))
 
-func (c *HypervClient) EnableVMIntegrationService(vmname string, name string) (err error) {
-	err = c.runFireAndForgetScript(enableVMIntegrationServiceTemplate, enableVMIntegrationServiceArgs{
-		VMName: vmname,
+func (c *HypervClient) EnableVmIntegrationService(vmName string, name string) (err error) {
+	err = c.runFireAndForgetScript(enableVmIntegrationServiceTemplate, enableVmIntegrationServiceArgs{
+		VmName: vmName,
 		Name:   name,
 	})
 
 	return err
 }
 
-type disableVMIntegrationServiceArgs struct {
-	VMName string
+type disableVmIntegrationServiceArgs struct {
+	VmName string
 	Name   string
 }
 
-var disableVMIntegrationServiceTemplate = template.Must(template.New("DisableVMIntegrationService").Parse(`
+var disableVmIntegrationServiceTemplate = template.Must(template.New("DisableVmIntegrationService").Parse(`
 $ErrorActionPreference = 'Stop'
 
-Disable-VMIntegrationService -VMName '{{.VMName}}' -Name '{{.Name}}'
+Disable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
 `))
 
-func (c *HypervClient) DisableVMIntegrationService(vmname string, name string) (err error) {
-	err = c.runFireAndForgetScript(disableVMIntegrationServiceTemplate, disableVMIntegrationServiceArgs{
-		VMName: vmname,
+func (c *HypervClient) DisableVmIntegrationService(vmName string, name string) (err error) {
+	err = c.runFireAndForgetScript(disableVmIntegrationServiceTemplate, disableVmIntegrationServiceArgs{
+		VmName: vmName,
 		Name:   name,
 	})
 
 	return err
 }
 
-func (c *HypervClient) CreateOrUpdateVMIntegrationServices(vmName string, integrationServices []vmIntegrationService) (err error) {
+func (c *HypervClient) CreateOrUpdateVmIntegrationServices(vmName string, integrationServices []vmIntegrationService) (err error) {
 	for _, integrationService := range integrationServices {
 		if integrationService.Enabled {
-			err = c.EnableVMIntegrationService(vmName, integrationService.Name)
+			err = c.EnableVmIntegrationService(vmName, integrationService.Name)
 		} else {
-			err = c.DisableVMIntegrationService(vmName, integrationService.Name)
+			err = c.DisableVmIntegrationService(vmName, integrationService.Name)
 		}
 		if err != nil {
 			return err

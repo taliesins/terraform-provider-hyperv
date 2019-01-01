@@ -178,7 +178,7 @@ func FlattenHardDiskDrives(hardDiskDrives *[]vmHardDiskDrive) []interface{} {
 }
 
 type vmHardDiskDrive struct {
-	VMName                        string
+	VmName                        string
 	ControllerType                ControllerType
 	ControllerNumber              int32
 	ControllerLocation            int32
@@ -193,17 +193,17 @@ type vmHardDiskDrive struct {
 	//AllowUnverifiedPaths          bool no way of checking if its turned on so always turn on
 }
 
-type createVMHardDiskDriveArgs struct {
+type createVmHardDiskDriveArgs struct {
 	VmHardDiskDriveJson string
 }
 
-var createVMHardDiskDriveTemplate = template.Must(template.New("CreateVMHardDiskDrive").Parse(`
+var createVmHardDiskDriveTemplate = template.Must(template.New("CreateVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmHardDiskDrive = '{{.VmHardDiskDriveJson}}' | ConvertFrom-Json
 
 $NewVmHardDiskDriveArgs = @{
-	VMName=$vmHardDiskDrive.VmName
+	VmName=$vmHardDiskDrive.VmName
 	ControllerType=$vmHardDiskDrive.ControllerType
 	ControllerNumber=$vmHardDiskDrive.ControllerNumber
 	ControllerLocation=$vmHardDiskDrive.ControllerLocation
@@ -224,7 +224,7 @@ if ($vmHardDiskDrive.DiskNumber -lt 4294967295){
 Add-VmHardDiskDrive @NewVmHardDiskDriveArgs
 `))
 
-func (c *HypervClient) CreateVMHardDiskDrive(
+func (c *HypervClient) CreateVmHardDiskDrive(
 	vmName string,
 	controllerType ControllerType,
 	controllerNumber int32,
@@ -241,7 +241,7 @@ func (c *HypervClient) CreateVMHardDiskDrive(
 ) (err error) {
 
 	vmHardDiskDriveJson, err := json.Marshal(vmHardDiskDrive{
-		VMName:                        vmName,
+		VmName:                        vmName,
 		ControllerType:                controllerType,
 		ControllerNumber:              controllerNumber,
 		ControllerLocation:            controllerLocation,
@@ -255,20 +255,20 @@ func (c *HypervClient) CreateVMHardDiskDrive(
 		OverrideCacheAttributes:       overrideCacheAttributes,
 	})
 
-	err = c.runFireAndForgetScript(createVMHardDiskDriveTemplate, createVMHardDiskDriveArgs{
+	err = c.runFireAndForgetScript(createVmHardDiskDriveTemplate, createVmHardDiskDriveArgs{
 		VmHardDiskDriveJson: string(vmHardDiskDriveJson),
 	})
 
 	return err
 }
 
-type getVMHardDiskDrivesArgs struct {
-	VMName string
+type getVmHardDiskDrivesArgs struct {
+	VmName string
 }
 
-var getVMHardDiskDrivesTemplate = template.Must(template.New("GetVMHardDiskDrives").Parse(`
+var getVmHardDiskDrivesTemplate = template.Must(template.New("GetVmHardDiskDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VMName '{{.VMName}}' | %{ @{
+$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VmName '{{.VmName}}' | %{ @{
 	ControllerType=$_.ControllerType;
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
@@ -290,36 +290,36 @@ if ($vmHardDiskDrivesObject) {
 }
 `))
 
-func (c *HypervClient) GetVMHardDiskDrives(vmName string) (result []vmHardDiskDrive, err error) {
+func (c *HypervClient) GetVmHardDiskDrives(vmName string) (result []vmHardDiskDrive, err error) {
 	result = make([]vmHardDiskDrive, 0)
 
-	err = c.runScriptWithResult(getVMHardDiskDrivesTemplate, getVMHardDiskDrivesArgs{
-		VMName: vmName,
+	err = c.runScriptWithResult(getVmHardDiskDrivesTemplate, getVmHardDiskDrivesArgs{
+		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-type updateVMHardDiskDriveArgs struct {
-	VMName              string
+type updateVmHardDiskDriveArgs struct {
+	VmName              string
 	ControllerNumber    int32
 	ControllerLocation  int32
 	VmHardDiskDriveJson string
 }
 
-var updateVMHardDiskDriveTemplate = template.Must(template.New("UpdateVMHardDiskDrive").Parse(`
+var updateVmHardDiskDriveTemplate = template.Must(template.New("UpdateVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmHardDiskDrive = '{{.VmHardDiskDriveJson}}' | ConvertFrom-Json
 
-$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VMName '{{.VMName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
+$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
 
 if (!$vmHardDiskDrivesObject){
 	throw "VM hard disk drive does not exist - {{.ControllerLocation}} {{.ControllerNumber}}"
 }
 
 $SetVmHardDiskDriveArgs = @{}
-$SetVmHardDiskDriveArgs.VMName=$vmHardDiskDrivesObject.VMName
+$SetVmHardDiskDriveArgs.VmName=$vmHardDiskDrivesObject.VmName
 $SetVmHardDiskDriveArgs.ControllerType=$vmHardDiskDrivesObject.ControllerType
 $SetVmHardDiskDriveArgs.ControllerLocation=$vmHardDiskDrivesObject.ControllerLocation
 $SetVmHardDiskDriveArgs.ControllerNumber=$vmHardDiskDrivesObject.ControllerNumber
@@ -341,7 +341,7 @@ Set-VMHardDiskDrive @SetVmHardDiskDriveArgs
 
 `))
 
-func (c *HypervClient) UpdateVMHardDiskDrive(
+func (c *HypervClient) UpdateVmHardDiskDrive(
 	vmName string,
 	controllerNumber int32,
 	controllerLocation int32,
@@ -359,7 +359,7 @@ func (c *HypervClient) UpdateVMHardDiskDrive(
 ) (err error) {
 
 	vmHardDiskDriveJson, err := json.Marshal(vmHardDiskDrive{
-		VMName:                        vmName,
+		VmName:                        vmName,
 		ControllerType:                controllerType,
 		ControllerNumber:              toControllerNumber,
 		ControllerLocation:            toControllerLocation,
@@ -373,8 +373,8 @@ func (c *HypervClient) UpdateVMHardDiskDrive(
 		OverrideCacheAttributes:       overrideCacheAttributes,
 	})
 
-	err = c.runFireAndForgetScript(updateVMHardDiskDriveTemplate, updateVMHardDiskDriveArgs{
-		VMName:              vmName,
+	err = c.runFireAndForgetScript(updateVmHardDiskDriveTemplate, updateVmHardDiskDriveArgs{
+		VmName:              vmName,
 		ControllerNumber:    controllerNumber,
 		ControllerLocation:  controllerLocation,
 		VmHardDiskDriveJson: string(vmHardDiskDriveJson),
@@ -383,21 +383,21 @@ func (c *HypervClient) UpdateVMHardDiskDrive(
 	return err
 }
 
-type deleteVMHardDiskDriveArgs struct {
-	VMName             string
+type deleteVmHardDiskDriveArgs struct {
+	VmName             string
 	ControllerNumber   int32
 	ControllerLocation int32
 }
 
-var deleteVMHardDiskDriveTemplate = template.Must(template.New("DeleteVMHardDiskDrive").Parse(`
+var deleteVmHardDiskDriveTemplate = template.Must(template.New("DeleteVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMHardDiskDrive -VMName '{{.VMName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive -Force
+@(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive -Force
 `))
 
-func (c *HypervClient) DeleteVMHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error) {
-	err = c.runFireAndForgetScript(deleteVMHardDiskDriveTemplate, deleteVMHardDiskDriveArgs{
-		VMName:             vmname,
+func (c *HypervClient) DeleteVmHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error) {
+	err = c.runFireAndForgetScript(deleteVmHardDiskDriveTemplate, deleteVmHardDiskDriveArgs{
+		VmName:             vmname,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
 	})
@@ -405,8 +405,8 @@ func (c *HypervClient) DeleteVMHardDiskDrive(vmname string, controllerNumber int
 	return err
 }
 
-func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDrives []vmHardDiskDrive) (err error) {
-	currentHardDiskDrives, err := c.GetVMHardDiskDrives(vmName)
+func (c *HypervClient) CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDrives []vmHardDiskDrive) (err error) {
+	currentHardDiskDrives, err := c.GetVmHardDiskDrives(vmName)
 	if err != nil {
 		return err
 	}
@@ -416,7 +416,7 @@ func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDri
 
 	for i := currentHardDiskDrivesLength - 1; i > desiredHardDiskDrivesLength-1; i-- {
 		currentHardDiskDrive := currentHardDiskDrives[i]
-		err = c.DeleteVMHardDiskDrive(vmName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
+		err = c.DeleteVmHardDiskDrive(vmName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
@@ -430,7 +430,7 @@ func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDri
 		currentHardDiskDrive := currentHardDiskDrives[i]
 		hardDiskDrive := hardDiskDrives[i]
 
-		err = c.UpdateVMHardDiskDrive(
+		err = c.UpdateVmHardDiskDrive(
 			vmName,
 			currentHardDiskDrive.ControllerNumber,
 			currentHardDiskDrive.ControllerLocation,
@@ -453,7 +453,7 @@ func (c *HypervClient) CreateOrUpdateVMHardDiskDrives(vmName string, hardDiskDri
 
 	for i := currentHardDiskDrivesLength - 1 + 1; i <= desiredHardDiskDrivesLength-1; i++ {
 		hardDiskDrive := hardDiskDrives[i]
-		err = c.CreateVMHardDiskDrive(
+		err = c.CreateVmHardDiskDrive(
 			vmName,
 			hardDiskDrive.ControllerType,
 			hardDiskDrive.ControllerNumber,

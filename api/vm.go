@@ -307,11 +307,11 @@ type vm struct {
 	//ParentCheckpointName				string  this will allow us to set the checkpoint to use
 }
 
-type createVMArgs struct {
+type createVmArgs struct {
 	VmJson string
 }
 
-var createVMTemplate = template.Must(template.New("CreateVM").Parse(`
+var createVmTemplate = template.Must(template.New("CreateVm").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vm = '{{.VmJson}}' | ConvertFrom-Json
@@ -338,10 +338,10 @@ $NewVmArgs = @{
 New-Vm @NewVmArgs
 
 #Delete any auto-generated network adapter
-Get-VMNetworkAdapter -VMName $vm.Name | Remove-VMNetworkAdapter
+Get-VMNetworkAdapter -VmName $vm.Name | Remove-VMNetworkAdapter
 
 #Delete any auto-generated dvd drive
-Get-VMDvdDrive -VMName $vm.Name | Remove-VMDvdDrive
+Get-VMDvdDrive -VmName $vm.Name | Remove-VMDvdDrive
 
 #Set static and dynamic properties can't be set at the same time, but we need the values to match terraforms state
 $SetVmArgs = @{}
@@ -383,7 +383,7 @@ if ($vm.StaticMemory) {
 Set-Vm @SetVmArgs
 `))
 
-func (c *HypervClient) CreateVM(
+func (c *HypervClient) CreateVm(
 	name string,
 	generation int,
 	automaticCriticalErrorAction CriticalErrorAction,
@@ -431,18 +431,18 @@ func (c *HypervClient) CreateVM(
 		StaticMemory:                        staticMemory,
 	})
 
-	err = c.runFireAndForgetScript(createVMTemplate, createVMArgs{
+	err = c.runFireAndForgetScript(createVmTemplate, createVmArgs{
 		VmJson: string(vmJson),
 	})
 
 	return err
 }
 
-type getVMArgs struct {
+type getVmArgs struct {
 	Name string
 }
 
-var getVMTemplate = template.Must(template.New("GetVM").Parse(`
+var getVmTemplate = template.Must(template.New("GetVm").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmObject = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
@@ -476,19 +476,19 @@ if ($vmObject) {
 }
 `))
 
-func (c *HypervClient) GetVM(name string) (result vm, err error) {
-	err = c.runScriptWithResult(getVMTemplate, getVMArgs{
+func (c *HypervClient) GetVm(name string) (result vm, err error) {
+	err = c.runScriptWithResult(getVmTemplate, getVmArgs{
 		Name: name,
 	}, &result)
 
 	return result, err
 }
 
-type updateVMArgs struct {
+type updateVmArgs struct {
 	VmJson string
 }
 
-var updateVMTemplate = template.Must(template.New("UpdateVM").Parse(`
+var updateVmTemplate = template.Must(template.New("UpdateVm").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vm = '{{.VmJson}}' | ConvertFrom-Json
@@ -544,7 +544,7 @@ if ($vm.StaticMemory) {
 Set-Vm @SetVmArgs
 `))
 
-func (c *HypervClient) UpdateVM(
+func (c *HypervClient) UpdateVm(
 	name string,
 	//	generation int,
 	automaticCriticalErrorAction CriticalErrorAction,
@@ -592,27 +592,26 @@ func (c *HypervClient) UpdateVM(
 		StaticMemory:                        staticMemory,
 	})
 
-	err = c.runFireAndForgetScript(updateVMTemplate, updateVMArgs{
+	err = c.runFireAndForgetScript(updateVmTemplate, updateVmArgs{
 		VmJson: string(vmJson),
 	})
 
 	return err
 }
 
-type deleteVMArgs struct {
+type deleteVmArgs struct {
 	Name string
 }
 
-var deleteVMTemplate = template.Must(template.New("DeleteVM").Parse(`
+var deleteVmTemplate = template.Must(template.New("DeleteVm").Parse(`
 $ErrorActionPreference = 'Stop'
 Get-VM | ?{$_.Name -eq '{{.Name}}'} | Remove-VM -force
 `))
 
-func (c *HypervClient) DeleteVM(name string) (err error) {
-	err = c.runFireAndForgetScript(deleteVMTemplate, deleteVMArgs{
+func (c *HypervClient) DeleteVm(name string) (err error) {
+	err = c.runFireAndForgetScript(deleteVmTemplate, deleteVmArgs{
 		Name: name,
 	})
 
 	return err
 }
-
