@@ -30,7 +30,7 @@ Requirements
 
 -	[Terraform](https://www.terraform.io/downloads.html) 0.10.x
 -	[Go](https://golang.org/doc/install) 1.8 (to build the provider plugin)
--   Connectivity and credentials to a server running HyperV
+-   Connectivity and credentials to a server running HyperV on Windows 10, Windows Server 2016 or newer
 
 Building The Provider
 ---------------------
