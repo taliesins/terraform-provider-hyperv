@@ -1,0 +1,14 @@
+version: '2'
+
+services:
+  terraform-provider-hyperv:
+#    image: [yourDockerHubAccountHere]/terraform-hyperv:latest
+    image: terraform-hyperv:latest
+    build: .
+    container_name: terraform-hyperv
+    volumes:
+    - ./examples:/${PROJECTPATH}/examples
+    working_dir: ${PROJECTPATH}/examples
+    stdin_open: true
+    tty: true
+    entrypoint: bash

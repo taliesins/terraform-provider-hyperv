@@ -32,6 +32,44 @@ Requirements
 -	[Go](https://golang.org/doc/install) 1.8 (to build the provider plugin)
 -   Connectivity and credentials to a server running HyperV on Windows 10, Windows Server 2016 or newer
 
+Using Docker Images:
+---------------------
+You can use Docker or Docker-Compose.
+It will do the same thing for you.
+
+Build and Run with Docker Compose:
+docker-compose up -d
+
+Build with Docker:
+docker build --rm --tag terraform-hyperv .
+
+Execute the Docker Image for hyperv development purposes on Windows 7 / 10 on Powershell:
+./Dockerfile.ps1
+
+Run the Image:
+docker run -d -it --name terraform-hyperv --entrypoint bash terraform-hyperv:latest
+
+You can add the -v option to include the examples.
+The -v option creates a peer-to-peer folder between the guest system and the container.
+The problem with the -v option is, that the guest system will respond differently on path variables.
+
+Windows:
+-v //c/Users/User1/project/examples:/go/src/github.com/taliesins/terraform-provider-hyperv/examples
+Linux:
+-v /home/User1/project/examples:/go/src/github.com/taliesins/terraform-provider-hyperv/examples
+
+You can also add the -w option, that let you enter the project folder directly if you are entering the container:
+-w /go/src/github.com/taliesins/terraform-provider-hyperv/examples
+
+Enter the container:
+docker exec -it terraform-hyperv bash
+
+Now you can just use the terraform command to work with your tf-files in your project dir.
+
+If you wanna rebuild the container you must first stop and then delete the existing one:
+docker kill terraform-hyperv
+docker rm terraform-hyperv
+
 Building The Provider
 ---------------------
 
