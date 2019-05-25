@@ -6,7 +6,7 @@ import (
 )
 
 type executePowershellFromCommandLineTemplateOptions struct {
-	Powershell	string
+	Powershell string
 }
 
 var executePowershellFromCommandLineTemplate = template.Must(template.New("ExecuteCommandFromCommandLine").Funcs(template.FuncMap{
@@ -20,20 +20,20 @@ var executePowershellFromCommandLineTemplate = template.Must(template.New("Execu
 }).Parse(`powershell "{{escapeDoubleQuotes .Powershell}}"`))
 
 type executeCommandTemplateOptions struct {
-	Vars		string
-	Path		string
+	Vars string
+	Path string
 }
 
 var executeCommandTemplate = template.Must(template.New("ExecuteCommand").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};{{.Vars}};&"{{.Path}}";exit $LastExitCode }`))
 
 type elevatedCommandTemplateOptions struct {
-	User            			string
-	Password        			string
-	TaskName        			string
-	TaskDescription 			string
-	TaskExecutionTimeLimit 		string
-	Vars            			string
-	ScriptPath  				string
+	User                   string
+	Password               string
+	TaskName               string
+	TaskDescription        string
+	TaskExecutionTimeLimit string
+	Vars                   string
+	ScriptPath             string
 }
 
 var elevatedCommandTemplate = template.Must(template.New("ElevatedCommand").Funcs(template.FuncMap{
@@ -167,8 +167,8 @@ exit $exitCode
 `))
 
 type convertBase64FileToTextFileTemplateOptions struct {
-	Base64FilePath			string
-	FilePath				string
+	Base64FilePath string
+	FilePath       string
 }
 
 var convertBase64FileToTextFileTemplate = template.Must(template.New("ConvertBase64FileToTextFile").Parse(`
@@ -213,20 +213,20 @@ var convertBase64FileToTextFileTemplate = template.Must(template.New("ConvertBas
 `))
 
 type resolvePathTemplateOptions struct {
-	FilePath	string
+	FilePath string
 }
 
 var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};[System.IO.Path]::GetFullPath("{{.FilePath}}");exit $LastExitCode; }`))
 
 type deleteFileTemplateOptions struct {
-	FilePath	string
+	FilePath string
 }
 
 var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;exit $LastExitCode; }`))
 
 type appendFileTemplateOptions struct {
-	FilePath	string
-	Content		string
+	FilePath string
+	Content  string
 }
 
 //This is not a Powershell script

@@ -15,35 +15,35 @@ import (
 )
 
 type Config struct {
-	User          	string
-	Password      	string
-	Host  	      	string
-	Port	      	int
-	HTTPS	      	bool
-	Insecure      	bool
-	TLSServerName 	string
-	CACert     		[]byte
-	Key    			[]byte
-	Cert     		[]byte
-	ScriptPath 		string
-	Timeout 		string
+	User          string
+	Password      string
+	Host          string
+	Port          int
+	HTTPS         bool
+	Insecure      bool
+	TLSServerName string
+	CACert        []byte
+	Key           []byte
+	Cert          []byte
+	ScriptPath    string
+	Timeout       string
 }
 
 // HypervClient() returns a new client for configuring hyperv.
 func (c *Config) Client() (comm *api.HypervClient, err error) {
 	log.Printf("[INFO][hyperv] HyperV HypervClient configured for HyperV API operations using:\n"+
-			"  Host: %s\n"+
-			"  Port: %d\n"+
-			"  User: %s\n"+
-			"  Password: %t\n"+
-			"  HTTPS: %t\n"+
-			"  Insecure: %t\n"+
-			"  TLSServerName: %t\n"+
-			"  CACert: %t\n"+
-			"  Cert: %t\n"+
-			"  Key: %t\n"+
-			"  ScriptPath: %t\n"+
-			"  Timeout: %t",
+		"  Host: %s\n"+
+		"  Port: %d\n"+
+		"  User: %s\n"+
+		"  Password: %t\n"+
+		"  HTTPS: %t\n"+
+		"  Insecure: %t\n"+
+		"  TLSServerName: %t\n"+
+		"  CACert: %t\n"+
+		"  Cert: %t\n"+
+		"  Key: %t\n"+
+		"  ScriptPath: %t\n"+
+		"  Timeout: %t",
 		c.Host,
 		c.Port,
 		c.User,
@@ -122,15 +122,15 @@ func parseEndpoint(addr string, https bool, insecure bool, tlsServerName string,
 	}
 
 	return &winrm.Endpoint{
-		Host:          	host,
-		Port:          	port,
-		HTTPS:         	https,
-		Insecure:      	insecure,
-		TLSServerName: 	tlsServerName,
-		Cert:			cert,
-		Key:			key,
-		CACert:        	caCert,
-		Timeout:       	timeoutDuration,
+		Host:          host,
+		Port:          port,
+		HTTPS:         https,
+		Insecure:      insecure,
+		TLSServerName: tlsServerName,
+		Cert:          cert,
+		Key:           key,
+		CACert:        caCert,
+		Timeout:       timeoutDuration,
 	}, nil
 }
 
