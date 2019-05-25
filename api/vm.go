@@ -381,7 +381,16 @@ if ($vm.StaticMemory) {
 }
 
 Set-Vm @SetVmArgs
+$ourvm = Get-VMFirmware $vm.Name
+$hdddrive = $ourvm.BootOrder[1]
+if ($vm.SecureBootTemplate) {
+        Set-VMFirmware -VMName $vm.Name -BootOrder $hdddrive -SecureBootTemplate $vm.SecureBootTemplate
+} else {
+        Set-VMFirmware -VMName $vm.Name -BootOrder $hdddrive -EnableSecureBoot $vm.EnableSecureBoot
+}
 `))
+
+// Set-VMFirmware -VMName $vm.Name -SecureBootTemplate MicrosoftUEFICertificateAuthority -EnableSecureBoot On -BootOrder $vmHardDiskDrive
 
 func (c *HypervClient) CreateVm(
 	name string,
@@ -405,6 +414,8 @@ func (c *HypervClient) CreateVm(
 	smartPagingFilePath string,
 	snapshotFileLocation string,
 	staticMemory bool,
+	enableSecureBoot string,
+	SecureBootTemplate string,
 ) (err error) {
 
 	vmJson, err := json.Marshal(vm{
@@ -542,7 +553,16 @@ if ($vm.StaticMemory) {
 }
 
 Set-Vm @SetVmArgs
+$ourvm = Get-VMFirmware $vm.Name
+$hdddrive = $ourvm.BootOrder[1]
+if ($vm.SecureBootTemplate) {
+        Set-VMFirmware -VMName $vm.Name -BootOrder $hdddrive -SecureBootTemplate $vm.SecureBootTemplate
+} else {
+        Set-VMFirmware -VMName $vm.Name -BootOrder $hdddrive -EnableSecureBoot $vm.EnableSecureBoot
+}
 `))
+
+// Set-VMFirmware -VMName $vm.Name -SecureBootTemplate MicrosoftUEFICertificateAuthority -EnableSecureBoot On -BootOrder $vmHardDiskDrive
 
 func (c *HypervClient) UpdateVm(
 	name string,
@@ -566,6 +586,8 @@ func (c *HypervClient) UpdateVm(
 	smartPagingFilePath string,
 	snapshotFileLocation string,
 	staticMemory bool,
+	enableSecureBoot string,
+	SecureBootTemplate string,
 ) (err error) {
 
 	vmJson, err := json.Marshal(vm{

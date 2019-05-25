@@ -6,7 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/tidalf/terraform-provider-hyperv/api"
 )
 
 func resourceHyperVNetworkSwitch() *schema.Resource {

@@ -5,7 +5,7 @@ import (
 	"github.com/dylanmei/iso8601"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/masterzen/winrm"
-	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/tidalf/terraform-provider-hyperv/api"
 	"log"
 	"net"
 	"reflect"

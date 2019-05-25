@@ -5,7 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/tidalf/terraform-provider-hyperv/api"
 	"os"
 )
 
@@ -56,7 +56,6 @@ func resourceHyperVVhd() *schema.Resource {
 				ConflictsWith: []string{
 					"source",
 					"source_vm",
-					"parent_path",
 				},
 			},
 			"parent_path": {

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/helper/validation"
-	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/tidalf/terraform-provider-hyperv/api"
 	"log"
 )
 
@@ -146,6 +146,17 @@ func resourceHyperVMachineInstance() *schema.Resource {
 
 			"static_memory": {
 				Type:     schema.TypeBool,
+				Optional: true,
+				Default:  true,
+			},
+
+			"enable_secure_boot": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Default:  true,
+			},
+			"secure_boot_template": {
+				Type:     schema.TypeString,
 				Optional: true,
 				Default:  true,
 			},
@@ -532,6 +543,8 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 	smartPagingFilePath := (data.Get("smart_paging_file_path")).(string)
 	snapshotFileLocation := (data.Get("snapshot_file_location")).(string)
 	staticMemory := (data.Get("static_memory")).(bool)
+	enableSecureBoot := (data.Get("enable_secure_boot")).(string)
+	secureBootTemplate := (data.Get("secure_boot_template")).(string)
 	state := api.ToVmState((data.Get("state")).(string))
 
 	if dynamicMemory && staticMemory {
@@ -562,7 +575,7 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return err
 	}
 
-	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory, enableSecureBoot, secureBootTemplate)
 	if err != nil {
 		return err
 	}
@@ -774,6 +787,8 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		smartPagingFilePath := (data.Get("smart_paging_file_path")).(string)
 		snapshotFileLocation := (data.Get("snapshot_file_location")).(string)
 		staticMemory := (data.Get("static_memory")).(bool)
+		enableSecureBoot := (data.Get("enable_secure_boot")).(string)
+		secureBootTemplate := (data.Get("secure_boot_template")).(string)
 
 		if dynamicMemory && staticMemory {
 			return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static can't be both selected at the same time")
@@ -783,7 +798,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 			return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
 		}
 
-		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory, enableSecureBoot, secureBootTemplate)
 		if err != nil {
 			return err
 		}
