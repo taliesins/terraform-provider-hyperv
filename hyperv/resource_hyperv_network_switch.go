@@ -71,9 +71,9 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 			},
 
 			"net_adapter_names": {
-				Type:     schema.TypeList,
-				Elem:     &schema.Schema{Type: schema.TypeString},
+				Type:     schema.TypeString,
 				Optional: true,
+				Default:  "",
 			},
 
 			"default_flow_minimum_bandwidth_absolute": {
@@ -130,12 +130,7 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 	packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
 	bandwidthReservationMode := api.ToVMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(string))
 	switchType := api.ToVMSwitchType((d.Get("switch_type")).(string))
-	netAdapterNames := []string{}
-	if raw, ok := d.GetOk("net_adapter_names"); ok {
-		for _, v := range raw.([]interface{}) {
-			netAdapterNames = append(netAdapterNames, v.(string))
-		}
-	}
+	netAdapterNames := (d.Get("net_adapter_names")).(string)
 	defaultFlowMinimumBandwidthAbsolute := int64((d.Get("default_flow_minimum_bandwidth_absolute")).(int))
 	defaultFlowMinimumBandwidthWeight := int64((d.Get("default_flow_minimum_bandwidth_weight")).(int))
 	defaultQueueVmmqEnabled := (d.Get("default_queue_vmmq_enabled")).(bool)
@@ -259,11 +254,11 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 		if len(s.NetAdapterNames) > 0 {
 			return fmt.Errorf("[ERROR][hyperv][read] Unable to set NetAdapterNames when switch type is internal")
 		}
-	} else if s.SwitchType == api.VMSwitchType_External {
+	} /* else if s.SwitchType == api.VMSwitchType_External {
 		if len(s.NetAdapterNames) < 1 {
 			return fmt.Errorf("[ERROR][hyperv][read] Must specify NetAdapterNames if switch type is external")
 		}
-	}
+	} */
 
 	if s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute {
 		if s.DefaultFlowMinimumBandwidthWeight != 0 {
@@ -320,12 +315,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 	//packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
 	bandwidthReservationMode := api.ToVMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(string))
 	switchType := api.ToVMSwitchType((d.Get("switch_type")).(string))
-	netAdapterNames := []string{}
-	if raw, ok := d.GetOk("net_adapter_names"); ok {
-		for _, v := range raw.([]interface{}) {
-			netAdapterNames = append(netAdapterNames, v.(string))
-		}
-	}
+	netAdapterNames := (d.Get("net_adapter_names")).(string)
 	defaultFlowMinimumBandwidthAbsolute := int64((d.Get("default_flow_minimum_bandwidth_absolute")).(int))
 	defaultFlowMinimumBandwidthWeight := int64((d.Get("default_flow_minimum_bandwidth_weight")).(int))
 	defaultQueueVmmqEnabled := (d.Get("default_queue_vmmq_enabled")).(bool)

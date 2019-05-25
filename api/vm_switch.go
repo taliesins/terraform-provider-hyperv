@@ -132,7 +132,7 @@ type vmSwitch struct {
 	PacketDirectEnabled                 bool
 	BandwidthReservationMode            VMSwitchBandwidthMode
 	SwitchType                          VMSwitchType
-	NetAdapterNames                     []string
+	NetAdapterNames                     string
 	DefaultFlowMinimumBandwidthAbsolute int64
 	DefaultFlowMinimumBandwidthWeight   int64
 	DefaultQueueVmmqEnabled             bool
@@ -150,7 +150,7 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterNames = @($vmSwitch.$NetAdapterNames)
+$NetAdapterNames = $vmSwitch.NetAdapterNames
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
 $switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
@@ -170,7 +170,7 @@ if ($NetAdapterNames) {
 	$NewVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
 	$NewVmSwitchArgs.NetAdapterName=$NetAdapterNames
 } else {
-	$NewVmSwitchArgs.SwitchType=$switchType
+	# $NewVmSwitchArgs.SwitchType=$switchType
 	#not used unless interface is specified
 	#-AllowManagementOS $vmSwitch.AllowManagementOS
 }
@@ -208,7 +208,7 @@ func (c *HypervClient) CreateVMSwitch(
 	packetDirectEnabled bool,
 	bandwidthReservationMode VMSwitchBandwidthMode,
 	switchType VMSwitchType,
-	netAdapterNames []string,
+	netAdapterNames string,
 	defaultFlowMinimumBandwidthAbsolute int64,
 	defaultFlowMinimumBandwidthWeight int64,
 	defaultQueueVmmqEnabled bool,
@@ -244,6 +244,7 @@ type getVMSwitchArgs struct {
 	Name string
 }
 
+// @(if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})});
 var getVMSwitchTemplate = template.Must(template.New("GetVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
@@ -251,11 +252,11 @@ $vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Notes=$_.Notes;
 	AllowManagementOS=$_.AllowManagementOS;
 	EmbeddedTeamingEnabled=$_.EmbeddedTeamingEnabled;
+        SwitchType=$_.SwitchType;
 	IovEnabled=$_.IovEnabled;
 	PacketDirectEnabled=$_.PacketDirectEnabled;
 	BandwidthReservationMode=$_.BandwidthReservationMode;
-	SwitchType=$_.SwitchType;
-	NetAdapterNames=@(if($_.NetAdapterInterfaceDescriptions){@(Get-NetAdapter -InterfaceDescription $_.NetAdapterInterfaceDescriptions | %{$_.Name})});
+	NetAdapterNames=$_.NetAdapterNames; 
 	DefaultFlowMinimumBandwidthAbsolute=$_.DefaultFlowMinimumBandwidthAbsolute;
 	DefaultFlowMinimumBandwidthWeight=$_.DefaultFlowMinimumBandwidthWeight;
 	DefaultQueueVmmqEnabled=$_.DefaultQueueVmmqEnabledRequested;
@@ -289,7 +290,7 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterNames = @($vmSwitch.$NetAdapterNames)
+$NetAdapterNames = $vmSwitch.NetAdapterNames
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
 $switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
@@ -310,7 +311,7 @@ if ($NetAdapterNames) {
 	#-EnablePacketDirect $vmSwitch.PacketDirectEnabled
 	#-MinimumBandwidthMode $minimumBandwidthMode
 } else {
-	$SetVmSwitchArgs.SwitchType=$switchType
+	# $SetVmSwitchArgs.SwitchType=$switchType
 	#Updates not supported on:
 	#-EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled
 	#-EnableIov $vmSwitch.IovEnabled
@@ -343,7 +344,7 @@ func (c *HypervClient) UpdateVMSwitch(
 	//packetDirectEnabled bool,
 	//bandwidthReservationMode VMSwitchBandwidthMode,
 	switchType VMSwitchType,
-	netAdapterNames []string,
+	netAdapterNames string,
 	defaultFlowMinimumBandwidthAbsolute int64,
 	defaultFlowMinimumBandwidthWeight int64,
 	defaultQueueVmmqEnabled bool,

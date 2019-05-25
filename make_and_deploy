@@ -1,0 +1,4 @@
+#!/bin/bash
+echo "make and deploy"
+make && cp ~/go/bin/terraform-provider-hyperv ~/.terraform.d/plugins/linux_amd64/terraform-provider-hyperv
+echo "done"
