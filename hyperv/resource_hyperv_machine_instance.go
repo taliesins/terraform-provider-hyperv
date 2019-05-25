@@ -153,12 +153,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"enable_secure_boot": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  true,
+				Default:  "off",
 			},
 			"secure_boot_template": {
 				Type:     schema.TypeString,
 				Optional: true,
-				Default:  true,
+				Default:  "",
 			},
 
 			"integration_services": {
@@ -766,6 +766,8 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		data.HasChange("processor_count") ||
 		data.HasChange("smart_paging_file_path") ||
 		data.HasChange("snapshot_file_location") ||
+		data.HasChange("enable_secure_boot") ||
+		data.HasChange("secure_boot_template") ||
 		data.HasChange("static_memory") {
 		//generation := (d.Get("generation")).(int)
 		automaticCriticalErrorAction := api.ToCriticalErrorAction((data.Get("automatic_critical_error_action")).(string))
