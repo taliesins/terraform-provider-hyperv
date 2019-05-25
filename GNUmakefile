@@ -27,6 +27,7 @@ fmt:
 	gofmt -w $(GOFMT_FILES)
 
 fmtcheck:
+	@chmod a+x $(CURDIR)/scripts/gofmtcheck.sh
 	@sh -c "'$(CURDIR)/scripts/gofmtcheck.sh'"
 
 errcheck:
