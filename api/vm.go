@@ -383,7 +383,8 @@ if ($vm.StaticMemory) {
 }
 
 Set-Vm @SetVmArgs
-Set-VMFirmware -VMName $vm.Name -EnableSecureBoot $vm.EnableSecureBoot -SecureBootTemplate $vm.SecureBootTemplate -BootOrder $vmHardDiskDrive
+$hdddrive = Get-VMHardDiskDrive $vm.Name
+Set-VMFirmware -VMName $vm.Name -EnableSecureBoot $vm.EnableSecureBoot -SecureBootTemplate $vm.SecureBootTemplate -FirstBootDevice $hdddrive
 `))
 
 /*
@@ -559,7 +560,8 @@ if ($vm.StaticMemory) {
 }
 
 Set-Vm @SetVmArgs
-Set-VMFirmware -VMName $vm.Name -EnableSecureBoot on -SecureBootTemplate MicrosoftUEFICertificateAuthority -BootOrder $vmHardDiskDrive
+$hdddrive = Get-VMHardDiskDrive $vm.Name
+Set-VMFirmware -VMName $vm.Name -EnableSecureBoot $vm.EnableSecureBoot -SecureBootTemplate $vm.SecureBootTemplate -FirstBootDevice $hdddrive
 `))
 
 /*

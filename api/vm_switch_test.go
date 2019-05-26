@@ -15,7 +15,7 @@ func TestSerializeVmSwitch(t *testing.T) {
 		PacketDirectEnabled:        false,
 		BandwidthReservationMode:   VMSwitchBandwidthMode_Weight,
 		SwitchType:                 VMSwitchType_Internal,
-		NetAdapterNames:            []string{"wan", "lan"},
+		NetAdapterNames:            "wan",
 		DefaultQueueVrssEnabled:    true,
 		DefaultQueueVmmqQueuePairs: 0,
 	})
