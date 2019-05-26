@@ -8,7 +8,7 @@ import (
 
 func TestSerializeVmHardDiskDrive(t *testing.T) {
 	vmHardDiskDriveJson, err := json.Marshal(vmHardDiskDrive{
-		Path: `C:\data\VirtualMachines\web_server\Virtual Hard Disks\MobyLinuxVM.vhdx`,
+		Path:                          `C:\data\VirtualMachines\web_server\Virtual Hard Disks\MobyLinuxVM.vhdx`,
 		OverrideCacheAttributes:       0,
 		ControllerLocation:            0,
 		ControllerNumber:              0,
