@@ -10,6 +10,6 @@ resource "hyperv_machine_instance" "web_Server" {
 
   network_adaptors {
       name = "wan"
-      switch_name = "${hyperv_network_switch.dmz_network_switch.name}"
+      switch_name = hyperv_network_switch.dmz_network_switch.name
   }
 }
