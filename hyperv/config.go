@@ -21,6 +21,7 @@ type Config struct {
 	Port	      	int
 	HTTPS	      	bool
 	Insecure      	bool
+	NTLM            bool
 	TLSServerName 	string
 	CACert     		[]byte
 	Key    			[]byte
@@ -38,6 +39,7 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 			"  Password: %t\n"+
 			"  HTTPS: %t\n"+
 			"  Insecure: %t\n"+
+			"  NTLM: %t\n"+
 			"  TLSServerName: %t\n"+
 			"  CACert: %t\n"+
 			"  Cert: %t\n"+
@@ -50,6 +52,7 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 		c.Password != "",
 		c.HTTPS,
 		c.Insecure,
+		c.NTLM,
 		c.TLSServerName,
 		c.CACert != nil,
 		c.Cert != nil,
@@ -75,9 +78,9 @@ func getWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 		winrm.DefaultParameters.EnvelopeSize,
 	)
 
-	//if config.TransportDecorator != nil {
-	//	params.TransportDecorator = config.TransportDecorator
-	//}
+	if config.NTLM {
+		params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
+	}
 
 	if endpoint.Timeout.Seconds() > 0 {
 		params.Timeout = iso8601.FormatDuration(endpoint.Timeout)

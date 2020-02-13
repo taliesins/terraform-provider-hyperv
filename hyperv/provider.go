@@ -12,9 +12,11 @@ import (
 const (
 	DefaultHost = "127.0.0.1"
 
-	DefaultUseHTTPS = false
+	DefaultUseHTTPS = true
 
 	DefaultAllowInsecure = false
+
+	DefaultAllowNTLM = true
 
 	DefaultTLSServerName = ""
 
@@ -22,7 +24,7 @@ const (
 	DefaultUser = "Administrator"
 
 	// DefaultPort is used if there is no port given
-	DefaultPort = 5985
+	DefaultPort = 5986
 
 	DefaultCACertFile = ""
 
@@ -82,6 +84,13 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_INSECURE", DefaultAllowInsecure),
 				Description: "Should insecure communication be used for HyperV API operations.",
+			},
+
+			"use_ntlm": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("HYPERV_USE_NTLM", DefaultAllowNTLM),
+				Description: "Should NTLM be used for HyperV API authentication.",
 			},
 
 			"tls_server_name": {
@@ -188,6 +197,7 @@ func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 		Cert:          cert,
 		Key:           key,
 		Insecure:      d.Get("insecure").(bool),
+		NTLM:		   d.Get("use_ntlm").(bool),
 		TLSServerName: d.Get("tls_server_name").(string),
 		ScriptPath:    d.Get("script_path").(string),
 		Timeout:       d.Get("timeout").(string),
