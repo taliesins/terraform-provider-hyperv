@@ -184,7 +184,7 @@ func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateFun
 		mapKeyType := reflect.ValueOf(mapKeyString)
 		mapValueType := mapType.MapIndex(mapKeyType)
 
-		if mapValueType.IsValid() {
+		if !mapValueType.IsValid() {
 			es = append(es, fmt.Errorf("expected %s to be one of %mapKeyString, got %s", k, valid, mapKeyString))
 		}
 
