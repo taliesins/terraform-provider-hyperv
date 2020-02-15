@@ -17,7 +17,7 @@ var executePowershellFromCommandLineTemplate = template.Must(template.New("Execu
 		textToEscape = strings.Replace(textToEscape, `"`, `\"`, -1)
 		return textToEscape
 	},
-}).Parse(`powershell "{{escapeDoubleQuotes .Powershell}}"`))
+}).Parse(`powershell -NoProfile -ExecutionPolicy Bypass "{{escapeDoubleQuotes .Powershell}}"`))
 
 type executeCommandTemplateOptions struct {
 	Vars		string
@@ -48,6 +48,7 @@ function GetTempFile($fileName) {
   }
   return Join-Path -Path $path -ChildPath $fileName
 }
+
 function SlurpStdout($outFile, $currentLine) {
   if (Test-Path $outFile) {
     get-content $outFile | select -skip $currentLine | %{
@@ -111,7 +112,7 @@ function RunAsScheduledTask($username, $password, $taskName, $taskDescription, $
   $powershellToExecute = '& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference=''SilentlyContinue''};' + $vars + ';&"' + $scriptPath + '";exit $LastExitCode }'
   $powershellToExecute = $powershellToExecute.Replace('"', '\"')
 
-  $arguments = '/C powershell "' + $powershellToExecute + '" *> "' + $stdoutFile + '"'
+  $arguments = '/C powershell -NoProfile -ExecutionPolicy Bypass "' + $powershellToExecute + '" *> "' + $stdoutFile + '"'
   $taskXml = $taskXml.Replace("{arguments}", $arguments.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
   $taskXml = $taskXml.Replace("{username}", $username.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
   $taskXml = $taskXml.Replace("{taskDescription}", $taskDescription.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))

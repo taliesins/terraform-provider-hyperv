@@ -1,11 +1,11 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"strconv"
 	"strings"
 	"text/template"
-	"bytes"
-	"strconv"
 )
 
 type VMSwitchBandwidthMode int

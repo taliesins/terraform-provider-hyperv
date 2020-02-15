@@ -1,9 +1,11 @@
 package hyperv
 
 import (
+	"context"
 	"fmt"
 	"github.com/dylanmei/iso8601"
-	"github.com/hashicorp/terraform/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	pool "github.com/jolestar/go-commons-pool/v2"
 	"github.com/masterzen/winrm"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"log"
@@ -40,12 +42,12 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 			"  HTTPS: %t\n"+
 			"  Insecure: %t\n"+
 			"  NTLM: %t\n"+
-			"  TLSServerName: %t\n"+
+			"  TLSServerName: %s\n"+
 			"  CACert: %t\n"+
 			"  Cert: %t\n"+
 			"  Key: %t\n"+
-			"  ScriptPath: %t\n"+
-			"  Timeout: %t",
+			"  ScriptPath: %s\n"+
+			"  Timeout: %s",
 		c.Host,
 		c.Port,
 		c.User,
@@ -65,7 +67,7 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 }
 
 // New creates a new communicator implementation over WinRM.
-func getWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
+func GetWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 	addr := fmt.Sprintf("%s:%d", config.Host, config.Port)
 	endpoint, err := parseEndpoint(addr, config.HTTPS, config.Insecure, config.TLSServerName, config.CACert, config.Cert, config.Key, config.Timeout)
 	if err != nil {
@@ -150,17 +152,30 @@ func ipFormat(ip string) string {
 }
 
 func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error) {
-	winrmClient, err := getWinrmClient(config)
+	ctx := context.Background()
+	factory := pool.NewPooledObjectFactorySimple(
+		func(context.Context) (interface{}, error) {
+			winrmClient, err := GetWinrmClient(config)
 
-	if err != nil {
-		return hypervClient, err
-	}
+			if err != nil {
+				return nil, err
+			}
+
+			return winrmClient, nil
+		})
+
+	winRmClientPool := pool.NewObjectPoolWithDefaultConfig(ctx, factory)
+	winRmClientPool.Config.BlockWhenExhausted = true
+	winRmClientPool.Config.MinIdle = 0
+	winRmClientPool.Config.MaxIdle = 2
+	winRmClientPool.Config.MaxTotal = 5
+	winRmClientPool.Config.TimeBetweenEvictionRuns = 10 * time.Second
 
 	hypervClient = &api.HypervClient{
-		ElevatedPassword: config.Password,
-		ElevatedUser:     config.User,
-		Vars:             "",
-		WinrmClient:      winrmClient,
+		WinRmClientPool: 	winRmClientPool,
+		Vars:               "",
+		ElevatedUser:       config.User,
+		ElevatedPassword:   config.Password,
 	}
 
 	return hypervClient, err
@@ -188,7 +203,7 @@ func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateFun
 		mapValueType := mapType.MapIndex(mapKeyType)
 
 		if !mapValueType.IsValid() {
-			es = append(es, fmt.Errorf("expected %s to be one of %mapKeyString, got %s", k, valid, mapKeyString))
+			es = append(es, fmt.Errorf("expected %s to be one of %v mapKeyString, got %s", k, valid, mapKeyString))
 		}
 
 		return
@@ -209,7 +224,7 @@ func IntInSlice(valid []int) schema.SchemaValidateFunc {
 			}
 		}
 
-		es = append(es, fmt.Errorf("expected %s to be one of %v, got %s", k, valid, value))
+		es = append(es, fmt.Errorf("expected %s to be one of %v, got %v", k, valid, value))
 		return
 	}
 }

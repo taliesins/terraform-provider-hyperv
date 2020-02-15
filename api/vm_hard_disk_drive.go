@@ -1,13 +1,13 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
+	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"strconv"
 	"strings"
 	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
-	"fmt"
-	"bytes"
-	"strconv"
 )
 
 type ControllerType int

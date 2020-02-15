@@ -1,11 +1,11 @@
 package api
 
 import (
-	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
-	"strconv"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+	"strconv"
 	"strings"
+	"text/template"
 )
 
 func DefaultVmIntegrationServices() (interface{}, error) {

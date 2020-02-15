@@ -2,9 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"text/template"
 )
 
 func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {

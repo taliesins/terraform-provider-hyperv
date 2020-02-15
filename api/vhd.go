@@ -390,7 +390,10 @@ type resizeVhdArgs struct {
 
 var resizeVhdTemplate = template.Must(template.New("ResizeVhd").Parse(`
 $ErrorActionPreference = 'Stop'
-Resize-VHD –Path '{{.Path}}' –SizeBytes {{.Size}}
+$vhd = Get-VHD –Path '{{.Path}}'
+if ($vhd.Size -ne {{.Size}}){
+	Resize-VHD –Path '{{.Path}}' –SizeBytes {{.Size}}
+}
 `))
 
 func (c *HypervClient) ResizeVhd(path string, size uint64) (err error) {

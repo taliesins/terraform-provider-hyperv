@@ -3,34 +3,21 @@ package powershell
 import (
 	"bufio"
 	"bytes"
-	"crypto/rand"
 	"encoding/base64"
 	"fmt"
 	"github.com/masterzen/winrm"
+	"github.com/segmentio/ksuid"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
 	"sync"
-	"time"
 )
 
-// Generates a time ordered UUID. Top 32 bits are a timestamp,
-// bottom 96 are random.
-func timeOrderedUUID() string {
-	unix := uint32(time.Now().UTC().Unix())
-
-	b := make([]byte, 12)
-	n, err := rand.Read(b)
-	if n != len(b) {
-		err = fmt.Errorf("not enough entropy available")
-	}
-	if err != nil {
-		panic(err)
-	}
-	return fmt.Sprintf("%08x-%04x-%04x-%04x-%04x%08x",
-		unix, b[0:2], b[2:4], b[4:6], b[6:8], b[8:])
+func TimeOrderedUUID() string {
+	id := ksuid.New()
+	return id.String()
 }
 
 func winPath(path string) string {
@@ -45,18 +32,15 @@ func winPath(path string) string {
 	return strings.Replace(path, "/", "\\", -1)
 }
 
+
 func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (remoteAbsolutePath string, err error) {
-	tempFile := fmt.Sprintf("terraform-%s", timeOrderedUUID())
 
-	if err != nil {
-		return "", fmt.Errorf("error generating unique filename: %v", err)
-	}
-
+	tempFile := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("Resolving remote temp path of [%s]", tempPath)
 	}
-	tempPath, err = resolvePath(client, tempPath)
+	tempPath, err = ResolvePath(client, tempPath)
 	if err != nil {
 		return "", err
 	}
@@ -67,7 +51,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("Resolving remote to path of [%s]", toPath)
 	}
-	toPath, err = resolvePath(client, toPath)
+	toPath, err = ResolvePath(client, toPath)
 	if err != nil {
 		return "", err
 	}
@@ -206,7 +190,7 @@ func restoreContent(client *winrm.Client, fromPath, toPath string) (string, erro
 	return stdOutPut, nil
 }
 
-func resolvePath(client *winrm.Client, filePath string) (string, error) {
+func ResolvePath(client *winrm.Client, filePath string) (string, error) {
 	shell, err := client.CreateShell()
 	if err != nil {
 		return "", err
@@ -431,7 +415,7 @@ func createElevatedCommand(client *winrm.Client, elevatedUser string, elevatedPa
 func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedPassword string, remotePath string) (elevatedRemotePath string, err error) {
 	log.Printf("Building elevated command wrapper for: %s", remotePath)
 
-	name := fmt.Sprintf("terraform-%s", timeOrderedUUID())
+	name := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	fileName := fmt.Sprintf(`elevated-shell-%s.ps1`, name)
 
 	var elevatedCommandTemplateRendered bytes.Buffer
@@ -461,7 +445,7 @@ func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedP
 
 //Run powershell
 func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword string, vars string, commandText string) (exitStatus int, stdout string, stderr string, err error) {
-	name := fmt.Sprintf("terraform-%s", timeOrderedUUID())
+	name := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	fileName := fmt.Sprintf(`shell-%s.ps1`, name)
 
 	path, err := uploadScript(client, fileName, commandText)
@@ -519,3 +503,4 @@ func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword s
 
 	return commandExitCode, stdOutPut, errorOutPut, nil
 }
+

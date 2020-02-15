@@ -1,8 +1,8 @@
 package api
 
 import (
-	"testing"
 	"encoding/json"
+	"testing"
 )
 
 func TestSerializeVm(t *testing.T) {

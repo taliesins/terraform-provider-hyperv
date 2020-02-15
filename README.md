@@ -157,7 +157,7 @@ New-NetFirewallRule -DisplayName "Windows Remote Management (HTTP-In)" -Name "Wi
 
 [Enable Ssl for WinRM using Powershell](https://frontier.town/2011/12/overthere-control-windows-from-java/)
 
-To debug WinRm issues enable debugging by setting environment variable `WINRMCP_DEBUG=1`
+To debug WinRm issues enable debugging by setting environment variable `WINRMCP_DEBUG=1` and `TF_LOG=INFO`
 
 Building The Provider
 ---------------------
