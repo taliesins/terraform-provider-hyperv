@@ -178,7 +178,11 @@ var convertBase64FileToTextFileTemplate = template.Must(template.New("ConvertBas
 	$base64FilePath = [System.IO.Path]::GetFullPath("{{.Base64FilePath}}");
 	$filePath = [System.IO.Path]::GetFullPath("{{.FilePath}}".Trim("'"));
 	if (Test-Path $filePath) {
-		Remove-Item $filePath | Out-Null;
+		if (Test-Path -Path $filePath -PathType container) {
+			Exit 1;
+		} else {
+			Remove-Item $filePath | Out-Null;
+		}
 	}
 	else {
 		$destinationFolder = ([System.IO.Path]::GetDirectoryName($filePath));
@@ -223,7 +227,7 @@ type deleteFileTemplateOptions struct {
 	FilePath	string
 }
 
-var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;exit $LastExitCode; }`))
+var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};if (Test-Path "{{.FilePath}}") {Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue};exit $LastExitCode; }`))
 
 type appendFileTemplateOptions struct {
 	FilePath	string

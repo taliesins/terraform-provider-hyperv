@@ -17,6 +17,7 @@ import (
 )
 
 type Config struct {
+	TerraformVersion string
 	User          	string
 	Password      	string
 	Host  	      	string

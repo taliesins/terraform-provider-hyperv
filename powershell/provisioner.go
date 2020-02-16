@@ -38,29 +38,29 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	tempFile := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Resolving remote temp path of [%s]", tempPath)
+		log.Printf("[DEBUG] Resolving remote temp path of [%s]", tempPath)
 	}
 	tempPath, err = ResolvePath(client, tempPath)
 	if err != nil {
 		return "", err
 	}
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Remote temp path resolved to [%s]", tempPath)
+		log.Printf("[DEBUG] Remote temp path resolved to [%s]", tempPath)
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Resolving remote to path of [%s]", toPath)
+		log.Printf("[DEBUG] Resolving remote to path of [%s]", toPath)
 	}
 	toPath, err = ResolvePath(client, toPath)
 	if err != nil {
 		return "", err
 	}
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Remote to path resolved to [%s]", toPath)
+		log.Printf("[DEBUG] Remote to path resolved to [%s]", toPath)
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Uploading file to %s", tempPath)
+		log.Printf("[DEBUG] Uploading file to %s", tempPath)
 	}
 	err = uploadContent(client, maxChunks, in, tempPath)
 	if err != nil {
@@ -68,7 +68,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Moving file from %s to %s", tempPath, toPath)
+		log.Printf("[DEBUG] Moving file from %s to %s", tempPath, toPath)
 	}
 	remoteAbsolutePath, err = restoreContent(client, tempPath, toPath)
 	if err != nil {
@@ -76,7 +76,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("Removing temporary file %s", tempPath)
+		log.Printf("[DEBUG] Removing temporary file %s", tempPath)
 	}
 	err = cleanupContent(client, tempPath)
 	if err != nil {
@@ -314,6 +314,9 @@ func appendContent(shell *winrm.Shell, filePath, content string) error {
 }
 
 func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int, string, string, error) {
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("[DEBUG] Shell execute: %s %s", command, arguments)
+	}
 	cmd, err := shell.Execute(command, arguments...)
 
 	if err != nil {
@@ -325,24 +328,30 @@ func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int,
 	stdOutBytes := new(bytes.Buffer)
 	stdErrorBytes := new(bytes.Buffer)
 	var wg sync.WaitGroup
-	go func() {
-		wg.Add(1)
+	stdOutFunc := func() {
+		defer  wg.Done()
 		stdOutReader := io.TeeReader(cmd.Stdout, stdOutBytes)
 		io.Copy(os.Stdout, stdOutReader)
-		wg.Done()
-	}()
-	go func() {
-		wg.Add(1)
+	}
+	stdErrFunc := func() {
+		defer wg.Done()
 		stdErrReader := io.TeeReader(cmd.Stderr, stdErrorBytes)
 		io.Copy(os.Stderr, stdErrReader)
-		wg.Done()
-	}()
+	}
+
+	wg.Add(2)
+	go stdOutFunc()
+	go stdErrFunc()
 
 	cmd.Wait()
 	wg.Wait()
 
 	errorOutPut := stdErrorBytes.String()
 	stdOutPut := strings.TrimSpace(stdOutBytes.String())
+
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("[DEBUG] Shell execute result: stdOut=%s stdErr=%s", stdOutPut, errorOutPut)
+	}
 
 	return cmd.ExitCode(), stdOutPut, errorOutPut, nil
 }
@@ -367,7 +376,7 @@ func uploadScript(client *winrm.Client, fileName string, command string) (remote
 
 	remotePath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, fileName)
 
-	log.Printf("Uploading shell wrapper for command from [%s] to [%s] ", tmpFile.Name(), remotePath)
+	log.Printf("[DEBUG] Uploading shell wrapper for command from [%s] to [%s] ", tmpFile.Name(), remotePath)
 
 	remoteAbsolutePath, err = doCopy(client, 15, f, winPath(remotePath))
 	if err != nil {
@@ -413,7 +422,7 @@ func createElevatedCommand(client *winrm.Client, elevatedUser string, elevatedPa
 }
 
 func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedPassword string, remotePath string) (elevatedRemotePath string, err error) {
-	log.Printf("Building elevated command wrapper for: %s", remotePath)
+	log.Printf("[DEBUG] Building elevated command wrapper for: %s", remotePath)
 
 	name := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	fileName := fmt.Sprintf(`elevated-shell-%s.ps1`, name)

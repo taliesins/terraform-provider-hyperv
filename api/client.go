@@ -37,7 +37,7 @@ func (c *HypervClient) runFireAndForgetScript(script *template.Template, args in
 		return err
 	}
 
-	log.Printf("\nRunning fire and forget script:\n%s\n", command)
+	log.Printf("[DEBUG] Running fire and forget script:\n%s\n", command)
 
 	_, _, _, err = powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
 
@@ -71,7 +71,7 @@ func (c *HypervClient) runScriptWithResult(script *template.Template, args inter
 		return err
 	}
 
-	log.Printf("\nRunning script with result:\n%s\n", command)
+	log.Printf("[DEBUG] Running script with result:\n%s\n", command)
 
 	_, stdout, _, err := powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
 

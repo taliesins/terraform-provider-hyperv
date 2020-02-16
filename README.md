@@ -157,7 +157,20 @@ New-NetFirewallRule -DisplayName "Windows Remote Management (HTTP-In)" -Name "Wi
 
 [Enable Ssl for WinRM using Powershell](https://frontier.town/2011/12/overthere-control-windows-from-java/)
 
-To debug WinRm issues enable debugging by setting environment variable `WINRMCP_DEBUG=1` and `TF_LOG=INFO`
+To debug WinRm issues enable debugging by setting environment variable `WINRMCP_DEBUG=1` and `TF_LOG=DEBUG`
+
+Check if you can connect to WinRM
+```
+$hostName=[System.Net.Dns]::GetHostName()
+$winrmPort = "5986"
+
+# Get the credentials of the machine
+$cred = Get-Credential
+
+# Connect to the machine
+$soptions = New-PSSessionOption –SkipCACheck -SkipCNCheck
+Enter-PSSession -ComputerName $hostName -Port $winrmPort -Credential $cred -SessionOption $soptions -UseSSL
+```
 
 Building The Provider
 ---------------------
