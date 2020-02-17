@@ -26,7 +26,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			"generation": {
 				Type:     schema.TypeInt,
 				Optional: true,
-				Default:  1,
+				Default:  2,
 				ValidateFunc: IntInSlice([]int{1, 2}),
 				ForceNew: true,
 			},
@@ -441,7 +441,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"controller_type": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      api.ControllerType_name[api.ControllerType_Ide],
+							Default:      api.ControllerType_name[api.ControllerType_Scsi],
 							ValidateFunc: stringKeyInMap(api.ControllerType_value, true),
 						},
 						"controller_number": {

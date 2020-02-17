@@ -21,9 +21,11 @@ resource "hyperv_machine_instance" "web_Server_g1" {
   network_adaptors {
       name = "wan"
       switch_name = hyperv_network_switch.dmz_network_switch.name
+      wait_for_ips = false
   }
 
   hard_disk_drives {
+    controller_type = "Ide"
     path = hyperv_vhd.web_server_g1_vhd.path
     controller_number = 0
     controller_location = 0
@@ -52,6 +54,7 @@ resource "hyperv_machine_instance" "web_Server_g2" {
   network_adaptors {
       name = "wan"
       switch_name = hyperv_network_switch.dmz_network_switch.name
+      wait_for_ips = false
   }
 
   hard_disk_drives {

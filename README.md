@@ -49,7 +49,7 @@ Set-WSManInstance WinRM/Config/Service/Auth -ValueSet @{Negotiate = $true}
 ```
 #Create CA certificate
 $rootCaName = "DevRootCA"
-$rootCaPassword = ConvertTo-SecureString "P@ssw0rd" –asplaintext –force 
+$rootCaPassword = ConvertTo-SecureString "P@ssw0rd" -asplaintext -force 
 $rootCaCertificate = Get-ChildItem cert:\LocalMachine\Root |?{$_.subject -eq "CN=$rootCaName"}
 if (!$rootCaCertificate){
   Get-ChildItem cert:\LocalMachine\My |?{$_.subject -eq "CN=$rootCaName"} | remove-item -force
@@ -86,7 +86,7 @@ if (!$rootCaCertificate){
 
 #Create host certificate using CA
 $hostName = [System.Net.Dns]::GetHostName()
-$hostPassword = ConvertTo-SecureString "P@ssw0rd" –asplaintext –force
+$hostPassword = ConvertTo-SecureString "P@ssw0rd" -asplaintext -force
 $hostCertificate = Get-ChildItem cert:\LocalMachine\My |?{$_.subject -eq "CN=$hostName"}
 if (!$hostCertificate){
   if (Test-Path .\$hostName.cer) {
@@ -168,7 +168,7 @@ $winrmPort = "5986"
 $cred = Get-Credential
 
 # Connect to the machine
-$soptions = New-PSSessionOption –SkipCACheck -SkipCNCheck
+$soptions = New-PSSessionOption -SkipCACheck -SkipCNCheck
 Enter-PSSession -ComputerName $hostName -Port $winrmPort -Credential $cred -SessionOption $soptions -UseSSL
 ```
 

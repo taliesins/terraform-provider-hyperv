@@ -12,7 +12,6 @@ import (
 	"log"
 	"os"
 	"strings"
-	"sync"
 )
 
 func TimeOrderedUUID() string {
@@ -314,46 +313,66 @@ func appendContent(shell *winrm.Shell, filePath, content string) error {
 }
 
 func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int, string, string, error) {
+	stdOutBytes := new(bytes.Buffer)
+	stdErrBytes := new(bytes.Buffer)
+
+	stdOutFunc := func(bytesStdOutWriter io.Writer, osStdOutWriter io.Writer, commandStdOut io.Reader) {
+		stdOutReader := io.TeeReader(commandStdOut, bytesStdOutWriter)
+		io.Copy(osStdOutWriter, stdOutReader)
+	}
+
+	stdErrFunc := func(bytesStdErrWriter io.Writer, osStdErrWriter io.Writer, commandErrOut io.Reader) {
+		stdErrReader := io.TeeReader(commandErrOut, bytesStdErrWriter)
+		io.Copy(osStdErrWriter, stdErrReader)
+	}
+
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("[DEBUG] Shell execute: %s %s", command, arguments)
 	}
+
 	cmd, err := shell.Execute(command, arguments...)
 
 	if err != nil {
 		return 0, "", "", err
 	}
 
-	defer cmd.Close()
+	var closed = false
 
-	stdOutBytes := new(bytes.Buffer)
-	stdErrorBytes := new(bytes.Buffer)
-	var wg sync.WaitGroup
-	stdOutFunc := func() {
-		defer  wg.Done()
-		stdOutReader := io.TeeReader(cmd.Stdout, stdOutBytes)
-		io.Copy(os.Stdout, stdOutReader)
-	}
-	stdErrFunc := func() {
-		defer wg.Done()
-		stdErrReader := io.TeeReader(cmd.Stderr, stdErrorBytes)
-		io.Copy(os.Stderr, stdErrReader)
-	}
+	defer func() {
+		if !closed {
+			cmd.Close()
+		}
+	}()
 
-	wg.Add(2)
-	go stdOutFunc()
-	go stdErrFunc()
+	go stdOutFunc(stdOutBytes, os.Stdout, cmd.Stdout)
+	go stdErrFunc(stdErrBytes, os.Stderr, cmd.Stderr)
 
 	cmd.Wait()
-	wg.Wait()
+	exitCode := cmd.ExitCode()
 
-	errorOutPut := stdErrorBytes.String()
-	stdOutPut := strings.TrimSpace(stdOutBytes.String())
-
-	if os.Getenv("WINRMCP_DEBUG") != "" {
-		log.Printf("[DEBUG] Shell execute result: stdOut=%s stdErr=%s", stdOutPut, errorOutPut)
+	err = cmd.Close()
+	closed = true
+	if err != nil {
+		return 0, "", "", err
 	}
 
-	return cmd.ExitCode(), stdOutPut, errorOutPut, nil
+	err = cmd.Stdout.Close()
+	if err != nil {
+		return 0, "", "", err
+	}
+	stdOutString := strings.TrimSpace(stdOutBytes.String())
+
+	err = cmd.Stderr.Close()
+	if err != nil {
+		return 0, "", "", err
+	}
+	stdErrString := strings.TrimSpace(stdErrBytes.String())
+
+	if os.Getenv("WINRMCP_DEBUG") != "" {
+		log.Printf("[DEBUG] Shell execute result: exitCode=%d stdOut=%s stdErr=%s", exitCode, stdOutString, stdErrString)
+	}
+
+	return exitCode, stdOutString, stdErrString, nil
 }
 
 func uploadScript(client *winrm.Client, fileName string, command string) (remoteAbsolutePath string, err error) {

@@ -390,9 +390,9 @@ type resizeVhdArgs struct {
 
 var resizeVhdTemplate = template.Must(template.New("ResizeVhd").Parse(`
 $ErrorActionPreference = 'Stop'
-$vhd = Get-VHD –Path '{{.Path}}'
+$vhd = Get-VHD -Path '{{.Path}}'
 if ($vhd.Size -ne {{.Size}}){
-	Resize-VHD –Path '{{.Path}}' –SizeBytes {{.Size}}
+	Resize-VHD -Path '{{.Path}}' -SizeBytes {{.Size}}
 }
 `))
 

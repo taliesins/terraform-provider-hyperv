@@ -9,3 +9,4 @@ tfplanset
 /pkg
 /bin
 /c
+/examples/basic/.terraform.tfstate.lock.info
