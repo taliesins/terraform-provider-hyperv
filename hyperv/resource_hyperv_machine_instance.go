@@ -456,6 +456,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "",
+							DiffSuppressFunc: api.DiffSuppressVmHardDiskPath,
 						},
 						"disk_number": {
 							Type:     schema.TypeInt,

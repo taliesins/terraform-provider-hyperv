@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"log"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
@@ -118,6 +120,28 @@ func (d *CacheAttributes) UnmarshalJSON(b []byte) error {
 	}
 	*d = ToCacheAttributes(s)
 	return nil
+}
+
+func DiffSuppressVmHardDiskPath (key, old, new string, d *schema.ResourceData) bool {
+	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", key, old, new)
+	if new == "" {
+		//We have not explicitly set a value, so allow any value as we are not tracking it
+		return true
+	}
+
+	if new == old {
+		return true
+	}
+
+	//Ignore snapshots otherwise it will change from "c:\\vhdx\\web_server_g2_B63C9D15-F9A3-4F63-A896-FFD80BC7754C.avhdx" -> "c:\\vhdx\\web_server_g2.vhdx"
+	oldExtension := strings.ToLower(filepath.Ext(old))
+	newExtension := strings.ToLower(filepath.Ext(new))
+	if oldExtension == ".avhdx" && newExtension == ".vhdx" {
+		newName := new[0:len(new)-len(newExtension)]
+		return strings.HasPrefix(old, newName + "_")
+	}
+
+	return false
 }
 
 func ExpandHardDiskDrives(d *schema.ResourceData) ([]vmHardDiskDrive, error) {
