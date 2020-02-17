@@ -6,15 +6,14 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/ChrisTrenkamp/goxpath/internal/parser"
-	"github.com/ChrisTrenkamp/goxpath/internal/parser/findutil"
-	"github.com/ChrisTrenkamp/goxpath/internal/parser/intfns"
-	"github.com/ChrisTrenkamp/goxpath/internal/xconst"
+	"github.com/ChrisTrenkamp/goxpath/internal/execxp/findutil"
+	"github.com/ChrisTrenkamp/goxpath/internal/execxp/intfns"
 	"github.com/ChrisTrenkamp/goxpath/internal/xsort"
-
-	"github.com/ChrisTrenkamp/goxpath/internal/lexer"
-	"github.com/ChrisTrenkamp/goxpath/internal/parser/pathexpr"
+	"github.com/ChrisTrenkamp/goxpath/lexer"
+	"github.com/ChrisTrenkamp/goxpath/parser"
+	"github.com/ChrisTrenkamp/goxpath/parser/pathexpr"
 	"github.com/ChrisTrenkamp/goxpath/tree"
+	"github.com/ChrisTrenkamp/goxpath/xconst"
 )
 
 type xpFilt struct {
@@ -138,7 +137,13 @@ func xfPredicate(f *xpFilt, n *parser.Node) (err error) {
 		}
 	}
 
+	f.proxPos = make(map[int]int)
+	for pos, j := range newRes {
+		f.proxPos[j.Pos()] = pos + 1
+	}
+
 	f.ctx = newRes
+	f.ctxSize = len(newRes)
 
 	return
 }

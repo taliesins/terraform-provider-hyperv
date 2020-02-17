@@ -5,16 +5,18 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 const (
 	DefaultHost = "127.0.0.1"
 
-	DefaultUseHTTPS = false
+	DefaultUseHTTPS = true
 
 	DefaultAllowInsecure = false
+
+	DefaultAllowNTLM = true
 
 	DefaultTLSServerName = ""
 
@@ -22,7 +24,7 @@ const (
 	DefaultUser = "Administrator"
 
 	// DefaultPort is used if there is no port given
-	DefaultPort = 5985
+	DefaultPort = 5986
 
 	DefaultCACertFile = ""
 
@@ -40,7 +42,7 @@ const (
 
 // Provider returns a terraform.ResourceProvider.
 func Provider() terraform.ResourceProvider {
-	return &schema.Provider{
+	p := &schema.Provider{
 		Schema: map[string]*schema.Schema{
 			"user": {
 				Type:        schema.TypeString,
@@ -82,6 +84,13 @@ func Provider() terraform.ResourceProvider {
 				Optional:    true,
 				DefaultFunc: schema.EnvDefaultFunc("HYPERV_INSECURE", DefaultAllowInsecure),
 				Description: "Should insecure communication be used for HyperV API operations.",
+			},
+
+			"use_ntlm": {
+				Type:        schema.TypeBool,
+				Optional:    true,
+				DefaultFunc: schema.EnvDefaultFunc("HYPERV_USE_NTLM", DefaultAllowNTLM),
+				Description: "Should NTLM be used for HyperV API authentication.",
 			},
 
 			"tls_server_name": {
@@ -132,66 +141,79 @@ func Provider() terraform.ResourceProvider {
 			"hyperv_machine_instance": resourceHyperVMachineInstance(),
 			"hyperv_vhd":              resourceHyperVVhd(),
 		},
-
-		ConfigureFunc: providerConfigure,
 	}
+
+	p.ConfigureFunc = providerConfigure(p)
+
+	return p
 }
 
-func providerConfigure(d *schema.ResourceData) (interface{}, error) {
-	var err error = nil
-	var cacert []byte = nil
-	cacertPath := d.Get("cacert_path").(string)
-	if cacertPath != "" {
-		if _, err := os.Stat(cacertPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("cacertPath does not exist - %s", cacertPath)
+func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
+	return func(d *schema.ResourceData) (interface{}, error) {
+		var err error = nil
+		var cacert []byte = nil
+		cacertPath := d.Get("cacert_path").(string)
+		if cacertPath != "" {
+			if _, err := os.Stat(cacertPath); os.IsNotExist(err) {
+				return nil, fmt.Errorf("cacertPath does not exist - %s", cacertPath)
+			}
+
+			cacert, err = ioutil.ReadFile(cacertPath)
+			if err != nil {
+				return nil, err
+			}
 		}
 
-		cacert, err = ioutil.ReadFile(cacertPath)
-		if err != nil {
-			return nil, err
+		var cert []byte = nil
+		certPath := d.Get("cert_path").(string)
+		if certPath != "" {
+			if _, err := os.Stat(certPath); os.IsNotExist(err) {
+				return nil, fmt.Errorf("certPath does not exist - %s", certPath)
+			}
+
+			cert, err = ioutil.ReadFile(certPath)
+			if err != nil {
+				return nil, err
+			}
 		}
+
+		var key []byte = nil
+		keyPath := d.Get("key_path").(string)
+		if keyPath != "" {
+			if _, err := os.Stat(keyPath); os.IsNotExist(err) {
+				return nil, fmt.Errorf("keyPath does not exist - %s", keyPath)
+			}
+
+			key, err = ioutil.ReadFile(keyPath)
+			if err != nil {
+				return nil, err
+			}
+		}
+
+		terraformVersion := p.TerraformVersion
+		if terraformVersion == "" {
+			// Terraform 0.12 introduced this field to the protocol
+			// We can therefore assume that if it's missing it's 0.10 or 0.11
+			terraformVersion = "0.11+compatible"
+		}
+
+		config := Config{
+			TerraformVersion: terraformVersion,
+			User:          d.Get("user").(string),
+			Password:      d.Get("password").(string),
+			Host:          d.Get("host").(string),
+			Port:          d.Get("port").(int),
+			HTTPS:         d.Get("https").(bool),
+			CACert:        cacert,
+			Cert:          cert,
+			Key:           key,
+			Insecure:      d.Get("insecure").(bool),
+			NTLM:          d.Get("use_ntlm").(bool),
+			TLSServerName: d.Get("tls_server_name").(string),
+			ScriptPath:    d.Get("script_path").(string),
+			Timeout:       d.Get("timeout").(string),
+		}
+
+		return config.Client()
 	}
-
-	var cert []byte = nil
-	certPath := d.Get("cert_path").(string)
-	if certPath != "" {
-		if _, err := os.Stat(certPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("certPath does not exist - %s", certPath)
-		}
-
-		cert, err = ioutil.ReadFile(certPath)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	var key []byte = nil
-	keyPath := d.Get("key_path").(string)
-	if keyPath != "" {
-		if _, err := os.Stat(keyPath); os.IsNotExist(err) {
-			return nil, fmt.Errorf("keyPath does not exist - %s", keyPath)
-		}
-
-		key, err = ioutil.ReadFile(keyPath)
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	config := Config{
-		User:          d.Get("user").(string),
-		Password:      d.Get("password").(string),
-		Host:          d.Get("host").(string),
-		Port:          d.Get("port").(int),
-		HTTPS:         d.Get("https").(bool),
-		CACert:        cacert,
-		Cert:          cert,
-		Key:           key,
-		Insecure:      d.Get("insecure").(bool),
-		TLSServerName: d.Get("tls_server_name").(string),
-		ScriptPath:    d.Get("script_path").(string),
-		Timeout:       d.Get("timeout").(string),
-	}
-
-	return config.Client()
 }

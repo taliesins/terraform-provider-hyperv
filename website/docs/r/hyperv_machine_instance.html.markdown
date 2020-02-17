@@ -60,7 +60,7 @@ The following arguments are supported:
 
 * `name` - (Required). Specifies the name of the new virtual machine.
 
-* `generation` - (Optional) `1` (default). Valid values to use are `1`, `2`. Specifies the generation, as an integer, for the virtual machine.
+* `generation` - (Optional) `2` (default). Valid values to use are `1`, `2`. Specifies the generation, as an integer, for the virtual machine.
 
 * `automatic_critical_error_action` - (Optional) `Pause` (default). Valid values to use are `Pause`, `None`. Specifies the action to take when the VM encounters a critical error, and exceeds the timeout duration specified by the AutomaticCriticalErrorActionTimeout cmdlet. 
 
@@ -310,7 +310,7 @@ resource "hyperv_machine_instance" "default" {
   }
 }
 ```
-* `controller_type` - (Optional) `Ide` (default). Valid values to use are `Ide`, `Scsi`. Specifies the type of the controller to which the hard disk drive is to be added. 
+* `controller_type` - (Optional) `Scsi` (default). Valid values to use are `Ide`, `Scsi`. Specifies the type of the controller to which the hard disk drive is to be added. 
 
 * `controller_number` - (Required).  Specifies the number of the controller to which the hard disk drive is to be added. 
 

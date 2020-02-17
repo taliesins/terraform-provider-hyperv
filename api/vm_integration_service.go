@@ -1,11 +1,11 @@
 package api
 
 import (
-	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
-	"strconv"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
+	"strconv"
 	"strings"
+	"text/template"
 )
 
 func DefaultVmIntegrationServices() (interface{}, error) {
@@ -52,15 +52,15 @@ func DiffSuppressVmIntegrationServices (key, old, new string, d *schema.Resource
 
 	if newValueError != nil  {
 		newValue = getDefaultValueForVmIntegrationService(integrationServiceKey, d)
-		log.Printf("'[%s]' New value '[%s]' defaulted to '[%v]' ", integrationServiceKey, new, newValue)
+		log.Printf("[DEBUG] '[%s]' New value '[%s]' defaulted to '[%v]' ", integrationServiceKey, new, newValue)
 	}
 
 	if oldValueError != nil  {
 		oldValue = getDefaultValueForVmIntegrationService(integrationServiceKey, d)
-		log.Printf("'[%s]' Old value '[%s]' defaulted to '[%v]' ", integrationServiceKey, old, oldValue)
+		log.Printf("[DEBUG] '[%s]' Old value '[%s]' defaulted to '[%v]' ", integrationServiceKey, old, oldValue)
 	}
 
-	log.Printf("'[%s]' Comparing old value '[%v]' with new value '[%v]' ", integrationServiceKey, oldValue, newValue)
+	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", integrationServiceKey, oldValue, newValue)
 	return newValue == oldValue
 }
 
@@ -71,10 +71,10 @@ func GetChangedIntegrationServices(vmIntegrationServices []vmIntegrationService,
 		key := "integration_services."+integrationServiceValue.Name
 
 		if d.HasChange(key) {
-			log.Printf("integration service '[%s]' changed", key)
+			log.Printf("[DEBUG] integration service '[%s]' changed", key)
 			changedIntegrationServices = append(changedIntegrationServices, integrationServiceValue)
 		} else {
-			log.Printf("integration service '[%s]' not changed", key)
+			log.Printf("[DEBUG] integration service '[%s]' not changed", key)
 		}
 	}
 

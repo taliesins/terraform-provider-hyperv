@@ -2,7 +2,6 @@ package xmltree
 
 import (
 	"encoding/xml"
-	"fmt"
 	"io"
 
 	"golang.org/x/net/html/charset"
@@ -65,17 +64,7 @@ func ParseXML(r io.Reader, op ...ParseSettings) (tree.Node, error) {
 		return nil, err
 	}
 
-	brokenHeader := false
-
-	if head, ok := t.(xml.ProcInst); !ok || head.Target != "xml" {
-		if ov.Strict {
-			return nil, fmt.Errorf("Malformed XML file")
-		}
-
-		brokenHeader = true
-	}
-
-	if !brokenHeader {
+	if head, ok := t.(xml.ProcInst); ok && head.Target == "xml" {
 		t, err = dec.Token()
 	}
 

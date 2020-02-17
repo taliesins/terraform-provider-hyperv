@@ -2,21 +2,22 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	pool "github.com/jolestar/go-commons-pool/v2"
+	"github.com/masterzen/winrm"
+	"github.com/taliesins/terraform-provider-hyperv/powershell"
 	"log"
 	"strings"
 	"text/template"
-
-	"github.com/masterzen/winrm"
-	"github.com/taliesins/terraform-provider-hyperv/powershell"
 )
 
 type HypervClient struct {
-	WinrmClient      *winrm.Client
-	ElevatedUser     string
-	ElevatedPassword string
-	Vars             string
+	WinRmClientPool		*pool.ObjectPool
+	ElevatedUser     	string
+	ElevatedPassword 	string
+	Vars                string
 }
 
 func (c *HypervClient) runFireAndForgetScript(script *template.Template, args interface{}) error {
@@ -29,12 +30,25 @@ func (c *HypervClient) runFireAndForgetScript(script *template.Template, args in
 
 	command := string(scriptRendered.Bytes())
 
-	log.Printf("\nRunning fire and forget script:\n%s\n", command)
-
-	_, _, _, err = powershell.RunPowershell(c.WinrmClient, c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
+	ctx := context.Background()
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
 		return err
+	}
+
+	log.Printf("[DEBUG] Running fire and forget script:\n%s\n", command)
+
+	_, _, _, err = powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return err
+	}
+
+	if err2 != nil {
+		return err2
 	}
 
 	return nil
@@ -50,12 +64,25 @@ func (c *HypervClient) runScriptWithResult(script *template.Template, args inter
 
 	command := string(scriptRendered.Bytes())
 
-	log.Printf("\nRunning script with result:\n%s\n", command)
-
-	_, stdout, _, err := powershell.RunPowershell(c.WinrmClient, c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
+	ctx := context.Background()
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
 		return err
+	}
+
+	log.Printf("[DEBUG] Running script with result:\n%s\n", command)
+
+	_, stdout, _, err := powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return err
+	}
+
+	if err2 != nil {
+		return err2
 	}
 
 	stdout = strings.TrimSpace(stdout)

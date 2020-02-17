@@ -18,11 +18,12 @@ Use the navigation to the left to read about the available resources.
 # Configure HyperV
 provider "hyperv" {
   user            = "Administator"
-  password        = "p@ssw0rd"
+  password        = "P@ssw0rd"
   host            = "127.0.0.1"
-  port            = 5985
-  https           = false
+  port            = 5986
+  https           = true
   insecure        = false
+  use_ntlm        = true
   tls_server_name = ""
   cacert_path     = ""
   cert_path       = ""
@@ -54,11 +55,13 @@ The following arguments are supported:
 
 * `host` - (Optional) `127.0.0.1` (default). The host to run HyperV api calls against. It can also be sourced from the `HYPERV_HOST` environment variable.
 
-* `port` - (Optional) `5985` (default). The port to run HyperV api calls against. It can also be sourced from the `HYPERV_PORT` environment variable.
+* `port` - (Optional) `5986` (default). The port to run HyperV api calls against. It can also be sourced from the `HYPERV_PORT` environment variable.
 
-* `https` - (Optional) `false` (default). Should https be used for HyperV api calls. It can also be sourced from `HYPERV_HTTPS` environment variable.
+* `https` - (Optional) `true` (default). Should https be used for HyperV api calls. It can also be sourced from `HYPERV_HTTPS` environment variable.
 
 * `insecure` - (Optional) `false` (default). Skips TLS Verification for HyperV api calls. Generally this is used for self-signed certificates. Should only be used if absolutely needed. Can also be set via setting the `HYPERV_INSECURE` environment variable to `true`.
+
+* `use_ntlm` - (Optional) `true` (default). Use NTLM for authentication for HyperV api calls. Can also be set via setting the `HYPERV_USE_NTLM` environment variable to `true`.
 
 * `tls_server_name` - (Optional) empty (default). The TLS server name for the host used for HyperV api calls. It can also be sourced from the `HYPERV_TLS_SERVER_NAME` environment variable. Defaults to empty string.
 

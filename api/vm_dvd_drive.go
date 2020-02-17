@@ -2,9 +2,9 @@ package api
 
 import (
 	"encoding/json"
-	"text/template"
-	"github.com/hashicorp/terraform/helper/schema"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"text/template"
 )
 
 func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
@@ -66,7 +66,9 @@ var createVmDvdDriveTemplate = template.Must(template.New("CreateVmDvdDrive").Pa
 $ErrorActionPreference = 'Stop'
 Get-Vm | Out-Null
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
-
+if (!$vmDvdDrive.Path){
+	$vmDvdDrive.Path = $null
+}
 $NewVmDvdDriveArgs = @{
 	VmName=$vmDvdDrive.VmName
 	ControllerNumber=$vmDvdDrive.ControllerNumber
@@ -162,6 +164,10 @@ $SetVmDvdDriveArgs.ToControllerNumber=$vmDvdDrive.ControllerNumber
 $SetVmDvdDriveArgs.ResourcePoolName=$vmDvdDrive.ResourcePoolName
 $SetVmDvdDriveArgs.Path=$vmDvdDrive.Path
 $SetVmDvdDriveArgs.AllowUnverifiedPaths=$true
+
+if (!$SetVmDvdDriveArgs.Path){
+	$SetVmDvdDriveArgs.Path = $null
+}
 
 Set-VMDvdDrive @SetVmDvdDriveArgs
 

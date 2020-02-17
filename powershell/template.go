@@ -17,14 +17,14 @@ var executePowershellFromCommandLineTemplate = template.Must(template.New("Execu
 		textToEscape = strings.Replace(textToEscape, `"`, `\"`, -1)
 		return textToEscape
 	},
-}).Parse(`powershell "{{escapeDoubleQuotes .Powershell}}"`))
+}).Parse(`powershell -NoProfile -ExecutionPolicy Bypass "{{escapeDoubleQuotes .Powershell}}"`))
 
 type executeCommandTemplateOptions struct {
 	Vars		string
 	Path		string
 }
 
-var executeCommandTemplate = template.Must(template.New("ExecuteCommand").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};{{.Vars}};&"{{.Path}}";exit $LastExitCode }`))
+var executeCommandTemplate = template.Must(template.New("ExecuteCommand").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};{{.Vars}};&"{{.Path}}";exit $LastExitCode;`))
 
 type elevatedCommandTemplateOptions struct {
 	User            			string
@@ -42,31 +42,32 @@ var elevatedCommandTemplate = template.Must(template.New("ElevatedCommand").Func
 	},
 }).Parse(`
 function GetTempFile($fileName) {
-  $path = $env:TEMP
+  $path = $env:TEMP;
   if (!$path){
-    $path = 'c:\windows\Temp\'
+    $path = 'c:\windows\Temp\';
   }
-  return Join-Path -Path $path -ChildPath $fileName
+  return Join-Path -Path $path -ChildPath $fileName;
 }
+
 function SlurpStdout($outFile, $currentLine) {
   if (Test-Path $outFile) {
     get-content $outFile | select -skip $currentLine | %{
-      $currentLine += 1
-      Write-Host "$_"
+      $currentLine += 1;
+      Write-Host "$_";
     }
   }
-  return $currentLine
+  return $currentLine;
 }
 
 function SanitizeFileName($fileName) {
-    return $fileName.Replace(' ', '_').Replace('&', 'and').Replace('{', '(').Replace('}', ')').Replace('~', '-').Replace('#', '').Replace('%', '')
+    return $fileName.Replace(' ', '_').Replace('&', 'and').Replace('{', '(').Replace('}', ')').Replace('~', '-').Replace('#', '').Replace('%', '');
 }
 
 function RunAsScheduledTask($username, $password, $taskName, $taskDescription, $taskExecutionTimeLimit, $vars, $scriptPath)
 {
-  $stdoutFile = GetTempFile("$(SanitizeFileName($taskName))_stdout.log")
+  $stdoutFile = GetTempFile("$(SanitizeFileName($taskName))_stdout.log");
   if (Test-Path $stdoutFile) {
-    Remove-Item $stdoutFile | Out-Null
+    Remove-Item $stdoutFile | Out-Null;
   }
   $taskXml = @'
 <?xml version="1.0" encoding="UTF-16"?>
@@ -107,63 +108,63 @@ function RunAsScheduledTask($username, $password, $taskName, $taskDescription, $
         </Exec>
     </Actions>
 </Task>
-'@
-  $powershellToExecute = '& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference=''SilentlyContinue''};' + $vars + ';&"' + $scriptPath + '";exit $LastExitCode }'
-  $powershellToExecute = $powershellToExecute.Replace('"', '\"')
+'@;
+  $powershellToExecute = 'if (Test-Path variable:global:ProgressPreference){$ProgressPreference=''SilentlyContinue''};' + $vars + ';&"' + $scriptPath + '";exit $LastExitCode;';
+  $powershellToExecute = $powershellToExecute.Replace('"', '\"');
 
-  $arguments = '/C powershell "' + $powershellToExecute + '" *> "' + $stdoutFile + '"'
-  $taskXml = $taskXml.Replace("{arguments}", $arguments.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
-  $taskXml = $taskXml.Replace("{username}", $username.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
-  $taskXml = $taskXml.Replace("{taskDescription}", $taskDescription.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
-  $taskXml = $taskXml.Replace("{taskExecutionTimeLimit}", $taskExecutionTimeLimit.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'))
+  $arguments = '/C powershell -NoProfile -ExecutionPolicy Bypass "' + $powershellToExecute + '" *> "' + $stdoutFile + '"';
+  $taskXml = $taskXml.Replace("{arguments}", $arguments.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'));
+  $taskXml = $taskXml.Replace("{username}", $username.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'));
+  $taskXml = $taskXml.Replace("{taskDescription}", $taskDescription.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'));
+  $taskXml = $taskXml.Replace("{taskExecutionTimeLimit}", $taskExecutionTimeLimit.Replace('&', '&amp;').Replace('<', '&lt;').Replace('>', '&gt;').Replace('"', '&quot;').Replace('''', '&apos;'));
 
-  $schedule = New-Object -ComObject "Schedule.Service"
-  $schedule.Connect()
-  $task = $schedule.NewTask($null)
-  $task.XmlText = $taskXml
+  $schedule = New-Object -ComObject "Schedule.Service";
+  $schedule.Connect();
+  $task = $schedule.NewTask($null);
+  $task.XmlText = $taskXml;
 
-  $folder = $schedule.GetFolder('\')
-  $folder.RegisterTaskDefinition($taskName, $task, 6, $username, $password, 1, $null) | Out-Null
-  $registeredTask = $folder.GetTask("\$taskName")
-  $registeredTask.Run($null) | Out-Null
-  $timeout = 10
-  $sec = 0
+  $folder = $schedule.GetFolder('\');
+  $folder.RegisterTaskDefinition($taskName, $task, 6, $username, $password, 1, $null) | Out-Null;
+  $registeredTask = $folder.GetTask("\$taskName");
+  $registeredTask.Run($null) | Out-Null;
+  $timeout = 10;
+  $sec = 0;
   while ((!($registeredTask.state -eq 4)) -and ($sec -lt $timeout)) {
-    Start-Sleep -s 1
-    $sec++
+    Start-Sleep -s 1;
+    $sec++;
   }
-  $stdoutCurrentLine = 0
+  $stdoutCurrentLine = 0;
   do {
-    Start-Sleep -m 100
-    $stdoutCurrentLine = SlurpStdout $stdoutFile $stdoutCurrentLine
+    Start-Sleep -m 100;
+    $stdoutCurrentLine = SlurpStdout $stdoutFile $stdoutCurrentLine;
   } while (!($registeredTask.state -eq 3))
-  Start-Sleep -m 100
-  $exit_code = $registeredTask.LastTaskResult
-  $stdoutCurrentLine = SlurpStdout $stdoutFile $stdoutCurrentLine
+  Start-Sleep -m 100;
+  $exit_code = $registeredTask.LastTaskResult;
+  $stdoutCurrentLine = SlurpStdout $stdoutFile $stdoutCurrentLine;
 
   if (Test-Path $stdoutFile) {
-    Remove-Item $stdoutFile -ErrorAction SilentlyContinue | Out-Null
+    #Remove-Item $stdoutFile -ErrorAction SilentlyContinue | Out-Null;
   }
 
   if (Test-Path $scriptPath) {
-    Remove-Item $scriptPath -ErrorAction SilentlyContinue | Out-Null
+    #Remove-Item $scriptPath -ErrorAction SilentlyContinue | Out-Null;
   }
 
-  $folder.DeleteTask($taskName, 0) | Out-Null
-  [System.Runtime.Interopservices.Marshal]::ReleaseComObject($schedule) | Out-Null
+  $folder.DeleteTask($taskName, 0) | Out-Null;
+  [System.Runtime.Interopservices.Marshal]::ReleaseComObject($schedule) | Out-Null;
 
-  return $exit_code
+  return $exit_code;
 }
 
-$username = '{{escapeSingleQuotes .User}}'.Replace('\.\\', $env:computername+'\')
-$password = '{{escapeSingleQuotes .Password}}'
-$taskName = '{{escapeSingleQuotes .TaskName}}'
-$taskDescription = '{{escapeSingleQuotes .TaskDescription}}'
-$taskExecutionTimeLimit = '{{escapeSingleQuotes .TaskExecutionTimeLimit}}'
-$vars = '{{escapeSingleQuotes .Vars}}'
-$scriptPath = '{{escapeSingleQuotes .ScriptPath}}'
-$exitCode = RunAsScheduledTask -username $username -password $password -taskName $taskName -taskDescription $taskDescription -taskExecutionTimeLimit $taskExecutionTimeLimit -vars $vars -scriptPath $scriptPath
-exit $exitCode
+$username = '{{escapeSingleQuotes .User}}'.Replace('\.\\', $env:computername+'\');
+$password = '{{escapeSingleQuotes .Password}}';
+$taskName = '{{escapeSingleQuotes .TaskName}}';
+$taskDescription = '{{escapeSingleQuotes .TaskDescription}}';
+$taskExecutionTimeLimit = '{{escapeSingleQuotes .TaskExecutionTimeLimit}}';
+$vars = '{{escapeSingleQuotes .Vars}}';
+$scriptPath = '{{escapeSingleQuotes .ScriptPath}}';
+$exitCode = RunAsScheduledTask -username $username -password $password -taskName $taskName -taskDescription $taskDescription -taskExecutionTimeLimit $taskExecutionTimeLimit -vars $vars -scriptPath $scriptPath;
+exit $exitCode;
 `))
 
 type convertBase64FileToTextFileTemplateOptions struct {
@@ -172,57 +173,60 @@ type convertBase64FileToTextFileTemplateOptions struct {
 }
 
 var convertBase64FileToTextFileTemplate = template.Must(template.New("ConvertBase64FileToTextFile").Parse(`
-& {
-	if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};
-	$base64FilePath = [System.IO.Path]::GetFullPath("{{.Base64FilePath}}");
-	$filePath = [System.IO.Path]::GetFullPath("{{.FilePath}}".Trim("'"));
-	if (Test-Path $filePath) {
+if (Test-Path variable:global:ProgressPreference) {
+	$ProgressPreference='SilentlyContinue';
+}
+$base64FilePath = [System.IO.Path]::GetFullPath("{{.Base64FilePath}}");
+$filePath = [System.IO.Path]::GetFullPath("{{.FilePath}}".Trim("'"));
+if (Test-Path $filePath) {
+	if (Test-Path -Path $filePath -PathType container) {
+		Exit 1;
+	} else {
 		Remove-Item $filePath | Out-Null;
 	}
-	else {
-		$destinationFolder = ([System.IO.Path]::GetDirectoryName($filePath));
-		New-Item -ItemType directory -Force -ErrorAction SilentlyContinue -Path $destinationFolder | Out-Null;
-	}
-
-	if (Test-Path $base64FilePath) {
-		$reader = [System.IO.File]::OpenText($base64FilePath);
-		try {
-			$writer = [System.IO.File]::OpenWrite($filePath);
-			try {
-				for(;;) {
-					$base64_line = $reader.ReadLine();
-					if ($base64_line -eq $null) { break; }
-					$bytes = [System.Convert]::FromBase64String($base64_line);
-					$writer.write($bytes, 0, $bytes.Length);
-				}
-			}
-			finally {
-				$writer.Close();
-			}
-		}
-		finally{
-			$reader.Close();
-		}
-	} else {
-		Write-Output $null > $filePath;
-	}
-
-	$filePath;
-	exit $LastExitCode;
+} else {
+	$destinationFolder = ([System.IO.Path]::GetDirectoryName($filePath));
+	New-Item -ItemType directory -Force -ErrorAction SilentlyContinue -Path $destinationFolder | Out-Null;
 }
+
+if (Test-Path $base64FilePath) {
+	$reader = [System.IO.File]::OpenText($base64FilePath);
+	try {
+		$writer = [System.IO.File]::OpenWrite($filePath);
+		try {
+			for(;;) {
+				$base64_line = $reader.ReadLine();
+				if ($base64_line -eq $null) { 
+					break;
+				}
+				$bytes = [System.Convert]::FromBase64String($base64_line);
+				$writer.write($bytes, 0, $bytes.Length);
+			}
+		} finally {
+			$writer.Close();
+		}
+	} finally {
+		$reader.Close();
+	}
+} else {
+	Write-Output $null > $filePath;
+}
+
+$filePath;
+exit $LastExitCode;
 `))
 
 type resolvePathTemplateOptions struct {
 	FilePath	string
 }
 
-var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};[System.IO.Path]::GetFullPath("{{.FilePath}}");exit $LastExitCode; }`))
+var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};[System.IO.Path]::GetFullPath("{{.FilePath}}");exit $LastExitCode;`))
 
 type deleteFileTemplateOptions struct {
 	FilePath	string
 }
 
-var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`& { if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue'};Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;exit $LastExitCode; }`))
+var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};if (Test-Path "{{.FilePath}}") {Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;};exit $LastExitCode;`))
 
 type appendFileTemplateOptions struct {
 	FilePath	string

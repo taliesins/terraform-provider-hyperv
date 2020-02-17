@@ -45,23 +45,15 @@ func xPath(node tree.Node, xpath string) (tree.NodeSet, error) {
 }
 
 func ParseOpenShellResponse(response string) (string, error) {
-	xmlSettings := func(s *xmltree.ParseOptions){
-		s.Strict = false
-	}
-
-	doc, err := xmltree.ParseXML(strings.NewReader(response), xmlSettings)
+	doc, err := xmltree.ParseXML(strings.NewReader(response))
 	if err != nil {
-		return "", fmt.Errorf("unable to parse xml response: %v, %v", response, err)
+		return "", err
 	}
 	return first(doc, "//w:Selector[@Name='ShellId']")
 }
 
 func ParseExecuteCommandResponse(response string) (string, error) {
-	xmlSettings := func(s *xmltree.ParseOptions){
-		s.Strict = false
-	}
-
-	doc, err := xmltree.ParseXML(strings.NewReader(response), xmlSettings)
+	doc, err := xmltree.ParseXML(strings.NewReader(response))
 	if err != nil {
 		return "", err
 	}
@@ -74,11 +66,7 @@ func ParseSlurpOutputErrResponse(response string, stdout, stderr io.Writer) (boo
 		exitCode int
 	)
 
-	xmlSettings := func(s *xmltree.ParseOptions){
-		s.Strict = false
-	}
-
-	doc, err := xmltree.ParseXML(strings.NewReader(response), xmlSettings)
+	doc, err := xmltree.ParseXML(strings.NewReader(response))
 
 	stdouts, _ := xPath(doc, "//rsp:Stream[@Name='stdout']")
 	for _, node := range stdouts {
@@ -112,11 +100,7 @@ func ParseSlurpOutputResponse(response string, stream io.Writer, streamType stri
 		exitCode int
 	)
 
-	xmlSettings := func(s *xmltree.ParseOptions){
-		s.Strict = false
-	}
-
-	doc, err := xmltree.ParseXML(strings.NewReader(response), xmlSettings)
+	doc, err := xmltree.ParseXML(strings.NewReader(response))
 
 	nodes, _ := xPath(doc, fmt.Sprintf("//rsp:Stream[@Name='%s']", streamType))
 	for _, node := range nodes {
