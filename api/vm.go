@@ -381,6 +381,7 @@ if ($vm.StaticMemory) {
 }
 
 Set-Vm @SetVmArgs
+
 `))
 
 func (c *HypervClient) CreateVm(
@@ -406,7 +407,6 @@ func (c *HypervClient) CreateVm(
 	snapshotFileLocation string,
 	staticMemory bool,
 ) (err error) {
-
 	vmJson, err := json.Marshal(vm{
 		Name:                                name,
 		Generation:                          generation,
@@ -567,7 +567,6 @@ func (c *HypervClient) UpdateVm(
 	snapshotFileLocation string,
 	staticMemory bool,
 ) (err error) {
-
 	vmJson, err := json.Marshal(vm{
 		Name: name,
 		//Generation:generation,

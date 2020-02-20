@@ -114,16 +114,49 @@ The following arguments are supported:
 
 * `integration_services` - (optional) default integration services (default). A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 
+* `vm_processor` - (optional) default vm processor (default). All the vm processor settings connected to vm.
+
 * `dvd_drives` - (Optional) empty array (default). An array of all the dvd drives connected to vm.
 
 * `hard_disk_drives` - (Optional) empty array (default). An array of all the hard disk drives connected to vm.
+
+### VM Processor
+
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  vm_processor {
+    compatibility_for_migration_enabled = false
+    compatibility_for_older_operating_systems_enabled = false
+    hw_thread_count_per_core = 0
+    maximum = 100
+    reserve = 0
+    relative_weight = 100
+    maximum_count_per_numa_node = 0
+    maximum_count_per_numa_socket = 0
+    enable_host_resource_protection = false
+    expose_virtualization_extensions = false
+  }
+}
+```
+
+* `compatibility_for_migration_enabled` - (Optional) `false` (default). 
+* `compatibility_for_older_operating_systems_enabled` - (Optional) `false` (default). 
+* `hw_thread_count_per_core` - (Optional) `0` (default). 
+* `maximum` - (Optional) `100` (default). 
+* `reserve` - (Optional) `0` (default). 
+* `relative_weight` - (Optional) `100` (default). 
+* `maximum_count_per_numa_node` - (Optional) `0` (default). 
+* `maximum_count_per_numa_socket` - (Optional) `0` (default). 
+* `enable_host_resource_protection` - (Optional) `false` (default). 
+* `expose_virtualization_extensions` - (Optional) `false` (default). 
 
 ### Integration Service
 
 ```hcl
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
-  integration_services {
+  vm_proce {
     "Guest Service Interface" = false
     "Heartbeat"               = true
     "Key-Value Pair Exchange" = true

@@ -189,6 +189,78 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Default:  5,
 			},
 
+			"vm_processor": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				DefaultFunc: api.DefaultVmProcessors,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"compatibility_for_migration_enabled" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"compatibility_for_older_operating_systems_enabled" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"hw_thread_count_per_core": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"maximum": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  100,
+						},
+
+						"reserve": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
+						},
+
+						"relative_weight": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  100,
+						},
+
+						"maximum_count_per_numa_node": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0, //Dynamic value
+							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaNode,
+						},
+
+						"maximum_count_per_numa_socket": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0, //Dynamic value
+							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaSocket,
+						},
+
+						"enable_host_resource_protection" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+
+						"expose_virtualization_extensions" : {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+					},
+				},
+			},
+
 			"network_adaptors": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -543,6 +615,11 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
 	}
 
+	vmProcessors, err := api.ExpandVmProcessors(data)
+	if err != nil {
+		return err
+	}
+
 	integrationServices, err := api.ExpandIntegrationServices(data)
 	if err != nil {
 		return err
@@ -564,6 +641,11 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 	}
 
 	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	if err != nil {
+		return err
+	}
+
+	err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
 	if err != nil {
 		return err
 	}
@@ -620,6 +702,11 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return err
 	}
 
+	vmProcessors, err := client.GetVmProcessors(name)
+	if err != nil {
+		return err
+	}
+
 	integrationServices, err := client.GetVmIntegrationServices(name)
 	if err != nil {
 		return err
@@ -670,6 +757,13 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 	if !vm.DynamicMemory && !vm.StaticMemory {
 		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
 	}
+
+	flattenedVmProcessors := api.FlattenVmProcessors(&vmProcessors)
+	if err := data.Set("vm_processor", flattenedVmProcessors); err != nil {
+		return fmt.Errorf("[DEBUG] Error setting vm_processor error: %v", err)
+	}
+	log.Printf("[INFO][hyperv][read] vmProcessors: %v", vmProcessors)
+	log.Printf("[INFO][hyperv][read] flattenedVmProcessors: %v", flattenedVmProcessors)
 
 	flattenedIntegrationServices := api.FlattenIntegrationServices(&integrationServices)
 	if err := data.Set("integration_services", flattenedIntegrationServices); err != nil {
@@ -785,6 +879,18 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 
 		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		if err != nil {
+			return err
+		}
+	}
+
+	if data.HasChange("vm_processor") {
+		vmProcessors, err := api.ExpandVmProcessors(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
 		if err != nil {
 			return err
 		}
