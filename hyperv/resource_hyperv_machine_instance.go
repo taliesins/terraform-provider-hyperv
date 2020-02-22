@@ -218,18 +218,21 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  100,
+							ValidateFunc:ValueOrIntBetween(100,0,100),
 						},
 
 						"reserve": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  0,
+							ValidateFunc:ValueOrIntBetween(0,0,100),
 						},
 
 						"relative_weight": {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  100,
+							ValidateFunc:ValueOrIntBetween(100,0,10000),
 						},
 
 						"maximum_count_per_numa_node": {
