@@ -143,11 +143,11 @@ function RunAsScheduledTask($username, $password, $taskName, $taskDescription, $
   $stdoutCurrentLine = SlurpStdout $stdoutFile $stdoutCurrentLine;
 
   if (Test-Path $stdoutFile) {
-    #Remove-Item $stdoutFile -ErrorAction SilentlyContinue | Out-Null;
+    Remove-Item $stdoutFile -ErrorAction SilentlyContinue | Out-Null;
   }
 
   if (Test-Path $scriptPath) {
-    #Remove-Item $scriptPath -ErrorAction SilentlyContinue | Out-Null;
+    Remove-Item $scriptPath -ErrorAction SilentlyContinue | Out-Null;
   }
 
   $folder.DeleteTask($taskName, 0) | Out-Null;

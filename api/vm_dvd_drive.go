@@ -15,7 +15,7 @@ func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
 		for _, dvdDrive := range dvdDrives {
 			dvdDrive, ok := dvdDrive.(map[string]interface{})
 			if !ok {
-				return nil, fmt.Errorf("[ERROR][hyperv] network_adaptors should be a Hash - was '%+v'", dvdDrive)
+				return nil, fmt.Errorf("[ERROR][hyperv] dvd_drives should be a Hash - was '%+v'", dvdDrive)
 			}
 
 			expandedDvdDrive := vmDvdDrive{

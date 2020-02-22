@@ -18,6 +18,10 @@ resource "hyperv_machine_instance" "web_Server_g1" {
   wait_for_state_timeout = 10
   wait_for_ips_timeout = 10
 
+  vm_processor {
+    expose_virtualization_extensions = true
+  }
+
   network_adaptors {
       name = "wan"
       switch_name = hyperv_network_switch.dmz_network_switch.name
@@ -51,6 +55,10 @@ resource "hyperv_machine_instance" "web_Server_g2" {
   wait_for_state_timeout = 10
   wait_for_ips_timeout = 10
 
+  vm_processor {
+    expose_virtualization_extensions = true
+  }
+  
   network_adaptors {
       name = "wan"
       switch_name = hyperv_network_switch.dmz_network_switch.name
