@@ -199,19 +199,19 @@ func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 
 		config := Config{
 			TerraformVersion: terraformVersion,
-			User:          d.Get("user").(string),
-			Password:      d.Get("password").(string),
-			Host:          d.Get("host").(string),
-			Port:          d.Get("port").(int),
-			HTTPS:         d.Get("https").(bool),
-			CACert:        cacert,
-			Cert:          cert,
-			Key:           key,
-			Insecure:      d.Get("insecure").(bool),
-			NTLM:          d.Get("use_ntlm").(bool),
-			TLSServerName: d.Get("tls_server_name").(string),
-			ScriptPath:    d.Get("script_path").(string),
-			Timeout:       d.Get("timeout").(string),
+			User:             d.Get("user").(string),
+			Password:         d.Get("password").(string),
+			Host:             d.Get("host").(string),
+			Port:             d.Get("port").(int),
+			HTTPS:            d.Get("https").(bool),
+			CACert:           cacert,
+			Cert:             cert,
+			Key:              key,
+			Insecure:         d.Get("insecure").(bool),
+			NTLM:             d.Get("use_ntlm").(bool),
+			TLSServerName:    d.Get("tls_server_name").(string),
+			ScriptPath:       d.Get("script_path").(string),
+			Timeout:          d.Get("timeout").(string),
 		}
 
 		return config.Client()

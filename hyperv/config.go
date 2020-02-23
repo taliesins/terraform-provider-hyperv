@@ -18,37 +18,37 @@ import (
 
 type Config struct {
 	TerraformVersion string
-	User          	string
-	Password      	string
-	Host  	      	string
-	Port	      	int
-	HTTPS	      	bool
-	Insecure      	bool
-	NTLM            bool
-	TLSServerName 	string
-	CACert     		[]byte
-	Key    			[]byte
-	Cert     		[]byte
-	ScriptPath 		string
-	Timeout 		string
+	User             string
+	Password         string
+	Host             string
+	Port             int
+	HTTPS            bool
+	Insecure         bool
+	NTLM             bool
+	TLSServerName    string
+	CACert           []byte
+	Key              []byte
+	Cert             []byte
+	ScriptPath       string
+	Timeout          string
 }
 
 // HypervClient() returns a new client for configuring hyperv.
 func (c *Config) Client() (comm *api.HypervClient, err error) {
 	log.Printf("[INFO][hyperv] HyperV HypervClient configured for HyperV API operations using:\n"+
-			"  Host: %s\n"+
-			"  Port: %d\n"+
-			"  User: %s\n"+
-			"  Password: %t\n"+
-			"  HTTPS: %t\n"+
-			"  Insecure: %t\n"+
-			"  NTLM: %t\n"+
-			"  TLSServerName: %s\n"+
-			"  CACert: %t\n"+
-			"  Cert: %t\n"+
-			"  Key: %t\n"+
-			"  ScriptPath: %s\n"+
-			"  Timeout: %s",
+		"  Host: %s\n"+
+		"  Port: %d\n"+
+		"  User: %s\n"+
+		"  Password: %t\n"+
+		"  HTTPS: %t\n"+
+		"  Insecure: %t\n"+
+		"  NTLM: %t\n"+
+		"  TLSServerName: %s\n"+
+		"  CACert: %t\n"+
+		"  Cert: %t\n"+
+		"  Key: %t\n"+
+		"  ScriptPath: %s\n"+
+		"  Timeout: %s",
 		c.Host,
 		c.Port,
 		c.User,
@@ -128,15 +128,15 @@ func parseEndpoint(addr string, https bool, insecure bool, tlsServerName string,
 	}
 
 	return &winrm.Endpoint{
-		Host:          	host,
-		Port:          	port,
-		HTTPS:         	https,
-		Insecure:      	insecure,
-		TLSServerName: 	tlsServerName,
-		Cert:			cert,
-		Key:			key,
-		CACert:        	caCert,
-		Timeout:       	timeoutDuration,
+		Host:          host,
+		Port:          port,
+		HTTPS:         https,
+		Insecure:      insecure,
+		TLSServerName: tlsServerName,
+		Cert:          cert,
+		Key:           key,
+		CACert:        caCert,
+		Timeout:       timeoutDuration,
 	}, nil
 }
 
@@ -173,10 +173,10 @@ func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error)
 	winRmClientPool.Config.TimeBetweenEvictionRuns = 10 * time.Second
 
 	hypervClient = &api.HypervClient{
-		WinRmClientPool: 	winRmClientPool,
-		Vars:               "",
-		ElevatedUser:       config.User,
-		ElevatedPassword:   config.Password,
+		WinRmClientPool:  winRmClientPool,
+		Vars:             "",
+		ElevatedUser:     config.User,
+		ElevatedPassword: config.Password,
 	}
 
 	return hypervClient, err

@@ -7,7 +7,7 @@ import (
 
 func TestSerializeVmNetworkAdapter(t *testing.T) {
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
-		Name:"test",
+		Name: "test",
 	})
 
 	if err != nil {
@@ -21,7 +21,7 @@ func TestSerializeVmNetworkAdapter(t *testing.T) {
 	}
 }
 
-func TestDeserializeVmNetworkAdapter(t *testing.T){
+func TestDeserializeVmNetworkAdapter(t *testing.T) {
 	var vmNetworkAdapterJson = `
 {
     "Name":  "TestMachine"
@@ -34,4 +34,3 @@ func TestDeserializeVmNetworkAdapter(t *testing.T){
 		t.Errorf("Unable to deserialize vmNetworkAdapter: %s", err.Error())
 	}
 }
-

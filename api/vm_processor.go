@@ -61,16 +61,16 @@ func ExpandVmProcessors(d *schema.ResourceData) ([]vmProcessor, error) {
 			log.Printf("[DEBUG] processor =  [%+v]", processor)
 
 			expandedVmProcessor := vmProcessor{
-				CompatibilityForMigrationEnabled: processor["compatibility_for_migration_enabled"].(bool),
+				CompatibilityForMigrationEnabled:             processor["compatibility_for_migration_enabled"].(bool),
 				CompatibilityForOlderOperatingSystemsEnabled: processor["compatibility_for_older_operating_systems_enabled"].(bool),
-				HwThreadCountPerCore: int64(processor["hw_thread_count_per_core"].(int)),
-				Maximum: int64(processor["maximum"].(int)),
-				Reserve: int64(processor["reserve"].(int)),
-				RelativeWeight: int32(processor["relative_weight"].(int)),
-				MaximumCountPerNumaNode: int32(processor["maximum_count_per_numa_node"].(int)),
-				MaximumCountPerNumaSocket: int32(processor["maximum_count_per_numa_socket"].(int)),
-				EnableHostResourceProtection: processor["enable_host_resource_protection"].(bool),
-				ExposeVirtualizationExtensions: processor["expose_virtualization_extensions"].(bool),
+				HwThreadCountPerCore:                         int64(processor["hw_thread_count_per_core"].(int)),
+				Maximum:                                      int64(processor["maximum"].(int)),
+				Reserve:                                      int64(processor["reserve"].(int)),
+				RelativeWeight:                               int32(processor["relative_weight"].(int)),
+				MaximumCountPerNumaNode:                      int32(processor["maximum_count_per_numa_node"].(int)),
+				MaximumCountPerNumaSocket:                    int32(processor["maximum_count_per_numa_socket"].(int)),
+				EnableHostResourceProtection:                 processor["enable_host_resource_protection"].(bool),
+				ExposeVirtualizationExtensions:               processor["expose_virtualization_extensions"].(bool),
 			}
 
 			expandedVmProcessors = append(expandedVmProcessors, expandedVmProcessor)

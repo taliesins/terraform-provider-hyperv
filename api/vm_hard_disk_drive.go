@@ -122,7 +122,7 @@ func (d *CacheAttributes) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-func DiffSuppressVmHardDiskPath (key, old, new string, d *schema.ResourceData) bool {
+func DiffSuppressVmHardDiskPath(key, old, new string, d *schema.ResourceData) bool {
 	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", key, old, new)
 	if new == "" {
 		//We have not explicitly set a value, so allow any value as we are not tracking it
@@ -137,8 +137,8 @@ func DiffSuppressVmHardDiskPath (key, old, new string, d *schema.ResourceData) b
 	oldExtension := strings.ToLower(filepath.Ext(old))
 	newExtension := strings.ToLower(filepath.Ext(new))
 	if oldExtension == ".avhdx" && newExtension == ".vhdx" {
-		newName := new[0:len(new)-len(newExtension)]
-		return strings.HasPrefix(old, newName + "_")
+		newName := new[0 : len(new)-len(newExtension)]
+		return strings.HasPrefix(old, newName+"_")
 	}
 
 	return false

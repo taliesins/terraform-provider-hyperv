@@ -7,17 +7,17 @@ import (
 
 func TestSerializeVmSwitch(t *testing.T) {
 	vmSwitchJson, err := json.Marshal(vmSwitch{
-		Name:"test",
-		Notes:"test notes",
-		AllowManagementOS:true,
-		EmbeddedTeamingEnabled:true,
-		IovEnabled:true,
-		PacketDirectEnabled:false,
-		BandwidthReservationMode:VMSwitchBandwidthMode_Weight,
-		SwitchType:VMSwitchType_Internal,
-		NetAdapterNames:[]string{"wan", "lan"},
-		DefaultQueueVrssEnabled:true,
-		DefaultQueueVmmqQueuePairs:0,
+		Name:                       "test",
+		Notes:                      "test notes",
+		AllowManagementOS:          true,
+		EmbeddedTeamingEnabled:     true,
+		IovEnabled:                 true,
+		PacketDirectEnabled:        false,
+		BandwidthReservationMode:   VMSwitchBandwidthMode_Weight,
+		SwitchType:                 VMSwitchType_Internal,
+		NetAdapterNames:            []string{"wan", "lan"},
+		DefaultQueueVrssEnabled:    true,
+		DefaultQueueVmmqQueuePairs: 0,
 	})
 
 	if err != nil {
@@ -31,7 +31,7 @@ func TestSerializeVmSwitch(t *testing.T) {
 	}
 }
 
-func TestDeserializeVmSwitch(t *testing.T){
+func TestDeserializeVmSwitch(t *testing.T) {
 	var vmSwitchJson = `
 {
     "BandwidthReservationMode":  2,

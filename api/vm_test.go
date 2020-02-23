@@ -7,8 +7,8 @@ import (
 
 func TestSerializeVm(t *testing.T) {
 	vmJson, err := json.Marshal(vm{
-		Name:"test",
-		Notes:"test notes",
+		Name:  "test",
+		Notes: "test notes",
 	})
 
 	if err != nil {
@@ -22,7 +22,7 @@ func TestSerializeVm(t *testing.T) {
 	}
 }
 
-func TestDeserializeVm(t *testing.T){
+func TestDeserializeVm(t *testing.T) {
 	var vmJson = `
 {
     "Name":  "TestMachine",

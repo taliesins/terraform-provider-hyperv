@@ -31,7 +31,6 @@ func winPath(path string) string {
 	return strings.Replace(path, "/", "\\", -1)
 }
 
-
 func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (remoteAbsolutePath string, err error) {
 
 	tempFile := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
@@ -151,8 +150,8 @@ func restoreContent(client *winrm.Client, fromPath, toPath string) (string, erro
 
 	var convertBase64FileToTextFileTemplateRendered bytes.Buffer
 	err = convertBase64FileToTextFileTemplate.Execute(&convertBase64FileToTextFileTemplateRendered, convertBase64FileToTextFileTemplateOptions{
-		Base64FilePath:			fromPath,
-		FilePath:				toPath,
+		Base64FilePath: fromPath,
+		FilePath:       toPath,
 	})
 
 	if err != nil {
@@ -286,7 +285,7 @@ func appendContent(shell *winrm.Shell, filePath, content string) error {
 	var appendFileTemplateRendered bytes.Buffer
 	err := appendFileTemplate.Execute(&appendFileTemplateRendered, appendFileTemplateOptions{
 		FilePath: filePath,
-		Content: content,
+		Content:  content,
 	})
 
 	if err != nil {
@@ -448,12 +447,12 @@ func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedP
 
 	var elevatedCommandTemplateRendered bytes.Buffer
 	err = elevatedCommandTemplate.Execute(&elevatedCommandTemplateRendered, elevatedCommandTemplateOptions{
-		User:            		elevatedUser,
-		Password:        		elevatedPassword,
-		TaskDescription: 		"Terraform elevated task",
-		TaskName:        		name,
+		User:                   elevatedUser,
+		Password:               elevatedPassword,
+		TaskDescription:        "Terraform elevated task",
+		TaskName:               name,
 		TaskExecutionTimeLimit: "PT2H",
-		ScriptPath: 			remotePath,
+		ScriptPath:             remotePath,
 	})
 
 	if err != nil {
@@ -531,4 +530,3 @@ func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword s
 
 	return commandExitCode, stdOutPut, errorOutPut, nil
 }
-

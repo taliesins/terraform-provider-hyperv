@@ -14,10 +14,10 @@ import (
 )
 
 type HypervClient struct {
-	WinRmClientPool		*pool.ObjectPool
-	ElevatedUser     	string
-	ElevatedPassword 	string
-	Vars                string
+	WinRmClientPool  *pool.ObjectPool
+	ElevatedUser     string
+	ElevatedPassword string
+	Vars             string
 }
 
 func (c *HypervClient) runFireAndForgetScript(script *template.Template, args interface{}) error {
