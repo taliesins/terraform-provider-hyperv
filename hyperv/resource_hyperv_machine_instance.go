@@ -8,7 +8,7 @@ import (
 	"log"
 )
 
-const MaxUint32  = 4294967295
+const MaxUint32 = 4294967295
 
 func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
@@ -24,11 +24,11 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"generation": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  2,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      2,
 				ValidateFunc: IntInSlice([]int{1, 2}),
-				ForceNew: true,
+				ForceNew:     true,
 			},
 
 			"automatic_critical_error_action": {
@@ -151,11 +151,11 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"integration_services": {
-				Type:     schema.TypeMap,
-				Optional: true,
-				DefaultFunc: api.DefaultVmIntegrationServices,
+				Type:             schema.TypeMap,
+				Optional:         true,
+				DefaultFunc:      api.DefaultVmIntegrationServices,
 				DiffSuppressFunc: api.DiffSuppressVmIntegrationServices,
-				Elem:     schema.TypeBool,
+				Elem:             schema.TypeBool,
 			},
 
 			"state": {
@@ -165,44 +165,88 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				ValidateFunc: stringKeyInMap(api.VmState_SettableValue, true),
 			},
 
-			"wait_for_state_timeout" : {
+			"wait_for_state_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  120,
 			},
 
-			"wait_for_state_poll_period" : {
+			"wait_for_state_poll_period": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  2,
 			},
 
-			"wait_for_ips_timeout" : {
+			"wait_for_ips_timeout": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  300,
 			},
 
-			"wait_for_ips_poll_period" : {
+			"wait_for_ips_poll_period": {
 				Type:     schema.TypeInt,
 				Optional: true,
 				Default:  5,
 			},
 
+			"vm_firmware": {
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
+				DefaultFunc: api.DefaultVmFirmwares,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"enable_secure_boot": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      api.OnOffState_name[api.OnOffState_On],
+							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
+						},
+
+						"secure_boot_template": {
+							Type:     schema.TypeString,
+							Optional: true,
+							Default:  "MicrosoftWindows",
+						},
+
+						"preferred_network_boot_protocol": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      api.IPProtocolPreference_name[api.IPProtocolPreference_IPv4],
+							ValidateFunc: stringKeyInMap(api.IPProtocolPreference_value, true),
+						},
+
+						"console_mode": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      api.ConsoleModeType_name[api.ConsoleModeType_Default],
+							ValidateFunc: stringKeyInMap(api.ConsoleModeType_value, true),
+						},
+
+						"pause_after_boot_failure": {
+							Type:         schema.TypeString,
+							Optional:     true,
+							Default:      api.OnOffState_name[api.OnOffState_Off],
+							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
+						},
+					},
+				},
+			},
+
 			"vm_processor": {
-				Type:     schema.TypeList,
-				Optional: true,
-				MaxItems: 1,
+				Type:        schema.TypeList,
+				Optional:    true,
+				MaxItems:    1,
 				DefaultFunc: api.DefaultVmProcessors,
 				Elem: &schema.Resource{
 					Schema: map[string]*schema.Schema{
-						"compatibility_for_migration_enabled" : {
+						"compatibility_for_migration_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
-						"compatibility_for_older_operating_systems_enabled" : {
+						"compatibility_for_older_operating_systems_enabled": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -215,47 +259,47 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						},
 
 						"maximum": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  100,
-							ValidateFunc:ValueOrIntBetween(100,0,100),
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      100,
+							ValidateFunc: ValueOrIntBetween(100, 0, 100),
 						},
 
 						"reserve": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  0,
-							ValidateFunc:ValueOrIntBetween(0,0,100),
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
+							ValidateFunc: ValueOrIntBetween(0, 0, 100),
 						},
 
 						"relative_weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  100,
-							ValidateFunc:ValueOrIntBetween(100,0,10000),
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      100,
+							ValidateFunc: ValueOrIntBetween(100, 0, 10000),
 						},
 
 						"maximum_count_per_numa_node": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  0, //Dynamic value
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0, //Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaNode,
 						},
 
 						"maximum_count_per_numa_socket": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  0, //Dynamic value
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0, //Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaSocket,
 						},
 
-						"enable_host_resource_protection" : {
+						"enable_host_resource_protection": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
 						},
 
-						"expose_virtualization_extensions" : {
+						"expose_virtualization_extensions": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  false,
@@ -296,9 +340,9 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Default:  true,
 						},
 						"static_mac_address": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
 							DiffSuppressFunc: api.DiffSuppressVmStaticMacAddress,
 						},
 						"mac_address_spoofing": {
@@ -332,15 +376,15 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
 						},
 						"vmq_weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  100,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      100,
 							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"iov_queue_pairs_requested": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  1,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      1,
 							ValidateFunc: validation.IntBetween(1, 4294967295),
 						},
 						"iov_interrupt_moderation": {
@@ -350,9 +394,9 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							ValidateFunc: stringKeyInMap(api.IovInterruptModerationValue_value, true),
 						},
 						"iov_weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  100,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      100,
 							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"ipsec_offload_maximum_security_association": {
@@ -371,9 +415,9 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Default:  0,
 						},
 						"minimum_bandwidth_weight": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  0,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
 							ValidateFunc: validation.IntBetween(0, 100),
 						},
 						"mandatory_feature_id": {
@@ -398,9 +442,9 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Default:  "",
 						},
 						"virtual_subnet_id": {
-							Type:     schema.TypeInt,
-							Optional: true,
-							Default:  0,
+							Type:         schema.TypeInt,
+							Optional:     true,
+							Default:      0,
 							ValidateFunc: ValueOrIntBetween(0, 4096, 16777215),
 						},
 						"allow_teaming": {
@@ -466,16 +510,16 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Optional: true,
 							Default:  16,
 						},
-						"wait_for_ips" : {
+						"wait_for_ips": {
 							Type:     schema.TypeBool,
 							Optional: true,
 							Default:  true,
 						},
-						"ip_addresses" : {
+						"ip_addresses": {
 							Type:        schema.TypeList,
 							Computed:    true,
 							Description: "The current list of IP addresses on this virtual machine.",
-							Elem: &schema.Schema{Type: schema.TypeString},
+							Elem:        &schema.Schema{Type: schema.TypeString},
 						},
 					},
 				},
@@ -528,15 +572,15 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Required: true,
 						},
 						"path": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          "",
 							DiffSuppressFunc: api.DiffSuppressVmHardDiskPath,
 						},
 						"disk_number": {
 							Type:     schema.TypeInt,
 							Optional: true,
-							Default: MaxUint32,
+							Default:  MaxUint32,
 						},
 						"resource_pool_name": {
 							Type:     schema.TypeString,
@@ -705,6 +749,14 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return err
 	}
 
+	vmFirmwares := client.GetNoVmFirmwares()
+	if vm.Generation > 1 {
+		vmFirmwares, err = client.GetVmFirmwares(name)
+		if err != nil {
+			return err
+		}
+	}
+
 	vmProcessors, err := client.GetVmProcessors(name)
 	if err != nil {
 		return err
@@ -759,6 +811,18 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 
 	if !vm.DynamicMemory && !vm.StaticMemory {
 		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
+	}
+
+	if vm.Generation > 1 {
+		flattenedVmFirmwares := api.FlattenVmFirmwares(&vmFirmwares)
+		if err := data.Set("vm_firmware", flattenedVmFirmwares); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting vm_firmware error: %v", err)
+		}
+		log.Printf("[INFO][hyperv][read] vmFirmwares: %v", vmFirmwares)
+		log.Printf("[INFO][hyperv][read] flattenedVmFirmwares: %v", flattenedVmFirmwares)
+	} else {
+		log.Printf("[INFO][hyperv][read] skip vmFirmwares as vm generation is %v", vm.Generation)
+		log.Printf("[INFO][hyperv][read] skip flattenedVmFirmwares as vm generation is %v", vm.Generation)
 	}
 
 	flattenedVmProcessors := api.FlattenVmProcessors(&vmProcessors)
@@ -833,6 +897,8 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][update] name argument is required")
 	}
 
+	generation := (data.Get("generation")).(int)
+
 	if data.HasChange("automatic_critical_error_action") ||
 		data.HasChange("automatic_critical_error_action_timeout") ||
 		data.HasChange("automatic_start_action") ||
@@ -852,7 +918,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		data.HasChange("smart_paging_file_path") ||
 		data.HasChange("snapshot_file_location") ||
 		data.HasChange("static_memory") {
-		//generation := (d.Get("generation")).(int)
+
 		automaticCriticalErrorAction := api.ToCriticalErrorAction((data.Get("automatic_critical_error_action")).(string))
 		automaticCriticalErrorActionTimeout := int32((data.Get("automatic_critical_error_action_timeout")).(int))
 		automaticStartAction := api.ToStartAction((data.Get("automatic_start_action")).(string))
@@ -884,6 +950,20 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 		if err != nil {
 			return err
+		}
+	}
+
+	if generation > 1 {
+		if data.HasChange("vm_firmware") {
+			vmFirmwares, err := api.ExpandVmFirmwares(data)
+			if err != nil {
+				return err
+			}
+
+			err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+			if err != nil {
+				return err
+			}
 		}
 	}
 

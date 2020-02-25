@@ -83,9 +83,9 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 			},
 
 			"default_flow_minimum_bandwidth_weight": {
-				Type:     schema.TypeInt,
-				Optional: true,
-				Default:  0,
+				Type:         schema.TypeInt,
+				Optional:     true,
+				Default:      0,
 				ValidateFunc: validation.IntBetween(0, 100),
 			},
 

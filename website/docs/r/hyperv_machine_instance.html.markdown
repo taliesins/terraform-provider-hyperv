@@ -120,6 +120,30 @@ The following arguments are supported:
 
 * `hard_disk_drives` - (Optional) empty array (default). An array of all the hard disk drives connected to vm.
 
+### VM Firmware
+
+Note: this terraform resource will be skipped if the VM generation is 1. Terraform Schema does not provide a way to valid schema against other properties hence this approach.
+
+```hcl
+resource "hyperv_machine_instance" "default" {
+  name = "WebServer"
+  vm_firmware {
+    enable_secure_boot = ""
+    secure_boot_template = ""
+    secure_boot_template_id = ""
+    preferred_network_boot_protocol = ""
+    console_mode = ""
+    pause_after_boot_failure = ""
+  }
+}
+```
+
+* `enable_secure_boot` - (Optional) `On` (default). Valid values to use are `On`, `Off`. Specifies whether to enable secure boot.
+* `secure_boot_template` - (Optional) `MicrosoftWindows` (default). Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`. Specifies the name of the secure boot template. If secure boot is enabled, you must have a valid secure boot template for the guest operating system to start.
+* `preferred_network_boot_protocol` - (Optional) `IPv4` (default). Valid values to use are `IPv4`, `IPv6`. Specifies the IP protocol version to use during a network boot.
+* `console_mode` - (Optional) `Default` (default). Valid values to use are `Default`, `COM1`, `COM2`, `None`. Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface.
+* `pause_after_boot_failure` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused.
+
 ### VM Processor
 
 ```hcl

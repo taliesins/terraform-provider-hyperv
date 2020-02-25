@@ -8,6 +8,5 @@ import (
 func main() {
 	plugin.Serve(&plugin.ServeOpts{
 		ProviderFunc: hyperv.Provider,
-
 	})
 }

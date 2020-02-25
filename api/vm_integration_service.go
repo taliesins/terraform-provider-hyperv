@@ -21,7 +21,7 @@ func DefaultVmIntegrationServices() (interface{}, error) {
 	return flattenedIntegrationServices, nil
 }
 
-func getDefaultValueForVmIntegrationService(integrationServiceKey string, d *schema.ResourceData) bool{
+func getDefaultValueForVmIntegrationService(integrationServiceKey string, d *schema.ResourceData) bool {
 	v, _ := DefaultVmIntegrationServices()
 	integrationServices := v.(map[string]interface{})
 	if integrationServiceValueInterface, found := integrationServices[integrationServiceKey]; found {
@@ -34,7 +34,7 @@ func getDefaultValueForVmIntegrationService(integrationServiceKey string, d *sch
 	return false
 }
 
-func DiffSuppressVmIntegrationServices (key, old, new string, d *schema.ResourceData) bool {
+func DiffSuppressVmIntegrationServices(key, old, new string, d *schema.ResourceData) bool {
 	integrationServiceKey := strings.TrimPrefix(key, "integration_services.")
 
 	if integrationServiceKey == "%" {
@@ -50,12 +50,12 @@ func DiffSuppressVmIntegrationServices (key, old, new string, d *schema.Resource
 	newValue, newValueError := strconv.ParseBool(new)
 	oldValue, oldValueError := strconv.ParseBool(old)
 
-	if newValueError != nil  {
+	if newValueError != nil {
 		newValue = getDefaultValueForVmIntegrationService(integrationServiceKey, d)
 		log.Printf("[DEBUG] '[%s]' New value '[%s]' defaulted to '[%v]' ", integrationServiceKey, new, newValue)
 	}
 
-	if oldValueError != nil  {
+	if oldValueError != nil {
 		oldValue = getDefaultValueForVmIntegrationService(integrationServiceKey, d)
 		log.Printf("[DEBUG] '[%s]' Old value '[%s]' defaulted to '[%v]' ", integrationServiceKey, old, oldValue)
 	}
@@ -68,7 +68,7 @@ func GetChangedIntegrationServices(vmIntegrationServices []vmIntegrationService,
 	changedIntegrationServices := make([]vmIntegrationService, 0)
 
 	for _, integrationServiceValue := range vmIntegrationServices {
-		key := "integration_services."+integrationServiceValue.Name
+		key := "integration_services." + integrationServiceValue.Name
 
 		if d.HasChange(key) {
 			log.Printf("[DEBUG] integration service '[%s]' changed", key)

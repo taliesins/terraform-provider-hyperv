@@ -55,6 +55,10 @@ resource "hyperv_machine_instance" "web_Server_g2" {
   wait_for_state_timeout = 10
   wait_for_ips_timeout = 10
 
+  vm_firmware {
+    pause_after_boot_failure = "Off"
+  }
+  
   vm_processor {
     expose_virtualization_extensions = true
   }
