@@ -125,7 +125,6 @@ type vmFirmware struct {
 	VmName                       string
 	EnableSecureBoot             OnOffState
 	SecureBootTemplate           string
-	SecureBootTemplateId         string
 	PreferredNetworkBootProtocol IPProtocolPreference
 	ConsoleMode                  ConsoleModeType
 	PauseAfterBootFailure        OnOffState
@@ -134,9 +133,8 @@ type vmFirmware struct {
 func DefaultVmFirmwares() (interface{}, error) {
 	result := make([]vmFirmware, 0)
 	vmFirmware := vmFirmware{
-		EnableSecureBoot:             OnOffState_Off,
-		SecureBootTemplate:           "",
-		SecureBootTemplateId:         "",
+		EnableSecureBoot:             OnOffState_On,
+		SecureBootTemplate:           "MicrosoftWindows",
 		PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
 		ConsoleMode:                  ConsoleModeType_Default,
 		PauseAfterBootFailure:        OnOffState_Off,
@@ -162,7 +160,6 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]vmFirmware, error) {
 			expandedVmFirmware := vmFirmware{
 				EnableSecureBoot:             ToOnOffState(firmware["enable_secure_boot"].(string)),
 				SecureBootTemplate:           firmware["secure_boot_template"].(string),
-				SecureBootTemplateId:         firmware["secure_boot_template_id"].(string),
 				PreferredNetworkBootProtocol: ToIPProtocolPreference(firmware["preferred_network_boot_protocol"].(string)),
 				ConsoleMode:                  ToConsoleModeType(firmware["console_mode"].(string)),
 				PauseAfterBootFailure:        ToOnOffState(firmware["pause_after_boot_failure"].(string)),
@@ -181,12 +178,11 @@ func FlattenVmFirmwares(vmFirmwares *[]vmFirmware) []interface{} {
 	if vmFirmwares != nil {
 		for _, vmFirmware := range *vmFirmwares {
 			flattenedVmFirmware := make(map[string]interface{})
-			flattenedVmFirmware["enable_secure_boot"] = vmFirmware.EnableSecureBoot
+			flattenedVmFirmware["enable_secure_boot"] = vmFirmware.EnableSecureBoot.String()
 			flattenedVmFirmware["secure_boot_template"] = vmFirmware.SecureBootTemplate
-			flattenedVmFirmware["secure_boot_template_id"] = vmFirmware.SecureBootTemplateId
-			flattenedVmFirmware["preferred_network_boot_protocol"] = vmFirmware.PreferredNetworkBootProtocol
-			flattenedVmFirmware["console_mode"] = vmFirmware.ConsoleMode
-			flattenedVmFirmware["pause_after_boot_failure"] = vmFirmware.PauseAfterBootFailure
+			flattenedVmFirmware["preferred_network_boot_protocol"] = vmFirmware.PreferredNetworkBootProtocol.String()
+			flattenedVmFirmware["console_mode"] = vmFirmware.ConsoleMode.String()
+			flattenedVmFirmware["pause_after_boot_failure"] = vmFirmware.PauseAfterBootFailure.String()
 			flattenedVmFirmwares = append(flattenedVmFirmwares, flattenedVmFirmware)
 		}
 	}
@@ -208,7 +204,6 @@ $SetVMFirmwareArgs.VMName=$vmFirmware.VmName
 
 $SetVMFirmwareArgs.EnableSecureBoot=$vmFirmware.EnableSecureBoot
 $SetVMFirmwareArgs.SecureBootTemplate=$vmFirmware.SecureBootTemplate
-$SetVMFirmwareArgs.SecureBootTemplateId=$vmFirmware.SecureBootTemplateId
 $SetVMFirmwareArgs.PreferredNetworkBootProtocol=$vmFirmware.PreferredNetworkBootProtocol
 $SetVMFirmwareArgs.ConsoleMode=$vmFirmware.ConsoleMode
 $SetVMFirmwareArgs.PauseAfterBootFailure=$vmFirmware.PauseAfterBootFailure
@@ -220,7 +215,6 @@ func (c *HypervClient) CreateOrUpdateVmFirmware(
 	vmName string,
 	enableSecureBoot OnOffState,
 	secureBootTemplate string,
-	secureBootTemplateId string,
 	preferredNetworkBootProtocol IPProtocolPreference,
 	consoleMode ConsoleModeType,
 	pauseAfterBootFailure OnOffState,
@@ -229,7 +223,6 @@ func (c *HypervClient) CreateOrUpdateVmFirmware(
 		VmName:                       vmName,
 		EnableSecureBoot:             enableSecureBoot,
 		SecureBootTemplate:           secureBootTemplate,
-		SecureBootTemplateId:         secureBootTemplateId,
 		PreferredNetworkBootProtocol: preferredNetworkBootProtocol,
 		ConsoleMode:                  consoleMode,
 		PauseAfterBootFailure:        pauseAfterBootFailure,
@@ -252,7 +245,6 @@ $ErrorActionPreference = 'Stop'
 $vmFirmwareObject = Get-VMFirmware -VMName '{{.VmName}}' | %{ @{
 	EnableSecureBoot=             $_.EnableSecureBoot
 	SecureBootTemplate=           $_.SecureBootTemplate
-	SecureBootTemplateId=         $_.SecureBootTemplateId
 	PreferredNetworkBootProtocol= $_.PreferredNetworkBootProtocol
 	ConsoleMode=                  $_.ConsoleMode
 	PauseAfterBootFailure=        $_.PauseAfterBootFailure
@@ -273,6 +265,11 @@ func (c *HypervClient) GetVmFirmware(vmName string) (result vmFirmware, err erro
 	}, &result)
 
 	return result, err
+}
+
+func (c *HypervClient) GetNoVmFirmwares() (result []vmFirmware) {
+	result = make([]vmFirmware, 0)
+	return result
 }
 
 func (c *HypervClient) GetVmFirmwares(vmName string) (result []vmFirmware, err error) {
@@ -298,7 +295,6 @@ func (c *HypervClient) CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []vm
 	return c.CreateOrUpdateVmFirmware(vmName,
 		vmFirmware.EnableSecureBoot,
 		vmFirmware.SecureBootTemplate,
-		vmFirmware.SecureBootTemplateId,
 		vmFirmware.PreferredNetworkBootProtocol,
 		vmFirmware.ConsoleMode,
 		vmFirmware.PauseAfterBootFailure,

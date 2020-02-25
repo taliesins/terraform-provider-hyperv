@@ -122,6 +122,8 @@ The following arguments are supported:
 
 ### VM Firmware
 
+Note: this terraform resource will be skipped if the VM generation is 1. Terraform Schema does not provide a way to valid schema against other properties hence this approach.
+
 ```hcl
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
@@ -136,9 +138,8 @@ resource "hyperv_machine_instance" "default" {
 }
 ```
 
-* `enable_secure_boot` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies whether to enable secure boot.
-* `secure_boot_template` - (Optional) `` (default). Specifies the name of the secure boot template. If secure boot is enabled, you must have a valid secure boot template for the guest operating system to start.
-* `secure_boot_template_id` - (Optional) `` (default). Specifies the ID of the secure boot template.
+* `enable_secure_boot` - (Optional) `On` (default). Valid values to use are `On`, `Off`. Specifies whether to enable secure boot.
+* `secure_boot_template` - (Optional) `MicrosoftWindows` (default). Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`. Specifies the name of the secure boot template. If secure boot is enabled, you must have a valid secure boot template for the guest operating system to start.
 * `preferred_network_boot_protocol` - (Optional) `IPv4` (default). Valid values to use are `IPv4`, `IPv6`. Specifies the IP protocol version to use during a network boot.
 * `console_mode` - (Optional) `Default` (default). Valid values to use are `Default`, `COM1`, `COM2`, `None`. Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface.
 * `pause_after_boot_failure` - (Optional) `Off` (default). Valid values to use are `On`, `Off`. Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused.

@@ -199,20 +199,14 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"enable_secure_boot": {
 							Type:         schema.TypeString,
 							Optional:     true,
-							Default:      api.OnOffState_name[api.OnOffState_Off],
+							Default:      api.OnOffState_name[api.OnOffState_On],
 							ValidateFunc: stringKeyInMap(api.OnOffState_value, true),
 						},
 
 						"secure_boot_template": {
 							Type:     schema.TypeString,
 							Optional: true,
-							Default:  "",
-						},
-
-						"secure_boot_template_id": {
-							Type:     schema.TypeString,
-							Optional: true,
-							Default:  "",
+							Default:  "MicrosoftWindows",
 						},
 
 						"preferred_network_boot_protocol": {
@@ -755,12 +749,15 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return err
 	}
 
-	vmProcessors, err := client.GetVmProcessors(name)
-	if err != nil {
-		return err
+	vmFirmwares := client.GetNoVmFirmwares()
+	if vm.Generation > 1 {
+		vmFirmwares, err = client.GetVmFirmwares(name)
+		if err != nil {
+			return err
+		}
 	}
 
-	vmFirmwares, err := client.GetVmFirmwares(name)
+	vmProcessors, err := client.GetVmProcessors(name)
 	if err != nil {
 		return err
 	}
@@ -816,12 +813,17 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return fmt.Errorf("[ERROR][hyperv][read] Either dynamic or static must be selected")
 	}
 
-	flattenedVmFirmwares := api.FlattenVmFirmwares(&vmFirmwares)
-	if err := data.Set("vm_firmware", flattenedVmFirmwares); err != nil {
-		return fmt.Errorf("[DEBUG] Error setting vm_firmware error: %v", err)
+	if vm.Generation > 1 {
+		flattenedVmFirmwares := api.FlattenVmFirmwares(&vmFirmwares)
+		if err := data.Set("vm_firmware", flattenedVmFirmwares); err != nil {
+			return fmt.Errorf("[DEBUG] Error setting vm_firmware error: %v", err)
+		}
+		log.Printf("[INFO][hyperv][read] vmFirmwares: %v", vmFirmwares)
+		log.Printf("[INFO][hyperv][read] flattenedVmFirmwares: %v", flattenedVmFirmwares)
+	} else {
+		log.Printf("[INFO][hyperv][read] skip vmFirmwares as vm generation is %v", vm.Generation)
+		log.Printf("[INFO][hyperv][read] skip flattenedVmFirmwares as vm generation is %v", vm.Generation)
 	}
-	log.Printf("[INFO][hyperv][read] vmFirmwares: %v", vmFirmwares)
-	log.Printf("[INFO][hyperv][read] flattenedVmFirmwares: %v", flattenedVmFirmwares)
 
 	flattenedVmProcessors := api.FlattenVmProcessors(&vmProcessors)
 	if err := data.Set("vm_processor", flattenedVmProcessors); err != nil {
@@ -895,6 +897,8 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		return fmt.Errorf("[ERROR][hyperv][update] name argument is required")
 	}
 
+	generation := (data.Get("generation")).(int)
+
 	if data.HasChange("automatic_critical_error_action") ||
 		data.HasChange("automatic_critical_error_action_timeout") ||
 		data.HasChange("automatic_start_action") ||
@@ -914,7 +918,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		data.HasChange("smart_paging_file_path") ||
 		data.HasChange("snapshot_file_location") ||
 		data.HasChange("static_memory") {
-		//generation := (d.Get("generation")).(int)
+
 		automaticCriticalErrorAction := api.ToCriticalErrorAction((data.Get("automatic_critical_error_action")).(string))
 		automaticCriticalErrorActionTimeout := int32((data.Get("automatic_critical_error_action_timeout")).(int))
 		automaticStartAction := api.ToStartAction((data.Get("automatic_start_action")).(string))
@@ -949,15 +953,17 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 	}
 
-	if data.HasChange("vm_firmware") {
-		vmFirmwares, err := api.ExpandVmFirmwares(data)
-		if err != nil {
-			return err
-		}
+	if generation > 1 {
+		if data.HasChange("vm_firmware") {
+			vmFirmwares, err := api.ExpandVmFirmwares(data)
+			if err != nil {
+				return err
+			}
 
-		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
-		if err != nil {
-			return err
+			err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+			if err != nil {
+				return err
+			}
 		}
 	}
 
