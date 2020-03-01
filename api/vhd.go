@@ -298,6 +298,7 @@ function Test-Uri {
 
 if (!(Test-Path -Path $vhd.Path)) {
     $pathDirectory = [System.IO.Path]::GetDirectoryName($vhd.Path)
+	$pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
 
     if (!(Test-Path $pathDirectory)) {
         New-Item -ItemType Directory -Force -Path $pathDirectory
@@ -315,7 +316,7 @@ if (!(Test-Path -Path $vhd.Path)) {
             Get-FileFromUri -Url $source -FolderPath $pathDirectory
         }
         else {
-            Copy-Item $source $pathDirectory -Force
+            Copy-Item $source "$pathDirectory\$pathFilename" -Force
         }
 
         Expand-Downloads -FolderPath $pathDirectory
