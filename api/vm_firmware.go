@@ -258,7 +258,6 @@ if ($vmFirmwareObject) {
 }
 `))
 
-
 func (c *HypervClient) GetVmFirmware(vmName string) (result vmFirmware, err error) {
 	err = c.runScriptWithResult(getVmFirmwareTemplate, getVmFirmwareArgs{
 		VmName: vmName,
