@@ -760,6 +760,7 @@ if ($vmNetworkAdapter.SwitchName) {
 	if ($vmSwitch) {
 		$minimumBandwidthMode = $vmSwitch.BandwidthReservationMode
 	}
+	$null = Get-VMNetworkAdapter -VmName '{{.VmName}}' -Name "$($vmNetworkAdapter.Name)" | Connect-VMNetworkAdapter -SwitchName "$($vmNetworkAdapter.SwitchName)"
 }
 
 $SetVmNetworkAdapterArgs = @{}
