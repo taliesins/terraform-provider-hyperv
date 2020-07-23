@@ -16,6 +16,19 @@ func resourceHyperVVhd() *schema.Resource {
 		Update: resourceHyperVVhdUpdate,
 		Delete: resourceHyperVVhdDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				// d.Id() here is the last argument passed to the `terraform import RESOURCE_TYPE.RESOURCE_NAME RESOURCE_ID` command
+				/*
+						The `resourceHyperVVhdRead` function appears to use
+					the `path` attribute to uniquely identify the vhd.  So
+					this just sets the value of the `path` attribute to the
+					supplied RESOURCE_ID.
+				*/
+				d.Set("path", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"path": {
 				Type:     schema.TypeString,
