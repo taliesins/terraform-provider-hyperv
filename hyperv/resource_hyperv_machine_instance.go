@@ -17,6 +17,19 @@ func resourceHyperVMachineInstance() *schema.Resource {
 		Update: resourceHyperVMachineInstanceUpdate,
 		Delete: resourceHyperVMachineInstanceDelete,
 
+		Importer: &schema.ResourceImporter{
+			State: func(d *schema.ResourceData, meta interface{}) ([]*schema.ResourceData, error) {
+				// d.Id() here is the last argument passed to the `terraform import RESOURCE_TYPE.RESOURCE_NAME RESOURCE_ID` command
+				/*
+						The `resourceHyperVMachineInstanceRead` function
+					appears to use the `name` attribute to uniquely identify
+					the VM.  So this just sets the value of the `name`
+					attribute to the supplied RESOURCE_ID.
+				*/
+				d.Set("name", d.Id())
+				return []*schema.ResourceData{d}, nil
+			},
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:     schema.TypeString,
