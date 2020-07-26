@@ -13,10 +13,8 @@ steps:
     command: 'get'
     arguments: '-d'
     workingDirectory: '$(System.DefaultWorkingDirectory)'
-- task: CMake@1
-  inputs:
-    workingDirectory: '$(System.DefaultWorkingDirectory)'
-    cmakeArgs: build
+- script :
+    make build
 - task: PublishBuildArtifacts@1
   inputs:
      artifactName: drop
