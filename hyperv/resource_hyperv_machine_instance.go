@@ -321,7 +321,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeString,
 							Optional: true,
 							Default:  "",
-							ForceNew: true,
+							ForceNew: false,
 						},
 						"management_os": {
 							Type:     schema.TypeBool,
