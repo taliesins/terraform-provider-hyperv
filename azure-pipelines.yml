@@ -1,0 +1,22 @@
+trigger:
+- master
+
+pool:
+  vmImage: 'windows-latest'
+
+steps:
+- task: GoTool@0
+  inputs:
+    version: '1.14.6'
+- task: Go@0
+  inputs:
+    command: 'get'
+    arguments: '-d'
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+- task: CMake@1
+  inputs:
+    workingDirectory: '$(System.DefaultWorkingDirectory)'
+    cmakeArgs: build
+- task: PublishBuildArtifacts@1
+  inputs:
+     artifactName: drop
