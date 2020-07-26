@@ -2,10 +2,11 @@ package hyperv
 
 import (
 	"fmt"
+	"log"
+
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
 	"github.com/taliesins/terraform-provider-hyperv/api"
-	"log"
 )
 
 const MaxUint32 = 4294967295
@@ -509,6 +510,16 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:     schema.TypeInt,
 							Optional: true,
 							Default:  16,
+						},
+						"vlan_access": {
+							Type:     schema.TypeBool,
+							Optional: true,
+							Default:  false,
+						},
+						"vlan_id": {
+							Type:     schema.TypeInt,
+							Optional: true,
+							Default:  0,
 						},
 						"wait_for_ips": {
 							Type:     schema.TypeBool,
