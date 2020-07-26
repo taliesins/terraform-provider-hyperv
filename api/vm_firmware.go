@@ -243,7 +243,7 @@ var getVmFirmwareTemplate = template.Must(template.New("GetVmFirmware").Parse(`
 $ErrorActionPreference = 'Stop'
 
 $vmFirmwareObject = Get-VMFirmware -VMName '{{.VmName}}' | %{ @{
-	EnableSecureBoot=             $_.EnableSecureBoot
+	EnableSecureBoot=             $_.SecureBoot
 	SecureBootTemplate=           $_.SecureBootTemplate
 	PreferredNetworkBootProtocol= $_.PreferredNetworkBootProtocol
 	ConsoleMode=                  $_.ConsoleMode
@@ -257,7 +257,6 @@ if ($vmFirmwareObject) {
 	"{}"
 }
 `))
-
 
 func (c *HypervClient) GetVmFirmware(vmName string) (result vmFirmware, err error) {
 	err = c.runScriptWithResult(getVmFirmwareTemplate, getVmFirmwareArgs{
