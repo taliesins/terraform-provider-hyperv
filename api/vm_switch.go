@@ -150,7 +150,7 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterNames = @($vmSwitch.$NetAdapterNames)
+$NetAdapterNames = @($vmSwitch.NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
 $switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
@@ -289,7 +289,7 @@ Get-Vm | Out-Null
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterNames = @($vmSwitch.$NetAdapterNames)
+$NetAdapterNames = @($vmSwitch.NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
 $switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
