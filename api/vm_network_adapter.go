@@ -4,10 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 type PortMirroring int
@@ -199,6 +200,8 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 				VrssEnabled:                            networkAdapter["vrss_enabled"].(bool),
 				VmmqEnabled:                            networkAdapter["vmmq_enabled"].(bool),
 				VmmqQueuePairs:                         networkAdapter["vmmq_queue_pairs"].(int),
+				VlanAccess:                             networkAdapter["vlan_access"].(bool),
+				VlanId:                                 networkAdapter["vlan_id"].(int),
 				WaitForIps:                             networkAdapter["wait_for_ips"].(bool),
 				IpAddresses:                            ipAddresses,
 			}
@@ -263,6 +266,8 @@ func FlattenNetworkAdapters(networkAdapters *[]vmNetworkAdapter) []interface{} {
 			flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
 			flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
 			flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+			flattenedNetworkAdapter["vlan_access"] = networkAdapter.VlanAccess
+			flattenedNetworkAdapter["vlan_id"] = networkAdapter.VlanId
 			flattenedNetworkAdapter["wait_for_ips"] = networkAdapter.WaitForIps
 			flattenedNetworkAdapter["ip_addresses"] = networkAdapter.IpAddresses
 
@@ -317,6 +322,8 @@ type vmNetworkAdapter struct {
 	VrssEnabled                            bool
 	VmmqEnabled                            bool
 	VmmqQueuePairs                         int
+	VlanAccess                             bool
+	VlanId                                 int
 	WaitForIps                             bool
 	IpAddresses                            []string
 }
@@ -406,6 +413,17 @@ $SetVmNetworkAdapterArgs.VmmqQueuePairs=$vmNetworkAdapter.VmmqQueuePairs
 
 Set-VmNetworkAdapter @SetVmNetworkAdapterArgs
 
+if ($vmNetworkAdapter.VlanAccess -and $vmNetworkAdapter.VlanId) {
+	$SetVmNetworkAdapterVlanArgs = @{}
+
+	$SetVmNetworkAdapterVlanArgs.VMName  = $vmNetworkAdapter.VmName
+	$SetVmNetworkAdapterVlanArgs.VMNetworkAdapterName   = $vmNetworkAdapter.Name
+	$SetVmNetworkAdapterVlanArgs.Access = $true
+	$SetVmNetworkAdapterVlanArgs.VlanId = $vmNetworkAdapter.VlanId
+
+	Set-VmNetworkAdapterVlan @SetVmNetworkAdapterVlanArgs
+}
+
 `))
 
 func (c *HypervClient) CreateVmNetworkAdapter(
@@ -446,6 +464,8 @@ func (c *HypervClient) CreateVmNetworkAdapter(
 	vrssEnabled bool,
 	vmmqEnabled bool,
 	vmmqQueuePairs int,
+	vlanAccess bool,
+	vlanId int,
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
@@ -486,6 +506,8 @@ func (c *HypervClient) CreateVmNetworkAdapter(
 		VrssEnabled:                            vrssEnabled,
 		VmmqEnabled:                            vmmqEnabled,
 		VmmqQueuePairs:                         vmmqQueuePairs,
+		VlanAccess:                             vlanAccess,
+		VlanId:                                 vlanId,
 	})
 
 	err = c.runFireAndForgetScript(createVmNetworkAdapterTemplate, createVmNetworkAdapterArgs{
@@ -543,7 +565,9 @@ $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}' | %{ @{
      VrssEnabled=$_.VrssEnabledRequested;
      VmmqEnabled=$_.VmmqEnabledRequested;
      VmmqQueuePairs=$_.VmmqQueuePairsRequested;
-     IpAddresses=@($_.IpAddresses);
+	 IpAddresses=@($_.IpAddresses);
+	 VlanAccess=if ($_.VLanSetting.OperationMode -eq 'Access') {$true} else {$false};
+	 VlanId=$_.VLanSetting.AccessVlanId;
 }})
 
 if ($vmNetworkAdaptersObject) {
@@ -760,6 +784,7 @@ if ($vmNetworkAdapter.SwitchName) {
 	if ($vmSwitch) {
 		$minimumBandwidthMode = $vmSwitch.BandwidthReservationMode
 	}
+	$null = Get-VMNetworkAdapter -VmName '{{.VmName}}' -Name "$($vmNetworkAdapter.Name)" | Connect-VMNetworkAdapter -SwitchName "$($vmNetworkAdapter.SwitchName)"
 }
 
 $SetVmNetworkAdapterArgs = @{}
@@ -811,6 +836,17 @@ $SetVmNetworkAdapterArgs.VmmqQueuePairs=$vmNetworkAdapter.VmmqQueuePairs
 
 Set-VmNetworkAdapter @SetVmNetworkAdapterArgs
 
+if ($vmNetworkAdapter.VlanAccess -and $vmNetworkAdapter.VlanId) {
+	$SetVmNetworkAdapterVlanArgs = @{}
+
+	$SetVmNetworkAdapterVlanArgs.VMName = $vmNetworkAdapter.VmName
+	$SetVmNetworkAdapterVlanArgs.VMNetworkAdapterName = $vmNetworkAdapter.Name
+	$SetVmNetworkAdapterVlanArgs.Access = $true
+	$SetVmNetworkAdapterVlanArgs.VlanId = $vmNetworkAdapter.VlanId
+
+	Set-VmNetworkAdapterVlan @SetVmNetworkAdapterVlanArgs
+}
+
 `))
 
 func (c *HypervClient) UpdateVmNetworkAdapter(
@@ -852,6 +888,8 @@ func (c *HypervClient) UpdateVmNetworkAdapter(
 	vrssEnabled bool,
 	vmmqEnabled bool,
 	vmmqQueuePairs int,
+	vlanAccess bool,
+	vlanId int,
 ) (err error) {
 
 	vmNetworkAdapterJson, err := json.Marshal(vmNetworkAdapter{
@@ -893,6 +931,8 @@ func (c *HypervClient) UpdateVmNetworkAdapter(
 		VrssEnabled:                            vrssEnabled,
 		VmmqEnabled:                            vmmqEnabled,
 		VmmqQueuePairs:                         vmmqQueuePairs,
+		VlanAccess:                             vlanAccess,
+		VlanId:                                 vlanId,
 	})
 
 	err = c.runFireAndForgetScript(updateVmNetworkAdapterTemplate, updateVmNetworkAdapterArgs{
@@ -990,6 +1030,8 @@ func (c *HypervClient) CreateOrUpdateVmNetworkAdapters(vmName string, networkAda
 			networkAdapter.VrssEnabled,
 			networkAdapter.VmmqEnabled,
 			networkAdapter.VmmqQueuePairs,
+			networkAdapter.VlanAccess,
+			networkAdapter.VlanId,
 		)
 		if err != nil {
 			return err
@@ -1036,6 +1078,8 @@ func (c *HypervClient) CreateOrUpdateVmNetworkAdapters(vmName string, networkAda
 			networkAdapter.VrssEnabled,
 			networkAdapter.VmmqEnabled,
 			networkAdapter.VmmqQueuePairs,
+			networkAdapter.VlanAccess,
+			networkAdapter.VlanId,
 		)
 
 		if err != nil {
