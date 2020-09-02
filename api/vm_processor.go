@@ -123,7 +123,7 @@ type createOrUpdateVmProcessorArgs struct {
 
 var createOrUpdateVmProcessorTemplate = template.Must(template.New("CreateOrUpdateVmProcessor").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmProcessor = '{{.VmProcessorJson}}' | ConvertFrom-Json
 
 $SetVMProcessorArgs = @{}

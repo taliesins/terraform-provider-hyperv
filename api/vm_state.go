@@ -153,7 +153,7 @@ var getVmStateTemplate = template.Must(template.New("GetVmState").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmName = '{{.VmName}}'
 
-$vmStateObject = Get-VM | ?{$_.Name -eq $vmName } | %{ @{
+$vmStateObject = Get-VM -Name $vmName -ErrorAction SilentlyContinue | %{ @{
 	State=$_.State;
 }}
 
@@ -241,11 +241,11 @@ function Wait-IsInFinalTransitionState($Name, $Timeout, $PollPeriod){
 	} 
 }
 
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vm = '{{.VmStateJson}}' | ConvertFrom-Json
 $vmName = '{{.VmName}}'
 $state = [Microsoft.HyperV.PowerShell.VMState]$vm.State
-$vmObject = Get-VM | ?{$_.Name -eq $vmName}
+$vmObject = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 $timeout = {{.Timeout}}
 $pollPeriod = {{.PollPeriod}}
 
@@ -260,7 +260,7 @@ if ($vmObject.State -ne $state) {
 
     Wait-IsInFinalTransitionState -Name $vmName -Timeout $timeout -PollPeriod $pollPeriod
 
-    $vmObject = Get-VM | ?{$_.Name -eq $vmName}
+    $vmObject = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 
     if ($vmObject.State -eq $state) {
     } elseif ($state -eq [Microsoft.HyperV.PowerShell.VMState]::Running) {

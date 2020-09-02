@@ -146,14 +146,14 @@ type createVMSwitchArgs struct {
 
 var createVMSwitchTemplate = template.Must(template.New("CreateVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
 $NetAdapterNames = @($vmSwitch.NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
-$switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
+$switchObject = Get-VMSwitch -Name $vmSwitch.Name -ErrorAction SilentlyContinue
 
 if ($switchObject){
 	throw "Switch already exists - $($vmSwitch.Name)"
@@ -176,7 +176,7 @@ if ($NetAdapterNames) {
 }
 New-VMSwitch @NewVmSwitchArgs
 
-$switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
+$switchObject = Get-VMSwitch -Name $vmSwitch.Name -ErrorAction SilentlyContinue
 
 if (!$switchObject){
 	throw "Switch does not exist - $($vmSwitch.Name)"
@@ -246,7 +246,7 @@ type getVMSwitchArgs struct {
 
 var getVMSwitchTemplate = template.Must(template.New("GetVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmSwitchObject = Get-VMSwitch | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmSwitchObject = Get-VMSwitch -Name '{{.Name}}' -ErrorAction SilentlyContinue | %{ @{
 	Name=$_.Name;
 	Notes=$_.Notes;
 	AllowManagementOS=$_.AllowManagementOS;
@@ -285,14 +285,14 @@ type updateVMSwitchArgs struct {
 
 var updateVMSwitchTemplate = template.Must(template.New("UpdateVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
 $NetAdapterNames = @($vmSwitch.NetAdapterNames)
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
-$switchObject = Get-VMSwitch | ?{$_.Name -eq $vmSwitch.Name}
+$switchObject = Get-VMSwitch -Name $vmSwitch.Name -ErrorAction SilentlyContinue
 
 if (!$switchObject){
 	throw "Switch does not exist - $($vmSwitch.Name)"
@@ -381,7 +381,7 @@ type deleteVMSwitchArgs struct {
 
 var deleteVMSwitchTemplate = template.Must(template.New("DeleteVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-VMSwitch | ?{$_.Name -eq '{{.Name}}'} | Remove-VMSwitch -Force
+Get-VMSwitch -Name '{{.Name}}' -ErrorAction SilentlyContinue | Remove-VMSwitch -Force
 `))
 
 func (c *HypervClient) DeleteVMSwitch(name string) (err error) {

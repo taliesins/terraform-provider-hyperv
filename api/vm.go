@@ -313,7 +313,7 @@ type createVmArgs struct {
 
 var createVmTemplate = template.Must(template.New("CreateVm").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vm = '{{.VmJson}}' | ConvertFrom-Json
 $automaticCriticalErrorAction = [Microsoft.HyperV.PowerShell.CriticalErrorAction]$vm.AutomaticCriticalErrorAction
 $automaticStartAction = [Microsoft.HyperV.PowerShell.StartAction]$vm.AutomaticStartAction
@@ -322,7 +322,7 @@ $checkpointType = [Microsoft.HyperV.PowerShell.CheckpointType]$vm.CheckpointType
 $lockOnDisconnect = [Microsoft.HyperV.PowerShell.OnOffState]$vm.LockOnDisconnect
 $allowUnverifiedPaths = $true #Not a property set on the vm object, skips validation when changing path
 
-$vmObject = Get-VM | ?{$_.Name -eq $vm.Name}
+$vmObject = Get-VM -Name $vm.Name -ErrorAction SilentlyContinue
 
 if ($vmObject){
 	throw "VM already exists - $($vm.Name)"
@@ -444,7 +444,7 @@ type getVmArgs struct {
 
 var getVmTemplate = template.Must(template.New("GetVm").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmObject = Get-VM | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmObject = Get-VM -Name '{{.Name}}' -ErrorAction SilentlyContinue | %{ @{
 	Name=$_.Name;
 	Generation=$_.Generation;
 	AutomaticCriticalErrorAction=$_.AutomaticCriticalErrorAction;
@@ -490,7 +490,7 @@ type updateVmArgs struct {
 
 var updateVmTemplate = template.Must(template.New("UpdateVm").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vm = '{{.VmJson}}' | ConvertFrom-Json
 $automaticCriticalErrorAction = [Microsoft.HyperV.PowerShell.CriticalErrorAction]$vm.AutomaticCriticalErrorAction
 $automaticStartAction = [Microsoft.HyperV.PowerShell.StartAction]$vm.AutomaticStartAction
@@ -498,7 +498,7 @@ $automaticStopAction = [Microsoft.HyperV.PowerShell.StopAction]$vm.AutomaticStop
 $checkpointType = [Microsoft.HyperV.PowerShell.CheckpointType]$vm.CheckpointType
 $lockOnDisconnect = [Microsoft.HyperV.PowerShell.OnOffState]$vm.LockOnDisconnect
 $allowUnverifiedPaths = $true #Not a property set on the vm object, skips validation when changing path
-$vmObject = Get-VM | ?{$_.Name -eq $vm.Name}
+$vmObject = Get-VM -Name $vm.Name -ErrorAction SilentlyContinue
 
 if (!$vmObject){
 	throw "VM does not exist - $($vm.Name)"
@@ -604,7 +604,7 @@ type deleteVmArgs struct {
 
 var deleteVmTemplate = template.Must(template.New("DeleteVm").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-VM | ?{$_.Name -eq '{{.Name}}'} | Remove-VM -force
+Get-VM -Name '{{.Name}}' -ErrorAction SilentlyContinue | Remove-VM -force
 `))
 
 func (c *HypervClient) DeleteVm(name string) (err error) {

@@ -196,7 +196,7 @@ type createOrUpdateVmFirmwareArgs struct {
 
 var createOrUpdateVmFirmwareTemplate = template.Must(template.New("CreateOrUpdateVmFirmware").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmFirmware = '{{.VmFirmwareJson}}' | ConvertFrom-Json
 
 $SetVMFirmwareArgs = @{}

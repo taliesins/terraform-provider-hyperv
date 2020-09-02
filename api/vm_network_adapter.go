@@ -334,7 +334,7 @@ type createVmNetworkAdapterArgs struct {
 
 var createVmNetworkAdapterTemplate = template.Must(template.New("CreateVmNetworkAdapter").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmNetworkAdapter = '{{.VmNetworkAdapterJson}}' | ConvertFrom-Json
 
 $dhcpGuard = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DhcpGuard
@@ -657,7 +657,7 @@ function Test-IsNotInFinalTransitionState($State){
 function Wait-ForNetworkAdapterIps($Name, $Timeout, $PollPeriod, $VmNetworkAdaptersToWaitForIps){
 	$timer = [Diagnostics.Stopwatch]::StartNew()
 	while ($timer.Elapsed.TotalSeconds -lt $Timeout) {
-        $vmObject = Get-VM | ?{$_.Name -eq $vmName}
+        $vmObject = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 
         if (!(Test-IsNotInFinalTransitionState $vmObject.state)){
             if (Test-CanGetIpsForState $vmObject.state) {
@@ -689,10 +689,10 @@ function Wait-ForNetworkAdapterIps($Name, $Timeout, $PollPeriod, $VmNetworkAdapt
 	} 
 }
 
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmNetworkAdaptersToWaitForIps = '{{.VmNetworkAdaptersWaitForIpsJson}}' | ConvertFrom-Json
 $vmName = '{{.VmName}}'
-$vmObject = Get-VM | ?{$_.Name -eq $vmName}
+$vmObject = Get-VM -Name $vmName -ErrorAction SilentlyContinue
 $timeout = {{.Timeout}}
 $pollPeriod = {{.PollPeriod}}
 

@@ -64,7 +64,7 @@ type createVmDvdDriveArgs struct {
 
 var createVmDvdDriveTemplate = template.Must(template.New("CreateVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
 if (!$vmDvdDrive.Path){
 	$vmDvdDrive.Path = $null
@@ -146,7 +146,7 @@ type updateVmDvdDriveArgs struct {
 
 var updateVmDvdDriveTemplate = template.Must(template.New("UpdateVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
 
 $vmDvdDrivesObject = @(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
