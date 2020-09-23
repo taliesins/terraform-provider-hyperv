@@ -96,7 +96,7 @@ jobs:
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - 
       name: go build
-      run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/windows_amd64/terraform-provider-hyperv_v99.99.99.exe
+      run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/linux_amd64/terraform-provider-hyperv_v99.99.99
 
   terraform_providers_schema:
     name: terraform providers schema
