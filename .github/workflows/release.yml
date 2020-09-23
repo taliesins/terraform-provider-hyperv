@@ -47,13 +47,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    # -
-    #   name: Unshallow
-    #   run: git fetch --prune --unshallow
-    - uses: actions/setup-go@v2
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - uses: actions/cache@v2
+    - name: Cache cache-go-pkg-mod
+      uses: actions/cache@v2
       continue-on-error: true
       id: cache-go-pkg-mod
       timeout-minutes: 2
@@ -61,6 +56,11 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      name: go mod download
       run: go mod download
 
   go_build:
@@ -69,7 +69,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
+    - name: Cache cache-terraform-plugin-dir
+      uses: actions/cache@v2
       continue-on-error: true
       id: cache-terraform-plugin-dir
       timeout-minutes: 2
@@ -104,7 +105,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v2
-    - uses: actions/cache@v2
+    - name: Cache cache-terraform-providers-schema
+      uses: actions/cache@v2
       continue-on-error: true
       id: cache-terraform-providers-schema
       timeout-minutes: 2
@@ -249,6 +251,7 @@ jobs:
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
     - name: tfproviderdocs check
       run: |
+        ls -aR
         tfproviderdocs check \
           -allowed-resource-subcategories-file website/allowed-subcategories.txt \
           -provider-name hyperv \
