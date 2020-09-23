@@ -5,12 +5,13 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	pool "github.com/jolestar/go-commons-pool/v2"
-	"github.com/masterzen/winrm"
-	"github.com/taliesins/terraform-provider-hyperv/powershell"
 	"log"
 	"strings"
 	"text/template"
+
+	pool "github.com/jolestar/go-commons-pool/v2"
+	"github.com/masterzen/winrm"
+	"github.com/taliesins/terraform-provider-hyperv/powershell"
 )
 
 type HypervClient struct {
@@ -28,7 +29,7 @@ func (c *HypervClient) runFireAndForgetScript(script *template.Template, args in
 		return err
 	}
 
-	command := string(scriptRendered.Bytes())
+	command := scriptRendered.String()
 
 	ctx := context.Background()
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
@@ -62,7 +63,7 @@ func (c *HypervClient) runScriptWithResult(script *template.Template, args inter
 		return err
 	}
 
-	command := string(scriptRendered.Bytes())
+	command := scriptRendered.String()
 
 	ctx := context.Background()
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)

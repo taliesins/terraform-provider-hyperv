@@ -3,10 +3,11 @@ package api
 import (
 	"bytes"
 	"encoding/json"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type VmState int
@@ -305,6 +306,10 @@ func (c *HypervClient) UpdateVmState(
 	vmStateJson, err := json.Marshal(vmState{
 		State: state,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVmStateTemplate, updateVmStateArgs{
 		VmName:      vmName,

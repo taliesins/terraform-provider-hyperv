@@ -233,6 +233,10 @@ func (c *HypervClient) CreateVMSwitch(
 		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	err = c.runFireAndForgetScript(createVMSwitchTemplate, createVMSwitchArgs{
 		VmSwitchJson: string(vmSwitchJson),
 	})
@@ -367,6 +371,10 @@ func (c *HypervClient) UpdateVMSwitch(
 		DefaultQueueVmmqQueuePairs:          defaultQueueVmmqQueuePairs,
 		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVMSwitchTemplate, updateVMSwitchArgs{
 		VmSwitchJson: string(vmSwitchJson),

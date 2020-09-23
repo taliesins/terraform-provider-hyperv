@@ -431,6 +431,10 @@ func (c *HypervClient) CreateVm(
 		StaticMemory:                        staticMemory,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	err = c.runFireAndForgetScript(createVmTemplate, createVmArgs{
 		VmJson: string(vmJson),
 	})
@@ -590,6 +594,10 @@ func (c *HypervClient) UpdateVm(
 		SnapshotFileLocation:                snapshotFileLocation,
 		StaticMemory:                        staticMemory,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVmTemplate, updateVmArgs{
 		VmJson: string(vmJson),
