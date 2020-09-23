@@ -14,7 +14,6 @@ on:
   push:
     branches:
       - master
-      - 'release/**'
   pull_request:
     paths:
       - .github/workflows/release.yml
@@ -33,10 +32,10 @@ on:
       - main.go
       - staticcheck.conf
       - website/**
+  tags:
+    - 'v*'
   release:
-    types:
-      - created
-
+    types: [created]
 env:
   GO_VERSION: "1.15"
   GO111MODULE: on
