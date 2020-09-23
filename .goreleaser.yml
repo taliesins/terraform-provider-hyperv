@@ -34,7 +34,7 @@ signs:
       - "--detach-sign"
       - "${artifact}"
 release:
-  draft: true
+  draft: false #To create a tag off a github release it must not be a draft, setting it to draft will result in another release
 changelog:
   skip: false
   sort: desc
