@@ -12,36 +12,306 @@
 name: release
 on:
   push:
-    tags:
-      - 'v*'
+    branches:
+      - master
+      - 'release/**'
+  pull_request:
+    paths:
+      - .github/workflows/release.yml
+      - .golangci.yml
+      - .goreleaser.yml
+      - .semgrep.yml
+      - hyperv/**
+      - api/**
+      - powershell/**
+      - docs/index.md
+      - docs/data-sources/**
+      - docs/guides/**
+      - docs/resources/**
+      - go.sum
+      - GNUmakefile
+      - main.go
+      - staticcheck.conf
+      - website/**
+
+env:
+  GO_VERSION: "1.14"
+  GO111MODULE: on
+  TERRAFORM_VERSION: "0.12.25"
+  TEST_TIME_OUT: "120s"
+  RELEASE_TIME_OUT: "30m"
+
 jobs:
-  goreleaser:
+  go_mod_download:
+    name: go mod download
     runs-on: ubuntu-latest
     steps:
-      -
-        name: Checkout
-        uses: actions/checkout@v2
-      -
-        name: Unshallow
-        run: git fetch --prune --unshallow
-      -
-        name: Set up Go
-        uses: actions/setup-go@v2
+    - uses: actions/checkout@v2
+    # -
+    #   name: Unshallow
+    #   run: git fetch --prune --unshallow
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-go-pkg-mod
+      timeout-minutes: 2
+      with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      run: go mod download
+
+  go_build:
+    name: go build
+    needs: [go_mod_download]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-terraform-plugin-dir
+      timeout-minutes: 2
+      with:
+        path: terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/cache@v2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      uses: actions/cache@v2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+      name: go build
+      run: go build -o terraform-plugin-dir/terraform-provider-hyperv_v99.99.99_x4 
+
+  terraform_providers_schema:
+    name: terraform providers schema
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/cache@v2
+      continue-on-error: true
+      id: cache-terraform-providers-schema
+      timeout-minutes: 2
+      with:
+        path: terraform-providers-schema
+        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      uses: actions/cache@v2
+      timeout-minutes: 2
+      with:
+        path: terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      uses: hashicorp/setup-terraform@v1
+      with:
+        terraform_version: ${{ env.TERRAFORM_VERSION }}
+        terraform_wrapper: false
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      name: terraform init
+      run: |
+        # We need a file to initialize the provider
+        echo 'resource "hyperv_network_switch" "dmz_network_switch" {name = "dmz"}' > example.tf
+        terraform init -plugin-dir terraform-plugin-dir
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+      name: terraform providers schema
+      run: |
+        mkdir terraform-providers-schema
+        terraform providers schema -json > terraform-providers-schema/schema.json
+
+  go_generate:
+    name: go generate
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go generate ./...
+    - name: Check for Git Differences
+      run: |
+        git diff --compact-summary --exit-code || \
+          (echo; echo "Unexpected difference in directories after code generation. Run 'make gen' command and commit."; exit 1)
+
+  go_test:
+    name: go test
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go test ./... -timeout=${{ env.TEST_TIME_OUT }}
+
+  golangci-lint:
+    needs: [go_build]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - name: go env
+      run: |
+        echo "::set-env name=GOCACHE::$(go env GOCACHE)"
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ${{ env.GOCACHE }}
+        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
+    - run: golangci-lint run ./hyperv/...
+    - run: golangci-lint run ./api/...
+    - run: golangci-lint run ./powershell/...
+
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+      with:
+       fetch-depth: 0
+    - name: semgrep
+      uses: returntocorp/semgrep-action@v1
+
+  tfproviderdocs:
+    needs: [terraform_providers_schema]
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v2
+    - uses: actions/setup-go@v2
+      with:
+        go-version: ${{ env.GO_VERSION }}
+    - uses: actions/cache@v2
+      continue-on-error: true
+      timeout-minutes: 2
+      with:
+        path: ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go install github.com/bflad/tfproviderdocs
+    - uses: actions/cache@v2
+      timeout-minutes: 2
+      with:
+        path: terraform-providers-schema
+        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - name: tfproviderdocs check
+      run: |
+        tfproviderdocs check \
+          -allowed-resource-subcategories-file website/allowed-subcategories.txt \
+          -provider-name hyperv \
+          -providers-schema-json terraform-providers-schema/schema.json \
+          -require-resource-subcategory
+
+  goreleaser:
+    needs: [go_mod_download]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - uses: actions/setup-go@v2
         with:
-          go-version: 1.14
-      -
-        name: Import GPG key
-        id: import_gpg
-        uses: paultyng/ghaction-import-gpg@v2.1.0
-        env:
-          GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
-          PASSPHRASE: ${{ secrets.PASSPHRASE }}
-      -
-        name: Run GoReleaser
+          go-version: ${{ env.GO_VERSION }}
+      - uses: actions/cache@v2
+        continue-on-error: true
+        timeout-minutes: 2
+        with:
+          path: ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+      - name: goreleaser check
+        continue-on-error: true
         uses: goreleaser/goreleaser-action@v2
         with:
+          args: check
+      - name: Import GPG key
+        id: import_gpg
+        uses: crazy-max/ghaction-import-gpg@v3
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
+          gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
+          #passphrase: ${{ secrets.PASSPHRASE }}
+      - name: goreleaser release
+        uses: goreleaser/goreleaser-action@v2
+        if: startsWith(github.ref, 'refs/tags/v')
+        with:
           version: latest
-          args: release --rm-dist
+          args: release --rm-dist --timeout ${{ env.RELEASE_TIME_OUT }}
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: goreleaser snapshot
+        uses: goreleaser/goreleaser-action@v2
+        if: not(startsWith(github.ref, 'refs/tags/v'))
+        with:
+          args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }}
+      - name: snapshot artifact naming
+        id: naming
+        if: not(startsWith(github.ref, 'refs/tags/v'))
+        run: |
+          case $GITHUB_REF in
+          refs/heads/*)
+            ARTIFACT="${GITHUB_REF#refs/heads/}";;
+          refs/pull/*)
+            ARTIFACT="pr-${GITHUB_REF#refs/pull/}"
+            ARTIFACT="${ARTIFACT%/merge}";;
+          *)
+            ARTIFACT="${GITHUB_REF}";;
+          esac
+          echo "::set-output name=artifact::$ARTIFACT-$(date -u +'%Y-%m-%dT%H-%M')"
+      - name: upload snapshot artifact
+      - uses: actions/upload-artifact@v2
+        if: not(startsWith(github.ref, 'refs/tags/v'))
+        with:
+          name: ${{steps.naming.outputs.artifact}}
+          path: dist/*.zip
