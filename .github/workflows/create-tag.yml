@@ -15,3 +15,4 @@ jobs:
         uses: mathieudutour/github-tag-action@v4.5
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
+          create_annotated_tag: true
