@@ -1,7 +1,7 @@
 ---
+subcategory: "VHD"
 layout: "hyperv"
 page_title: "HyperV: hyperv_vhd"
-sidebar_current: "docs-hyperv-resource-vhd"
 description: |-
   Creates and manages vhd/vhdx/vhds.
 ---
