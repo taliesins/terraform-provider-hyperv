@@ -94,7 +94,7 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - 
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go build
       run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/linux_amd64/terraform-provider-hyperv_v99.99.99
 
