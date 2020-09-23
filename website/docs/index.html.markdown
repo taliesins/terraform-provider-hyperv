@@ -1,7 +1,6 @@
 ---
 layout: "hyperv"
 page_title: "Provider: HyperV"
-sidebar_current: "docs-hyperv-index"
 description: |-
   The HyperV provider is used to interact with the many resources supported by HyperV. The provider needs to be configured with credentials for the HyperV API.
 ---

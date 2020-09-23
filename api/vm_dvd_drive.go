@@ -3,8 +3,9 @@ package api
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"text/template"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func ExpandDvdDrives(d *schema.ResourceData) ([]vmDvdDrive, error) {
@@ -96,6 +97,10 @@ func (c *HypervClient) CreateVmDvdDrive(
 		Path:               path,
 		ResourcePoolName:   resourcePoolName,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(createVmDvdDriveTemplate, createVmDvdDriveArgs{
 		VmDvdDriveJson: string(vmDvdDriveJson),
@@ -190,6 +195,10 @@ func (c *HypervClient) UpdateVmDvdDrive(
 		Path:               path,
 		ResourcePoolName:   resourcePoolName,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVmDvdDriveTemplate, updateVmDvdDriveArgs{
 		VmName:             vmName,

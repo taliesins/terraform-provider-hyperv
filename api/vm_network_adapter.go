@@ -8,7 +8,7 @@ import (
 	"strings"
 	"text/template"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type PortMirroring int
@@ -215,10 +215,9 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]vmNetworkAdapter, error) {
 
 func FlattenMandatoryFeatureIds(mandatoryFeatureIdStrings []string) *schema.Set {
 	var mandatoryFeatureIds []interface{}
-	if mandatoryFeatureIdStrings != nil {
-		for _, mandatoryFeatureId := range mandatoryFeatureIdStrings {
-			mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId)
-		}
+
+	for _, mandatoryFeatureId := range mandatoryFeatureIdStrings {
+		mandatoryFeatureIds = append(mandatoryFeatureIds, mandatoryFeatureId)
 	}
 
 	return schema.NewSet(schema.HashString, mandatoryFeatureIds)
@@ -510,6 +509,10 @@ func (c *HypervClient) CreateVmNetworkAdapter(
 		VlanId:                                 vlanId,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	err = c.runFireAndForgetScript(createVmNetworkAdapterTemplate, createVmNetworkAdapterArgs{
 		VmNetworkAdapterJson: string(vmNetworkAdapterJson),
 	})
@@ -712,6 +715,10 @@ func (c *HypervClient) WaitForVmNetworkAdaptersIps(
 ) (err error) {
 
 	vmNetworkAdaptersWaitForIpsJson, err := json.Marshal(vmNetworkAdaptersWaitForIps)
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(waitForVmNetworkAdaptersIpsTemplate, waitForVmNetworkAdaptersIpsArgs{
 		VmName:                          vmName,
@@ -934,6 +941,10 @@ func (c *HypervClient) UpdateVmNetworkAdapter(
 		VlanAccess:                             vlanAccess,
 		VlanId:                                 vlanId,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVmNetworkAdapterTemplate, updateVmNetworkAdapterArgs{
 		VmName:               vmName,

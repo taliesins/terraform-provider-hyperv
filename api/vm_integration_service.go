@@ -1,15 +1,16 @@
 package api
 
 import (
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DefaultVmIntegrationServices() (interface{}, error) {
-	flattenedIntegrationServices := make(map[string]interface{}, 0)
+	flattenedIntegrationServices := make(map[string]interface{})
 
 	flattenedIntegrationServices["VSS"] = true
 	flattenedIntegrationServices["Shutdown"] = true
@@ -21,7 +22,7 @@ func DefaultVmIntegrationServices() (interface{}, error) {
 	return flattenedIntegrationServices, nil
 }
 
-func getDefaultValueForVmIntegrationService(integrationServiceKey string, d *schema.ResourceData) bool {
+func getDefaultValueForVmIntegrationService(integrationServiceKey string, _ *schema.ResourceData) bool {
 	v, _ := DefaultVmIntegrationServices()
 	integrationServices := v.(map[string]interface{})
 	if integrationServiceValueInterface, found := integrationServices[integrationServiceKey]; found {
@@ -101,7 +102,7 @@ func ExpandIntegrationServices(d *schema.ResourceData) ([]vmIntegrationService, 
 }
 
 func FlattenIntegrationServices(integrationServices *[]vmIntegrationService) map[string]interface{} {
-	flattenedIntegrationServices := make(map[string]interface{}, 0)
+	flattenedIntegrationServices := make(map[string]interface{})
 
 	if integrationServices != nil {
 		for _, integrationService := range *integrationServices {

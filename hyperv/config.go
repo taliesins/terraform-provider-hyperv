@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/dylanmei/iso8601"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	pool "github.com/jolestar/go-commons-pool/v2"
 	"github.com/masterzen/winrm"
 	"github.com/taliesins/terraform-provider-hyperv/api"
