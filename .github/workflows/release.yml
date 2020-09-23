@@ -76,25 +76,25 @@ jobs:
       with:
         path: terraform-plugin-dir
         key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - 
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - 
       name: go env
       run: |
         echo "::set-env name=GOCACHE::$(go env GOCACHE)"
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - 
       uses: actions/cache@v2
       with:
         path: ${{ env.GOCACHE }}
         key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - 
       uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
         key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - 
       name: go build
       run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/linux_amd64/terraform-provider-hyperv_v99.99.99
 
@@ -127,6 +127,7 @@ jobs:
       run: |
         # We need a file to initialize the provider
         echo 'resource "hyperv_network_switch" "dmz_network_switch" {name = "dmz"}' > example.tf
+        ls -LR
         terraform init -plugin-dir terraform-plugin-dir
     - 
       name: terraform providers schema
