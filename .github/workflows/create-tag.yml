@@ -14,5 +14,5 @@ jobs:
       - name: Bump version and push tag
         uses: mathieudutour/github-tag-action@v4.5
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          github_token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           create_annotated_tag: true
