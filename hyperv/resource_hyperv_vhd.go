@@ -120,8 +120,6 @@ func resourceHyperVVhd() *schema.Resource {
 	}
 }
 
-
-
 func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
 	path := diff.Get("path").(string)
 

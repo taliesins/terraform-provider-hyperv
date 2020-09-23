@@ -150,7 +150,7 @@ func Provider() *schema.Provider {
 
 func providerConfigure(p *schema.Provider) schema.ConfigureFunc {
 	return func(d *schema.ResourceData) (interface{}, error) {
-		var err error = nil
+		var err error
 		var cacert []byte = nil
 		cacertPath := d.Get("cacert_path").(string)
 		if cacertPath != "" {
