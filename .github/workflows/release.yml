@@ -59,7 +59,7 @@ jobs:
       timeout-minutes: 2
       with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+          key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
       run: go mod download
 
@@ -75,26 +75,26 @@ jobs:
       timeout-minutes: 2
       with:
         path: terraform-plugin-dir
-        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - 
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/setup-go@v2
       with:
         go-version: ${{ env.GO_VERSION }}
-    - 
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go env
       run: |
         echo "::set-env name=GOCACHE::$(go env GOCACHE)"
-    - 
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/cache@v2
       with:
         path: ${{ env.GOCACHE }}
-        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - 
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/cache@v2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - 
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go build
       run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/linux_amd64/terraform-provider-hyperv_v99.99.99
 
@@ -110,26 +110,25 @@ jobs:
       timeout-minutes: 2
       with:
         path: terraform-providers-schema
-        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - 
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
       uses: actions/cache@v2
       timeout-minutes: 2
       with:
         path: terraform-plugin-dir
-        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - 
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
-    - 
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
       name: terraform init
       run: |
         # We need a file to initialize the provider
         echo 'resource "hyperv_network_switch" "dmz_network_switch" {name = "dmz"}' > example.tf
-        ls -LR
         terraform init -plugin-dir terraform-plugin-dir
-    - 
+    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
       name: terraform providers schema
       run: |
         mkdir terraform-providers-schema
@@ -152,13 +151,13 @@ jobs:
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
-        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - run: go generate ./...
     - name: Check for Git Differences
       run: |
@@ -182,13 +181,13 @@ jobs:
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
-        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - run: go test ./... -timeout=${{ env.TEST_TIME_OUT }}
 
   golangci-lint:
@@ -207,13 +206,13 @@ jobs:
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
-        key: ${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
     - uses: actions/cache@v2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: golangci-lint run ./hyperv/...
     - run: golangci-lint run ./api/...
@@ -241,13 +240,13 @@ jobs:
       timeout-minutes: 2
       with:
         path: ~/go/pkg/mod
-        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - run: go install github.com/bflad/tfproviderdocs
     - uses: actions/cache@v2
       timeout-minutes: 2
       with:
         path: terraform-providers-schema
-        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
     - name: tfproviderdocs check
       run: |
         tfproviderdocs check \
@@ -269,7 +268,7 @@ jobs:
         timeout-minutes: 2
         with:
           path: ~/go/pkg/mod
-          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+          key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - name: goreleaser check
         continue-on-error: true
         uses: goreleaser/goreleaser-action@v2
