@@ -243,15 +243,14 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go install github.com/bflad/tfproviderdocs
     - uses: actions/cache@v2
       timeout-minutes: 2
       with:
         path: terraform-providers-schema
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - run: go install github.com/bflad/tfproviderdocs
     - name: tfproviderdocs check
       run: |
-        ls -aR
         tfproviderdocs check \
           -allowed-resource-subcategories-file website/allowed-subcategories.txt \
           -provider-name hyperv \
