@@ -111,24 +111,24 @@ jobs:
       with:
         path: terraform-providers-schema
         key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+    - 
       uses: actions/cache@v2
       timeout-minutes: 2
       with:
         path: terraform-plugin-dir
         key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+    - 
       uses: hashicorp/setup-terraform@v1
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
-    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+    - 
       name: terraform init
       run: |
         # We need a file to initialize the provider
         echo 'resource "hyperv_network_switch" "dmz_network_switch" {name = "dmz"}' > example.tf
         terraform init -plugin-dir terraform-plugin-dir
-    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+    - 
       name: terraform providers schema
       run: |
         mkdir terraform-providers-schema
