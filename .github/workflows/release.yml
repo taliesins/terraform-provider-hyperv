@@ -33,6 +33,9 @@ on:
       - main.go
       - staticcheck.conf
       - website/**
+  release:
+    types:
+      - created
 
 env:
   GO_VERSION: "1.15"
