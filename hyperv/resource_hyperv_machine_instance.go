@@ -703,6 +703,18 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 		return err
 	}
 
+	if generation > 1 {
+		vmFirmwares, err := api.ExpandVmFirmwares(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+		if err != nil {
+			return err
+		}
+	}
+
 	err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
 	if err != nil {
 		return err
