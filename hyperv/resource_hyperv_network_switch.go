@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/validation"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
@@ -143,7 +143,7 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 	defaultQueueVrssEnabled := (d.Get("default_queue_vrss_enabled")).(bool)
 
 	if switchType == api.VMSwitchType_Private {
-		if allowManagementOS == true {
+		if allowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][create] Unable to set AllowManagementOS to true if switch type is private")
 		}
 
@@ -151,7 +151,7 @@ func resourceHyperVNetworkSwitchCreate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("[ERROR][hyperv][create] Unable to set NetAdapterNames when switch type is private")
 		}
 	} else if switchType == api.VMSwitchType_Internal {
-		if allowManagementOS == false {
+		if !allowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][create] Unable to set AllowManagementOS to false if switch type is internal")
 		}
 
@@ -244,7 +244,7 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 	d.Set("default_queue_vrss_enabled", s.DefaultQueueVrssEnabled)
 
 	if s.SwitchType == api.VMSwitchType_Private {
-		if s.AllowManagementOS == true {
+		if s.AllowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][read] Unable to set AllowManagementOS to true if switch type is private")
 		}
 
@@ -252,7 +252,7 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 			return fmt.Errorf("[ERROR][hyperv][read] Unable to set NetAdapterNames when switch type is private")
 		}
 	} else if s.SwitchType == api.VMSwitchType_Internal {
-		if s.AllowManagementOS == false {
+		if !s.AllowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][read] Unable to set AllowManagementOS to false if switch type is internal")
 		}
 
@@ -333,7 +333,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 	defaultQueueVrssEnabled := (d.Get("default_queue_vrss_enabled")).(bool)
 
 	if switchType == api.VMSwitchType_Private {
-		if allowManagementOS == true {
+		if allowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][update] Unable to set AllowManagementOS to true if switch type is private")
 		}
 
@@ -341,7 +341,7 @@ func resourceHyperVNetworkSwitchUpdate(d *schema.ResourceData, meta interface{})
 			return fmt.Errorf("[ERROR][hyperv][update] Unable to set NetAdapterNames when switch type is private")
 		}
 	} else if switchType == api.VMSwitchType_Internal {
-		if allowManagementOS == false {
+		if !allowManagementOS {
 			return fmt.Errorf("[ERROR][hyperv][update] Unable to set AllowManagementOS to false if switch type is internal")
 		}
 

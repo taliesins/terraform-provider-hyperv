@@ -1,0 +1,3 @@
+Machine Instance
+Network Switch
+VHD

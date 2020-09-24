@@ -374,6 +374,10 @@ func (c *HypervClient) CreateOrUpdateVhd(path string, source string, sourceVm st
 		PhysicalSectorSize: physicalSectorSize,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	err = c.runFireAndForgetScript(createOrUpdateVhdTemplate, createOrUpdateVhdArgs{
 		Source:     source,
 		SourceVm:   sourceVm,

@@ -1,7 +1,7 @@
 ---
+subcategory: "Machine Instance"
 layout: "hyperv"
 page_title: "HyperV: hyperv_machine_instance"
-sidebar_current: "docs-hyperv-resource-machine-instance"
 description: |-
   Creates and manages a machine instance.
 ---

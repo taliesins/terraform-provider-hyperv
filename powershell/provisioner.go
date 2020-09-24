@@ -5,13 +5,14 @@ import (
 	"bytes"
 	"encoding/base64"
 	"fmt"
-	"github.com/masterzen/winrm"
-	"github.com/segmentio/ksuid"
 	"io"
 	"io/ioutil"
 	"log"
 	"os"
 	"strings"
+
+	"github.com/masterzen/winrm"
+	"github.com/segmentio/ksuid"
 )
 
 func TimeOrderedUUID() string {
@@ -158,7 +159,7 @@ func restoreContent(client *winrm.Client, fromPath, toPath string) (string, erro
 		return "", err
 	}
 
-	script := string(convertBase64FileToTextFileTemplateRendered.Bytes())
+	script := convertBase64FileToTextFileTemplateRendered.String()
 
 	var executePowershellFromCommandLineTemplateRendered bytes.Buffer
 	err = executePowershellFromCommandLineTemplate.Execute(&executePowershellFromCommandLineTemplateRendered, executePowershellFromCommandLineTemplateOptions{
@@ -169,7 +170,7 @@ func restoreContent(client *winrm.Client, fromPath, toPath string) (string, erro
 		return "", err
 	}
 
-	script = string(executePowershellFromCommandLineTemplateRendered.Bytes())
+	script = executePowershellFromCommandLineTemplateRendered.String()
 
 	commandExitCode, stdOutPut, errorOutPut, err := shellExecute(shell, script)
 
@@ -204,7 +205,7 @@ func ResolvePath(client *winrm.Client, filePath string) (string, error) {
 		return "", err
 	}
 
-	script := string(resolvePathTemplateRendered.Bytes())
+	script := resolvePathTemplateRendered.String()
 
 	var executePowershellFromCommandLineTemplateRendered bytes.Buffer
 	err = executePowershellFromCommandLineTemplate.Execute(&executePowershellFromCommandLineTemplateRendered, executePowershellFromCommandLineTemplateOptions{
@@ -215,7 +216,7 @@ func ResolvePath(client *winrm.Client, filePath string) (string, error) {
 		return "", err
 	}
 
-	script = string(executePowershellFromCommandLineTemplateRendered.Bytes())
+	script = executePowershellFromCommandLineTemplateRendered.String()
 
 	commandExitCode, stdOutPut, errorOutPut, err := shellExecute(shell, script)
 
@@ -250,7 +251,7 @@ func cleanupContent(client *winrm.Client, filePath string) error {
 		return err
 	}
 
-	script := string(deleteFileTemplateRendered.Bytes())
+	script := deleteFileTemplateRendered.String()
 
 	var executePowershellFromCommandLineTemplateRendered bytes.Buffer
 	err = executePowershellFromCommandLineTemplate.Execute(&executePowershellFromCommandLineTemplateRendered, executePowershellFromCommandLineTemplateOptions{
@@ -261,7 +262,7 @@ func cleanupContent(client *winrm.Client, filePath string) error {
 		return err
 	}
 
-	script = string(executePowershellFromCommandLineTemplateRendered.Bytes())
+	script = executePowershellFromCommandLineTemplateRendered.String()
 
 	commandExitCode, stdOutPut, errorOutPut, err := shellExecute(shell, script)
 
@@ -292,7 +293,7 @@ func appendContent(shell *winrm.Shell, filePath, content string) error {
 		return err
 	}
 
-	script := string(appendFileTemplateRendered.Bytes())
+	script := appendFileTemplateRendered.String()
 
 	commandExitCode, stdOutPut, errorOutPut, err := shellExecute(shell, script)
 
@@ -317,12 +318,12 @@ func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int,
 
 	stdOutFunc := func(bytesStdOutWriter io.Writer, osStdOutWriter io.Writer, commandStdOut io.Reader) {
 		stdOutReader := io.TeeReader(commandStdOut, bytesStdOutWriter)
-		io.Copy(osStdOutWriter, stdOutReader)
+		_, _ = io.Copy(osStdOutWriter, stdOutReader)
 	}
 
 	stdErrFunc := func(bytesStdErrWriter io.Writer, osStdErrWriter io.Writer, commandErrOut io.Reader) {
 		stdErrReader := io.TeeReader(commandErrOut, bytesStdErrWriter)
-		io.Copy(osStdErrWriter, stdErrReader)
+		_, _ = io.Copy(osStdErrWriter, stdErrReader)
 	}
 
 	if os.Getenv("WINRMCP_DEBUG") != "" {
@@ -417,18 +418,12 @@ func createCommand(vars string, remotePath string) (commandText string, err erro
 		return "", err
 	}
 
-	commandText = string(executeCommandTemplateRendered.Bytes())
+	commandText = executeCommandTemplateRendered.String()
 
 	return commandText, err
 }
 
 func createElevatedCommand(client *winrm.Client, elevatedUser string, elevatedPassword string, vars string, remotePath string) (commandText string, elevatedRemotePath string, err error) {
-	commandText, err = createCommand(vars, remotePath)
-	if err != nil {
-		fmt.Printf("Error creating command template: %s", err)
-		return "", "", err
-	}
-
 	elevatedRemotePath, err = generateElevatedRunner(client, elevatedUser, elevatedPassword, remotePath)
 	if err != nil {
 		return "", "", fmt.Errorf("error generating elevated runner: %s", err)
@@ -460,7 +455,7 @@ func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedP
 		return "", err
 	}
 
-	elevatedCommand := string(elevatedCommandTemplateRendered.Bytes())
+	elevatedCommand := elevatedCommandTemplateRendered.String()
 
 	elevatedRemotePath, err = uploadScript(client, fileName, elevatedCommand)
 	if err != nil {
@@ -501,7 +496,7 @@ func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword s
 		return 0, "", "", err
 	}
 
-	command = string(executePowershellFromCommandLineTemplateRendered.Bytes())
+	command = executePowershellFromCommandLineTemplateRendered.String()
 
 	shell, err := client.CreateShell()
 	if err != nil {

@@ -1,7 +1,7 @@
 ---
+subcategory: "Network Switch"
 layout: "hyperv"
 page_title: "HyperV: hyperv_network_switch"
-sidebar_current: "docs-hyperv-resource-network-switch"
 description: |-
   Creates and manages network switch.
 ---

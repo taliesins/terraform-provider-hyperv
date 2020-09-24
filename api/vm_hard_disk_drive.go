@@ -4,12 +4,13 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
 	"text/template"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ControllerType int
@@ -279,6 +280,10 @@ func (c *HypervClient) CreateVmHardDiskDrive(
 		OverrideCacheAttributes:       overrideCacheAttributes,
 	})
 
+	if err != nil {
+		return err
+	}
+
 	err = c.runFireAndForgetScript(createVmHardDiskDriveTemplate, createVmHardDiskDriveArgs{
 		VmHardDiskDriveJson: string(vmHardDiskDriveJson),
 	})
@@ -396,6 +401,10 @@ func (c *HypervClient) UpdateVmHardDiskDrive(
 		QosPolicyId:                   qosPolicyId,
 		OverrideCacheAttributes:       overrideCacheAttributes,
 	})
+
+	if err != nil {
+		return err
+	}
 
 	err = c.runFireAndForgetScript(updateVmHardDiskDriveTemplate, updateVmHardDiskDriveArgs{
 		VmName:              vmName,
