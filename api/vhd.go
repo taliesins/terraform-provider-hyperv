@@ -155,7 +155,7 @@ type createOrUpdateVhdArgs struct {
 var createOrUpdateVhdTemplate = template.Must(template.New("CreateOrUpdateVhd").Parse(`
 $ErrorActionPreference = 'Stop'
 
-Get-VM | Out-Null
+Import-Module Hyper-V
 $source='{{.Source}}'
 $sourceVm='{{.SourceVm}}'
 $sourceDisk={{.SourceDisk}}
