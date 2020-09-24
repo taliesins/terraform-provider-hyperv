@@ -4,8 +4,10 @@ import (
 	"fmt"
 	"log"
 
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
@@ -701,6 +703,18 @@ func resourceHyperVMachineInstanceCreate(data *schema.ResourceData, meta interfa
 	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
 		return err
+	}
+
+	if generation > 1 {
+		vmFirmwares, err := api.ExpandVmFirmwares(data)
+		if err != nil {
+			return err
+		}
+
+		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+		if err != nil {
+			return err
+		}
 	}
 
 	err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
