@@ -224,7 +224,7 @@ type createVmHardDiskDriveArgs struct {
 
 var createVmHardDiskDriveTemplate = template.Must(template.New("CreateVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmHardDiskDrive = '{{.VmHardDiskDriveJson}}' | ConvertFrom-Json
 
 $NewVmHardDiskDriveArgs = @{
@@ -338,7 +338,7 @@ type updateVmHardDiskDriveArgs struct {
 
 var updateVmHardDiskDriveTemplate = template.Must(template.New("UpdateVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
-Get-Vm | Out-Null
+Import-Module Hyper-V
 $vmHardDiskDrive = '{{.VmHardDiskDriveJson}}' | ConvertFrom-Json
 
 $vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
