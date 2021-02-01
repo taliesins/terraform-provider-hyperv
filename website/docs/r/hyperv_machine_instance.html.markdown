@@ -182,7 +182,7 @@ Note: Windows Server 2016 does not support setting HwThreadCountPerCore to 0. Fo
 ```hcl
 resource "hyperv_machine_instance" "default" {
   name = "WebServer"
-  vm_proce {
+  integration_services {
     "Guest Service Interface" = false
     "Heartbeat"               = true
     "Key-Value Pair Exchange" = true
