@@ -199,6 +199,9 @@ func resourceHyperVVhdRead(d *schema.ResourceData, meta interface{}) (err error)
 		return err
 	}
 
+	d.SetId(path)
+	d.Set("path", vhd.Path)
+
 	if vhd.Path != "" {
 		log.Printf("[INFO][hyperv][read] unable to retrieved vhd: %+v", path)
 		d.Set("exists", false)

@@ -1,4 +1,14 @@
+terraform {
+  required_providers {
+    hyperv = {
+      version = "1.0.1"
+      source = "registry.terraform.io/taliesins/hyperv"
+    }
+  }
+}
+
 provider "hyperv" {
+
 }
 
 resource "hyperv_network_switch" "dmz_network_switch" {
@@ -10,7 +20,7 @@ resource "hyperv_vhd" "web_server_g1_vhd" {
   size = 10737418240 #10GB
 }
 
-resource "hyperv_machine_instance" "web_Server_g1" {
+resource "hyperv_machine_instance" "web_server_g1" {
   name = "web_server_g1"
   generation = 1
   processor_count = 2
@@ -47,7 +57,7 @@ resource "hyperv_vhd" "web_server_g2_vhd" {
   size = 10737418240 #10GB
 }
 
-resource "hyperv_machine_instance" "web_Server_g2" {
+resource "hyperv_machine_instance" "web_server_g2" {
   name = "web_server_g2"
   generation = 2
   processor_count = 2
