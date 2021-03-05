@@ -36,9 +36,9 @@ on:
       - website/**
 
 env:
-  GO_VERSION: "1.15"
+  GO_VERSION: "1.16"
   GO111MODULE: on
-  TERRAFORM_VERSION: "0.14.6"
+  TERRAFORM_VERSION: "0.14.7"
   TEST_TIME_OUT: "120s"
   RELEASE_TIME_OUT: "30m"
 
@@ -216,10 +216,10 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go mod vendor
+    - run: go get -d github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
-    - run: golangci-lint run ./hyperv/...
-    - run: golangci-lint run ./api/...
-    - run: golangci-lint run ./powershell/...
+    - run: golangci-lint run
 
   semgrep:
     runs-on: ubuntu-latest
@@ -249,6 +249,7 @@ jobs:
       with:
         path: terraform-providers-schema
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - run: go get -d github.com/bflad/tfproviderdocs
     - run: go install github.com/bflad/tfproviderdocs
     - name: tfproviderdocs check
       run: |

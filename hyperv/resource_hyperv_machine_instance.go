@@ -829,6 +829,9 @@ func resourceHyperVMachineInstanceRead(data *schema.ResourceData, meta interface
 		return nil
 	}
 
+	data.SetId(name)
+	data.Set("name", vm.Name)
+
 	if vm.DynamicMemory && vm.StaticMemory {
 		return fmt.Errorf("[ERROR][hyperv][read] Dynamic and static can't be both selected at the same time")
 	}

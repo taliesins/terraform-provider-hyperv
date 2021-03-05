@@ -224,11 +224,12 @@ func resourceHyperVNetworkSwitchRead(d *schema.ResourceData, meta interface{}) (
 	log.Printf("[INFO][hyperv][read] retrieved network switch: %+v", s)
 
 	if s.Name != switchName {
-		d.SetId("")
 		log.Printf("[INFO][hyperv][read] unable to read hyperv switch as it does not exist: %#v", switchName)
 		return nil
 	}
 
+	d.SetId(switchName)
+	d.Set("name", s.Name)
 	d.Set("notes", s.Notes)
 	d.Set("allow_management_os", s.AllowManagementOS)
 	d.Set("enable_embedded_teaming", s.EmbeddedTeamingEnabled)

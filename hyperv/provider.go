@@ -141,6 +141,11 @@ func Provider() *schema.Provider {
 			"hyperv_machine_instance": resourceHyperVMachineInstance(),
 			"hyperv_vhd":              resourceHyperVVhd(),
 		},
+		DataSourcesMap: map[string]*schema.Resource{
+			"hyperv_network_switch":   dataSourceHyperVNetworkSwitch(),
+			"hyperv_machine_instance": dataSourceHyperVMachineInstance(),
+			"hyperv_vhd":              dataSourceHyperVVhd(),
+		},
 	}
 
 	provider.ConfigureFunc = providerConfigure(provider)
