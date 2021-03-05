@@ -3,6 +3,7 @@ package hyperv
 import (
 	"fmt"
 	"log"
+	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -926,6 +927,39 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 
 	generation := (data.Get("generation")).(int)
 
+	hasChangesThatRequireVmToBeOff := data.HasChange("automatic_critical_error_action") ||
+		data.HasChange("automatic_critical_error_action_timeout") ||
+		data.HasChange("automatic_start_action") ||
+		data.HasChange("automatic_start_delay") ||
+		data.HasChange("automatic_stop_action") ||
+		data.HasChange("checkpoint_type") ||
+		data.HasChange("dynamic_memory") ||
+		data.HasChange("guest_controlled_cache_types") ||
+		data.HasChange("high_memory_mapped_io_space") ||
+		data.HasChange("lock_on_disconnect") ||
+		data.HasChange("low_memory_mapped_io_space") ||
+		data.HasChange("memory_maximum_bytes") ||
+		data.HasChange("memory_minimum_bytes") ||
+		data.HasChange("memory_startup_bytes") ||
+		data.HasChange("notes") ||
+		data.HasChange("processor_count") ||
+		data.HasChange("smart_paging_file_path") ||
+		data.HasChange("snapshot_file_location") ||
+		data.HasChange("static_memory") ||
+		(generation > 1 && data.HasChange("vm_firmware")) ||
+		data.HasChange("vm_processor") ||
+		data.HasChange("integration_services") ||
+		data.HasChange("network_adaptors") ||
+		data.HasChange("dvd_drives") ||
+		data.HasChange("hard_disk_drives")
+
+	if hasChangesThatRequireVmToBeOff {
+		err = turnOffVmIfOn(data, client, name)
+		if err != nil {
+			return err
+		}
+	}
+
 	if data.HasChange("automatic_critical_error_action") ||
 		data.HasChange("automatic_critical_error_action_timeout") ||
 		data.HasChange("automatic_start_action") ||
@@ -980,17 +1014,15 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 	}
 
-	if generation > 1 {
-		if data.HasChange("vm_firmware") {
-			vmFirmwares, err := api.ExpandVmFirmwares(data)
-			if err != nil {
-				return err
-			}
+	if generation > 1 && data.HasChange("vm_firmware") {
+		vmFirmwares, err := api.ExpandVmFirmwares(data)
+		if err != nil {
+			return err
+		}
 
-			err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
-			if err != nil {
-				return err
-			}
+		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+		if err != nil {
+			return err
 		}
 	}
 
@@ -1056,7 +1088,7 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		}
 	}
 
-	if data.HasChange("state") {
+	if hasChangesThatRequireVmToBeOff || data.HasChange("state") {
 		waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(data)
 		if err != nil {
 			return err
@@ -1104,5 +1136,52 @@ func resourceHyperVMachineInstanceDelete(data *schema.ResourceData, meta interfa
 	}
 
 	log.Printf("[INFO][hyperv][delete] deleted hyperv machine: %#v", data)
+	return nil
+}
+
+func turnOffVmIfOn(data *schema.ResourceData, client *api.HypervClient, name string) (err error) {
+	vmState, err := client.GetVmState(name)
+	if err != nil {
+		return err
+	}
+
+	for vmState.State != api.VmState_Off {
+		if vmState.State == api.VmState_Other ||
+			vmState.State == api.VmState_Running ||
+			vmState.State == api.VmState_Paused {
+			waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(data)
+			if err != nil {
+				return err
+			}
+
+			err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, api.VmState_Off)
+			if err != nil {
+				return err
+			}
+		}
+
+		if vmState.State == api.VmState_RunningCritical ||
+			vmState.State == api.VmState_OffCritical ||
+			vmState.State == api.VmState_StoppingCritical ||
+			vmState.State == api.VmState_SavedCritical ||
+			vmState.State == api.VmState_PausedCritical ||
+			vmState.State == api.VmState_StartingCritical ||
+			vmState.State == api.VmState_ResetCritical ||
+			vmState.State == api.VmState_SavingCritical ||
+			vmState.State == api.VmState_PausingCritical ||
+			vmState.State == api.VmState_ResumingCritical ||
+			vmState.State == api.VmState_FastSavedCritical ||
+			vmState.State == api.VmState_FastSavingCritical {
+			return fmt.Errorf("[ERROR][hyperv][turnOffVmIfOn] vm %#v is in a state of %#v and this must be manually recovered from", name, vmState.State)
+		}
+
+		log.Printf("[INFO][hyperv][turnOffVmIfOn] vm %#v is in a state of %#v and so wait 2 seconds for it turn off", name, vmState.State)
+		time.Sleep(2 * time.Second)
+
+		vmState, err = client.GetVmState(name)
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
