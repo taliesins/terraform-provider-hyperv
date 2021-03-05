@@ -40,3 +40,5 @@ linters-settings:
 run:
   modules-download-mode: vendor
   timeout: 10m
+
+skip-dirs-use-default: true
