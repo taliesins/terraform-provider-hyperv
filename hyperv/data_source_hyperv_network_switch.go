@@ -8,7 +8,7 @@ import (
 
 func dataSourceHyperVNetworkSwitch() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceHyperVNetworkSwitchRead,
+		Read: resourceHyperVNetworkSwitchRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {

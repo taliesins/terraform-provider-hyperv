@@ -7,7 +7,7 @@ import (
 
 func dataSourceHyperVVhd() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceHyperVVhdRead,
+		Read: resourceHyperVVhdRead,
 
 		Schema: map[string]*schema.Schema{
 			"path": {

@@ -8,7 +8,7 @@ import (
 
 func dataSourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
-		Read:   resourceHyperVMachineInstanceRead,
+		Read: resourceHyperVMachineInstanceRead,
 
 		Schema: map[string]*schema.Schema{
 			"name": {
