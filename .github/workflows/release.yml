@@ -216,6 +216,7 @@ jobs:
       with:
         path: ~/go/pkg/mod
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - run: go get -d github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
     - run: golangci-lint run ./hyperv/...
     - run: golangci-lint run ./api/...
@@ -249,6 +250,7 @@ jobs:
       with:
         path: terraform-providers-schema
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('hyperv/**', 'api/**', 'powershell/**') }}
+    - run: go get -d github.com/bflad/tfproviderdocs
     - run: go install github.com/bflad/tfproviderdocs
     - name: tfproviderdocs check
       run: |
