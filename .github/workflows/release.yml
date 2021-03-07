@@ -311,6 +311,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           create_annotated_tag: true
           dry_run: true
+          append_to_pre_release_tag: ""
       - name: Get release information
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         run: |
