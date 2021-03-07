@@ -296,7 +296,10 @@ jobs:
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
+      
+      # - name: Populate 
+      #   uses: FranzDiebold/github-env-vars-action@
+      #   if: "!(startsWith(github.ref, 'refs/tags/v'))"
       - name: Get history for working out version
         uses: actions/checkout@master
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
@@ -311,8 +314,7 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           create_annotated_tag: true
           dry_run: true
-          # This will be null if its not a PR so it will be valid
-          append_to_pre_release_tag: ${{ github.head_ref }}
+          append_to_pre_release_tag: ${{ github.sha }}
       - name: Get release information
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         run: |
