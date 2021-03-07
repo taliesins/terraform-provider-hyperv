@@ -296,6 +296,26 @@ jobs:
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Get history for working out version
+        uses: actions/checkout@master
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        with:
+          # Fetches entire history, so we can analyze commits since last tag
+          fetch-depth: 0
+      - name: Get next release number
+        id: release_number_and_changelog
+        uses: mathieudutour/github-tag-action@v5.2
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          create_annotated_tag: true
+          dry_run: true
+      - name: Get release information
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        run: |
+          echo "The new release tag will be: ${{ steps.release_number_and_changelog.outputs.new_tag }}"
+          echo "The changelog will be: ${{ steps.release_number_and_changelog.outputs.changelog }}"
       - name: goreleaser snapshot
         uses: goreleaser/goreleaser-action@v2
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
