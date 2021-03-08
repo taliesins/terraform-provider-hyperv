@@ -32,7 +32,7 @@ jobs:
       - name: Create Changelog and commit
         uses: TriPSs/conventional-changelog-action@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
           skip-on-empty: 'false'
           skip-commit: 'true'
