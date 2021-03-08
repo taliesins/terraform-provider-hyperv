@@ -30,7 +30,6 @@ jobs:
           FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
 
       - name: Create Changelog and commit
-        id: release_number_and_changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
