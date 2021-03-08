@@ -16,8 +16,10 @@ jobs:
         id: release_number_and_changelog
         uses: TriPSs/conventional-changelog-action@v3
         with:
-          skip-commit: 'true'
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-version-file: 'true'
+          skip-on-empty: 'false'
+          skip-commit: 'true'
           tag-prefix: 'v'
           output-file: 'false'
 
@@ -32,5 +34,8 @@ jobs:
         uses: TriPSs/conventional-changelog-action@v3
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-version-file: 'true'
+          skip-on-empty: 'false'
+          skip-commit: 'true'
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
