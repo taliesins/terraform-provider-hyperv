@@ -16,7 +16,13 @@ on:
       - master
     tags:
       - 'v*'
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.github/CLEANCHANGELOG.md'
   pull_request:
+    paths-ignore:
+      - 'CHANGELOG.md'
+      - '.github/CLEANCHANGELOG.md'
     paths:
       - .github/workflows/release.yml
       - .golangci.yml
@@ -292,15 +298,40 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           version: latest
-          args: release --rm-dist --timeout ${{ env.RELEASE_TIME_OUT }}
+          args: release --rm-dist --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=.github/CLEANCHANGELOG.md
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Create Changelog
+        id: release_number_and_changelog
+        uses: TriPSs/conventional-changelog-action@v3
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-commit: 'true'
+          tag-prefix: 'v'
+          output-file: 'CHANGELOG.md'
+
+      - name: Create clean changelog
+        uses: "finnp/create-file-action@master"
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        env:
+          FILE_NAME: ".github/CLEANCHANGELOG.md"
+          FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
+          
+      - name: Get release information
+        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        run: |
+          echo "next tag_name: ${{ steps.release_number_and_changelog.outputs.tag }}"
+          echo "next release_name: ${{ steps.release_number_and_changelog.outputs.release_name }}"
+          echo "next clean_changelog: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}"
+
       - name: goreleaser snapshot
         uses: goreleaser/goreleaser-action@v2
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
-          args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }}
+          args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=.github/CLEANCHANGELOG.md
       - name: snapshot artifact naming
         id: naming
         if: "!(startsWith(github.ref, 'refs/tags/v'))"

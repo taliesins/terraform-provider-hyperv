@@ -1,0 +1,36 @@
+name: Create tag
+
+on: 
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@master
+        with:
+          # Fetches entire history, so we can analyze commits since last tag
+          fetch-depth: 0
+
+      - name: Create Changelog
+        id: release_number_and_changelog
+        uses: TriPSs/conventional-changelog-action@v3
+        with:
+          skip-commit: 'true'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          tag-prefix: 'v'
+          output-file: 'false'
+
+      - name: Create clean changelog
+        uses: "finnp/create-file-action@master"
+        env:
+          FILE_NAME: ".github/CLEANCHANGELOG.md"
+          FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
+
+      - name: Create Changelog and commit
+        id: release_number_and_changelog
+        uses: TriPSs/conventional-changelog-action@v3
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          tag-prefix: 'v'
+          output-file: 'CHANGELOG.md'
