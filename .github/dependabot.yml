@@ -8,6 +8,9 @@ updates:
     labels:
       - "dependencies"
       - "automerge"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
@@ -16,3 +19,6 @@ updates:
     labels:
       - "dependencies"
       - "automerge"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
