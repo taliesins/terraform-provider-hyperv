@@ -307,6 +307,8 @@ jobs:
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
+          skip-version-file: 'true'
+          skip-on-empty: 'false'
           skip-commit: 'true'
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
@@ -320,10 +322,18 @@ jobs:
           
       - name: Get release information
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        env:
+          CLEAN_CHANGELOG: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
+          CHANGELOG: ${{ steps.release_number_and_changelog.outputs.changelog }}
+          VERSION: ${{ steps.release_number_and_changelog.outputs.version }}
+          TAG: ${{ steps.release_number_and_changelog.outputs.tag }}
+          SKIPPED: ${{ steps.release_number_and_changelog.outputs.skipped }}
         run: |
-          echo "next tag_name: ${{ steps.release_number_and_changelog.outputs.tag }}"
-          echo "next release_name: ${{ steps.release_number_and_changelog.outputs.release_name }}"
-          echo "next clean_changelog: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}"
+          echo "clean_changelog: $CLEAN_CHANGELOG"
+          echo "changelog: $CHANGELOG"
+          echo "version: $VERSION"
+          echo "tag: $TAG"
+          echo "skipped: $SKIPPED"
 
       - name: goreleaser snapshot
         uses: goreleaser/goreleaser-action@v2
