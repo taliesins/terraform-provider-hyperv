@@ -14,22 +14,16 @@ jobs:
 
       - name: Create Changelog
         id: release_number_and_changelog
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: taliesins/conventional-changelog-action@master
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
           skip-on-empty: 'false'
           skip-commit: 'true'
+          skip-tag: 'true'
+          dry-run: 'true'
           tag-prefix: 'v'
           output-file: 'false'
-
-      - name: Delete v${{ steps.release_number_and_changelog.outputs.version }} Tag
-        uses: dev-drprasad/delete-tag-and-release@v0.1.3
-        with:
-          delete_release: true
-          tag_name: v${{ steps.release_number_and_changelog.outputs.version }}
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Create clean changelog
         uses: "finnp/create-file-action@master"
@@ -38,11 +32,13 @@ jobs:
           FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
 
       - name: Create Changelog and commit
-        uses: TriPSs/conventional-changelog-action@v3
+        uses: taliesins/conventional-changelog-action@master
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
           skip-on-empty: 'false'
           skip-commit: 'false'
+          skip-tag: 'false'
+          dry-run: 'false'
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
