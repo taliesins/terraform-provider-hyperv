@@ -291,6 +291,10 @@ jobs:
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
           #passphrase: ${{ secrets.PASSPHRASE }}
+      - name: Get tag_name
+        id: tag_name
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: goreleaser release
         uses: goreleaser/goreleaser-action@v2
         if: startsWith(github.ref, 'refs/tags/v')
@@ -300,7 +304,8 @@ jobs:
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      
+          GORELEASER_CURRENT_TAG: ${{ steps.tag_name.outputs.VERSION }}
+
       - name: Create Changelog
         id: release_number_and_changelog
         uses: TriPSs/conventional-changelog-action@v3
@@ -340,6 +345,8 @@ jobs:
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=.github/CLEANCHANGELOG.md
+        env:
+          GORELEASER_CURRENT_TAG: ${{ steps.release_number_and_changelog.outputs.tag }}
       - name: snapshot artifact naming
         id: naming
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
