@@ -20,9 +20,6 @@ on:
       - 'CHANGELOG.md'
       - '.github/CLEANCHANGELOG.md'
   pull_request:
-    paths-ignore:
-      - 'CHANGELOG.md'
-      - '.github/CLEANCHANGELOG.md'
     paths:
       - .github/workflows/release.yml
       - .golangci.yml
@@ -286,6 +283,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v2
         with:
           args: check
+
       - name: Import GPG key
         id: import_gpg
         uses: crazy-max/ghaction-import-gpg@v3
