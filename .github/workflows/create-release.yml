@@ -14,7 +14,7 @@ jobs:
 
       - name: Create Changelog
         id: release_number_and_changelog
-        uses: taliesins/conventional-changelog-action@master
+        uses: taliesins/conventional-changelog-action@releases/v3
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
@@ -32,7 +32,7 @@ jobs:
           FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
 
       - name: Create Changelog and commit
-        uses: taliesins/conventional-changelog-action@master
+        uses: taliesins/conventional-changelog-action@releases/v3
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'

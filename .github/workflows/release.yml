@@ -308,7 +308,7 @@ jobs:
 
       - name: Create Changelog
         id: release_number_and_changelog
-        uses: taliesins/conventional-changelog-action@master
+        uses: taliesins/conventional-changelog-action@releases/v3
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
