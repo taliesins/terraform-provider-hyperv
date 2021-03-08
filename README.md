@@ -220,3 +220,16 @@ In order to run the full suite of Acceptance tests, run `make testacc`.
 ```sh
 $ make testacc
 ```
+
+Debugging the Provider
+---------------------------
+
+To set Terraform log level:
+```
+set TF_LOG=TRACE
+```
+
+To view powershell commands that are sent:
+```
+set WINRMCP_DEBUG=TRUE
+```
