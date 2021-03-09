@@ -222,7 +222,7 @@ $ make testacc
 ```
 
 Debugging the Provider
----------------------------
+----------------------
 
 To set Terraform log level:
 ```
