@@ -40,5 +40,6 @@ jobs:
           skip-commit: 'false'
           skip-tag: 'false'
           dry-run: 'false'
+          force-push: 'true'
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
