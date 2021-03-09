@@ -1001,11 +1001,11 @@ func resourceHyperVMachineInstanceUpdate(data *schema.ResourceData, meta interfa
 		staticMemory := (data.Get("static_memory")).(bool)
 
 		if dynamicMemory && staticMemory {
-			return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static can't be both selected at the same time")
+			return fmt.Errorf("[ERROR][hyperv][update] Dynamic and static memory can't be both selected at the same time i.e. static_memory=true and dynamic_memory=false")
 		}
 
 		if !dynamicMemory && !staticMemory {
-			return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static must be selected")
+			return fmt.Errorf("[ERROR][hyperv][update] Either dynamic or static memory must be selected i.e. static_memory=true and dynamic_memory=false")
 		}
 
 		err = client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
