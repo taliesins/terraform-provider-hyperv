@@ -11,6 +11,7 @@ jobs:
         with:
           # Fetches entire history, so we can analyze commits since last tag
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Create Changelog
         id: release_number_and_changelog
