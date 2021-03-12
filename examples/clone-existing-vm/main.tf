@@ -26,6 +26,7 @@ resource "hyperv_vhd" "web_server_g3_vhd" {
 
 resource "hyperv_machine_instance" "web_server_g3" {
   name = "web_server_g3"
+  static_memory = true
   
   network_adaptors {
     name = "wan"

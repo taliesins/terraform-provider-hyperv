@@ -24,6 +24,7 @@ resource "hyperv_machine_instance" "web_server_g1" {
   name = "web_server_g1"
   generation = 1
   processor_count = 2
+  static_memory = true
   memory_startup_bytes = 536870912 #512MB
   wait_for_state_timeout = 10
   wait_for_ips_timeout = 10
@@ -61,6 +62,7 @@ resource "hyperv_machine_instance" "web_server_g2" {
   name = "web_server_g2"
   generation = 2
   processor_count = 2
+  static_memory = true
   memory_startup_bytes = 536870912 #512MB
   wait_for_state_timeout = 10
   wait_for_ips_timeout = 10
