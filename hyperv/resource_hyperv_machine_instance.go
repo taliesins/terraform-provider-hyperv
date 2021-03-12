@@ -75,9 +75,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"dynamic_memory": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  false,
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ExactlyOneOf: []string{"dynamic_memory", "static_memory"},
+				Default:      false,
 			},
 
 			"guest_controlled_cache_types": {
@@ -148,9 +149,10 @@ func resourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"static_memory": {
-				Type:     schema.TypeBool,
-				Optional: true,
-				Default:  true,
+				Type:         schema.TypeBool,
+				Optional:     true,
+				ExactlyOneOf: []string{"dynamic_memory", "static_memory"},
+				Default:      false,
 			},
 
 			"integration_services": {
