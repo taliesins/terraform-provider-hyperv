@@ -286,7 +286,7 @@ jobs:
 
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v3
+        uses: crazy-max/ghaction-import-gpg@v3.1.0
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
