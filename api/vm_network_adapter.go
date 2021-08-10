@@ -733,6 +733,9 @@ func (c *HypervClient) WaitForVmNetworkAdaptersIps(
 func ExpandVmNetworkAdapterWaitForIps(d *schema.ResourceData) ([]vmNetworkAdapterWaitForIp, uint32, uint32, error) {
 	expandVmNetworkAdapterWaitForIps := make([]vmNetworkAdapterWaitForIp, 0)
 	waitForIpsTimeout := uint32((d.Get("wait_for_ips_timeout")).(int))
+    if waitForIpsTimeout == 0 {
+        waitForIpsTimeout = 300
+    }
 	waitForIpsPollPeriod := uint32((d.Get("wait_for_ips_poll_period")).(int))
 
 	if v, ok := d.GetOk("network_adaptors"); ok {

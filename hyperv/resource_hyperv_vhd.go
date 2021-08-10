@@ -17,6 +17,9 @@ func resourceHyperVVhd() *schema.Resource {
 		Read:   resourceHyperVVhdRead,
 		Update: resourceHyperVVhdUpdate,
 		Delete: resourceHyperVVhdDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 
 		Schema: map[string]*schema.Schema{
 			"path": {
@@ -126,7 +129,7 @@ func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i inter
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			// file does not exist
-			diff.SetNewComputed("exists")
+			diff.SetNew("exists", false)
 			return nil
 		} else {
 			// other error
@@ -188,6 +191,7 @@ func resourceHyperVVhdRead(d *schema.ResourceData, meta interface{}) (err error)
 
 	path := ""
 
+	d.Set("path", d.Id())
 	if v, ok := d.GetOk("path"); ok {
 		path = v.(string)
 	} else {
@@ -202,13 +206,25 @@ func resourceHyperVVhdRead(d *schema.ResourceData, meta interface{}) (err error)
 	d.SetId(path)
 	d.Set("path", vhd.Path)
 
-	if vhd.Path != "" {
+    if vhd.Path == "" {
 		log.Printf("[INFO][hyperv][read] unable to retrieved vhd: %+v", path)
 		d.Set("exists", false)
 	} else {
 		log.Printf("[INFO][hyperv][read] retrieved vhd: %+v", path)
 		d.Set("exists", true)
 	}
+
+    d.Set("block_size", 0)
+    d.Set("logical_sector_size", 0)
+    d.Set("physical_sector_size", 0)
+
+    d.Set("vhd_type", api.VhdType_name[vhd.VhdType])
+    if vhd.VhdType == api.VhdType_Differencing {
+        d.Set("parent_path", vhd.ParentPath)
+        d.Set("size", 0)
+    } else {
+        d.Set("size", vhd.Size)
+    }
 
 	log.Printf("[INFO][hyperv][read] read hyperv vhd: %#v", d)
 
