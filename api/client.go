@@ -74,7 +74,7 @@ func (c *HypervClient) runScriptWithResult(script *template.Template, args inter
 
 	log.Printf("[DEBUG] Running script with result:\n%s\n", command)
 
-	_, stdout, _, err := powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
+	exitStatus, stdout, stderr, err := powershell.RunPowershell(winrmClient.(*winrm.Client), c.ElevatedUser, c.ElevatedPassword, c.Vars, command)
 
 	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
 
@@ -90,7 +90,7 @@ func (c *HypervClient) runScriptWithResult(script *template.Template, args inter
 
 	err = json.Unmarshal([]byte(stdout), &result)
 	if err != nil {
-		return fmt.Errorf("%s\n%s", err, stdout)
+		return fmt.Errorf("exitStatus:%d\nstdOut:%s\nstdErr:%s\nerr:%s\ncommand:%s", exitStatus, stdout, stderr, err, command)
 	}
 
 	return nil

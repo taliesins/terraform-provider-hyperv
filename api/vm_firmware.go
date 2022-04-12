@@ -168,6 +168,15 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]vmFirmware, error) {
 
 			expandedVmFirmwares = append(expandedVmFirmwares, expandedVmFirmware)
 		}
+	} else {
+		vmFirmware := vmFirmware{
+			EnableSecureBoot:             OnOffState_On,
+			SecureBootTemplate:           "MicrosoftWindows",
+			PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
+			ConsoleMode:                  ConsoleModeType_Default,
+			PauseAfterBootFailure:        OnOffState_Off,
+		}
+		expandedVmFirmwares = append(expandedVmFirmwares, vmFirmware)
 	}
 
 	return expandedVmFirmwares, nil
