@@ -20,6 +20,14 @@ const (
 
 	DefaultAllowNTLM = true
 
+	DefaultKerberosRealm = ""
+
+	DefaultKerberosServicePrincipalName = ""
+
+	DefaultKerberosConfig = "/etc/krb5.conf"
+
+	DefaultKerberosCredentialCache = ""
+
 	DefaultTLSServerName = ""
 
 	// DefaultUser is used if there is no user given
@@ -110,6 +118,40 @@ func New(version string, commit string) func() *schema.Provider {
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("HYPERV_USE_NTLM", DefaultAllowNTLM),
 					Description: "Use NTLM for authentication for HyperV api calls. Can also be set via setting the `HYPERV_USE_NTLM` environment variable to `true` otherwise defaults to `true`.",
+					ConflictsWith: []string{
+						"kerberos_realm",
+					},
+				},
+
+				"kerberos_realm": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_REALM", DefaultKerberosRealm),
+					Description: "Use Kerberos Realm for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_REALM` environment variable otherwise defaults to empty string.",
+					ConflictsWith: []string{
+						"use_ntlm",
+					},
+				},
+
+				"kerberos_service_principal_name": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_SERVICE_PRINCIPAL_NAME", DefaultKerberosServicePrincipalName),
+					Description: "Use Kerberos Service Principal Name for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_SERVICE_PRINCIPAL_NAME` environment variable otherwise defaults to empty string.",
+				},
+
+				"kerberos_config": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_CONFIG", schema.EnvDefaultFunc("KRB5_CONFIG", DefaultKerberosConfig)),
+					Description: "Use Kerberos Config for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CONFIG` or `KRB5_CONFIG` environment variable otherwise defaults to `/etc/krb5.conf`.",
+				},
+
+				"kerberos_credential_cache": {
+					Type:        schema.TypeString,
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_CREDENTIAL_CACHE", schema.EnvDefaultFunc("KRB5CCNAME", DefaultKerberosCredentialCache)),
+					Description: "Use Kerberos Credential Cache for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CREDENTIAL_CACHE` or `KRB5CCNAME` environment variable otherwise defaults to empty string.",
 				},
 
 				"tls_server_name": {
@@ -237,6 +279,10 @@ func configure(version string, commit string, provider *schema.Provider) func(co
 			Key:              key,
 			Insecure:         resourceData.Get("insecure").(bool),
 			NTLM:             resourceData.Get("use_ntlm").(bool),
+			KrbRealm: 		  resourceData.Get("kerberos_realm").(string),
+			KrbSpn: 		  resourceData.Get("kerberos_service_principal_name").(string),
+			KrbConfig: 		  resourceData.Get("kerberos_config").(string),
+			KrbCCache: 		  resourceData.Get("kerberos_credential_cache").(string),
 			TLSServerName:    resourceData.Get("tls_server_name").(string),
 			ScriptPath:       resourceData.Get("script_path").(string),
 			Timeout:          resourceData.Get("timeout").(string),

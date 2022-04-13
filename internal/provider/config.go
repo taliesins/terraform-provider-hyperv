@@ -29,13 +29,21 @@ type Config struct {
 	Port             int
 	HTTPS            bool
 	Insecure         bool
-	NTLM             bool
-	TLSServerName    string
-	CACert           []byte
-	Key              []byte
-	Cert             []byte
-	ScriptPath       string
-	Timeout          string
+
+	KrbRealm  string
+	KrbSpn    string
+	KrbConfig string
+	KrbCCache string
+
+	NTLM            bool
+
+	TLSServerName string
+	CACert        []byte
+	Cert          []byte
+	Key           []byte
+
+	ScriptPath string
+	Timeout    string
 }
 
 // HypervClient() returns a new client for configuring hyperv.
@@ -47,11 +55,19 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 		"  Password: %t\n"+
 		"  HTTPS: %t\n"+
 		"  Insecure: %t\n"+
+
+		"  KrbRealm: %t\n"+
+		"  KrbSpn: %t\n"+
+		"  KrbConfig: %t\n"+
+		"  KrbCCache: %t\n"+
+
 		"  NTLM: %t\n"+
+
 		"  TLSServerName: %s\n"+
 		"  CACert: %t\n"+
 		"  Cert: %t\n"+
 		"  Key: %t\n"+
+
 		"  ScriptPath: %s\n"+
 		"  Timeout: %s",
 		c.Host,
@@ -61,6 +77,10 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 		c.HTTPS,
 		c.Insecure,
 		c.NTLM,
+		c.KrbRealm,
+		c.KrbSpn,
+		c.KrbConfig,
+		c.KrbCCache,
 		c.TLSServerName,
 		c.CACert != nil,
 		c.Cert != nil,
@@ -80,14 +100,31 @@ func GetWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 		return nil, err
 	}
 
-	params := winrm.NewParameters(
-		winrm.DefaultParameters.Timeout,
-		winrm.DefaultParameters.Locale,
-		winrm.DefaultParameters.EnvelopeSize,
-	)
+	params := winrm.DefaultParameters
 
 	if config.NTLM {
 		params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
+	}
+
+	if config.KrbRealm != "" {
+		proto := "http"
+		if config.HTTPS {
+			proto = "https"
+		}
+
+		params.TransportDecorator = func() winrm.Transporter {
+			return &winrm.ClientKerberos{
+				Username:  config.User,
+				Password:  config.Password,
+				Hostname:  config.Host,
+				Port:      config.Port,
+				Proto:     proto,
+				Realm:     config.KrbRealm,
+				SPN:       config.KrbSpn,
+				KrbConf:   config.KrbConfig,
+				KrbCCache: config.KrbCCache,
+			}
+		}
 	}
 
 	if endpoint.Timeout.Seconds() > 0 {
