@@ -198,7 +198,6 @@ func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 	return flattenedVmFirmwares
 }
 
-
 type HypervVmFirmwareClient interface {
 	CreateOrUpdateVmFirmware(
 		vmName string,

@@ -201,9 +201,9 @@ func FlattenHardDiskDrives(hardDiskDrives *[]VmHardDiskDrive) []interface{} {
 }
 
 type VmHardDiskDrive struct {
-	VmName                  string
-	ControllerType          ControllerType
-	ControllerNumber        int32
+	VmName                        string
+	ControllerType                ControllerType
+	ControllerNumber              int32
 	ControllerLocation            int32
 	Path                          string
 	DiskNumber                    uint32
@@ -211,11 +211,10 @@ type VmHardDiskDrive struct {
 	SupportPersistentReservations bool
 	MaximumIops                   uint64
 	MinimumIops                   uint64
-	QosPolicyId             string
-	OverrideCacheAttributes CacheAttributes
+	QosPolicyId                   string
+	OverrideCacheAttributes       CacheAttributes
 	//AllowUnverifiedPaths          bool no way of checking if its turned on so always turn on
 }
-
 
 type HypervVmHardDiskDriveClient interface {
 	CreateVmHardDiskDrive(

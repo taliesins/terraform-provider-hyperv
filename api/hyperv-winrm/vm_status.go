@@ -35,8 +35,8 @@ func (c *ClientConfig) GetVmStatus(vmName string) (result api.VmStatus, err erro
 }
 
 type updateVmStatusArgs struct {
-	VmName      string
-	Timeout     uint32
+	VmName       string
+	Timeout      uint32
 	PollPeriod   uint32
 	VmStatusJson string
 }
@@ -180,5 +180,3 @@ func (c *ClientConfig) UpdateVmStatus(
 
 	return err
 }
-
-

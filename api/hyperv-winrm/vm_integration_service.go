@@ -86,5 +86,3 @@ func (c *ClientConfig) CreateOrUpdateVmIntegrationServices(vmName string, integr
 
 	return nil
 }
-
-

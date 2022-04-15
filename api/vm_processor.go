@@ -115,7 +115,6 @@ type VmProcessor struct {
 	ExposeVirtualizationExtensions               bool
 }
 
-
 type HypervVmProcessorClient interface {
 	CreateOrUpdateVmProcessor(
 		vmName string,

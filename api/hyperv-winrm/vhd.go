@@ -347,5 +347,3 @@ func (c *ClientConfig) DeleteVhd(path string) (err error) {
 
 	return err
 }
-
-

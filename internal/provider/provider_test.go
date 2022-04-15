@@ -47,5 +47,5 @@ func randInt() int {
 	rand.Seed(time.Now().UnixNano())
 	min := 100
 	max := 999
-	return rand.Intn(max - min + 1) + min
+	return rand.Intn(max-min+1) + min
 }

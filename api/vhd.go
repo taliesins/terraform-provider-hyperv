@@ -139,9 +139,9 @@ type Vhd struct {
 	Number                  int
 	FragmentationPercentage int
 	Alignment               int
-	DiskIdentifier string
-	VhdType        VhdType
-	VhdFormat      VhdFormat
+	DiskIdentifier          string
+	VhdType                 VhdType
+	VhdFormat               VhdFormat
 }
 
 type HypervVhdClient interface {

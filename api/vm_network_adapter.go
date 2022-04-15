@@ -288,16 +288,16 @@ type VmNetworkAdapter struct {
 	ManagementOs                           bool
 	IsLegacy                               bool
 	DynamicMacAddress                      bool
-	StaticMacAddress       string
-	MacAddressSpoofing     OnOffState
-	DhcpGuard              OnOffState
-	RouterGuard            OnOffState
-	PortMirroring          PortMirroring
-	IeeePriorityTag        OnOffState
-	VmqWeight              int
-	IovQueuePairsRequested int
-	IovInterruptModeration IovInterruptModerationValue
-	IovWeight              int
+	StaticMacAddress                       string
+	MacAddressSpoofing                     OnOffState
+	DhcpGuard                              OnOffState
+	RouterGuard                            OnOffState
+	PortMirroring                          PortMirroring
+	IeeePriorityTag                        OnOffState
+	VmqWeight                              int
+	IovQueuePairsRequested                 int
+	IovInterruptModeration                 IovInterruptModerationValue
+	IovWeight                              int
 	IpsecOffloadMaximumSecurityAssociation int
 	MaximumBandwidth                       int
 	MinimumBandwidthAbsolute               int
@@ -306,14 +306,14 @@ type VmNetworkAdapter struct {
 	ResourcePoolName                       string
 	TestReplicaPoolName                    string
 	TestReplicaSwitchName                  string
-	VirtualSubnetId        int
-	AllowTeaming           OnOffState
-	NotMonitoredInCluster  bool
+	VirtualSubnetId                        int
+	AllowTeaming                           OnOffState
+	NotMonitoredInCluster                  bool
 	StormLimit                             int
-	DynamicIpAddressLimit  int
-	DeviceNaming           OnOffState
-	FixSpeed10G            OnOffState
-	PacketDirectNumProcs   int
+	DynamicIpAddressLimit                  int
+	DeviceNaming                           OnOffState
+	FixSpeed10G                            OnOffState
+	PacketDirectNumProcs                   int
 	PacketDirectModerationCount            int
 	PacketDirectModerationInterval         int
 	VrssEnabled                            bool
@@ -350,7 +350,6 @@ func ExpandVmNetworkAdapterWaitForIps(d *schema.ResourceData) ([]VmNetworkAdapte
 
 	return expandVmNetworkAdapterWaitForIps, waitForIpsTimeout, waitForIpsPollPeriod, nil
 }
-
 
 type HypervVmNetworkAdapterClient interface {
 	CreateVmNetworkAdapter(

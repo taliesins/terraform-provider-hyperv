@@ -306,7 +306,6 @@ type Vm struct {
 	//ParentCheckpointName				string  this will allow us to set the checkpoint to use
 }
 
-
 type HypervVmClient interface {
 	CreateVm(
 		name string,
@@ -336,7 +335,7 @@ type HypervVmClient interface {
 
 	UpdateVm(
 		name string,
-	//	generation int,
+		//	generation int,
 		automaticCriticalErrorAction CriticalErrorAction,
 		automaticCriticalErrorActionTimeout int32,
 		automaticStartAction StartAction,

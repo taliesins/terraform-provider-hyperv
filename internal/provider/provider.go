@@ -144,7 +144,7 @@ func New(version string, commit string) func() *schema.Provider {
 				"kerberos_credential_cache": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					DefaultFunc: schema.MultiEnvDefaultFunc([]string{"HYPERV_KERBEROS_CREDENTIAL_CACHE","KRB5CCNAME"}, DefaultKerberosCredentialCache),
+					DefaultFunc: schema.MultiEnvDefaultFunc([]string{"HYPERV_KERBEROS_CREDENTIAL_CACHE", "KRB5CCNAME"}, DefaultKerberosCredentialCache),
 					Description: "Use Kerberos Credential Cache for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CREDENTIAL_CACHE` or `KRB5CCNAME` environment variable otherwise defaults to empty string.",
 				},
 
@@ -273,10 +273,10 @@ func configure(version string, commit string, provider *schema.Provider) func(co
 			Key:              key,
 			Insecure:         resourceData.Get("insecure").(bool),
 			NTLM:             resourceData.Get("use_ntlm").(bool),
-			KrbRealm: 		  resourceData.Get("kerberos_realm").(string),
-			KrbSpn: 		  resourceData.Get("kerberos_service_principal_name").(string),
-			KrbConfig: 		  resourceData.Get("kerberos_config").(string),
-			KrbCCache: 		  resourceData.Get("kerberos_credential_cache").(string),
+			KrbRealm:         resourceData.Get("kerberos_realm").(string),
+			KrbSpn:           resourceData.Get("kerberos_service_principal_name").(string),
+			KrbConfig:        resourceData.Get("kerberos_config").(string),
+			KrbCCache:        resourceData.Get("kerberos_credential_cache").(string),
 			TLSServerName:    resourceData.Get("tls_server_name").(string),
 			ScriptPath:       resourceData.Get("script_path").(string),
 			Timeout:          resourceData.Get("timeout").(string),

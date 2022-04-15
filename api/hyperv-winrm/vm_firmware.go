@@ -120,4 +120,3 @@ func (c *ClientConfig) CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []ap
 		vmFirmware.PauseAfterBootFailure,
 	)
 }
-

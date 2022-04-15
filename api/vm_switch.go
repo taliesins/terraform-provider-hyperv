@@ -128,10 +128,10 @@ type VmSwitch struct {
 	AllowManagementOS                   bool
 	EmbeddedTeamingEnabled              bool
 	IovEnabled                          bool
-	PacketDirectEnabled      bool
-	BandwidthReservationMode VMSwitchBandwidthMode
-	SwitchType               VMSwitchType
-	NetAdapterNames          []string
+	PacketDirectEnabled                 bool
+	BandwidthReservationMode            VMSwitchBandwidthMode
+	SwitchType                          VMSwitchType
+	NetAdapterNames                     []string
 	DefaultFlowMinimumBandwidthAbsolute int64
 	DefaultFlowMinimumBandwidthWeight   int64
 	DefaultQueueVmmqEnabled             bool
@@ -161,10 +161,10 @@ type HypervVmSwitchClient interface {
 		name string,
 		notes string,
 		allowManagementOS bool,
-	//embeddedTeamingEnabled bool,
-	//iovEnabled bool,
-	//packetDirectEnabled bool,
-	//bandwidthReservationMode VMSwitchBandwidthMode,
+		//embeddedTeamingEnabled bool,
+		//iovEnabled bool,
+		//packetDirectEnabled bool,
+		//bandwidthReservationMode VMSwitchBandwidthMode,
 		switchType VMSwitchType,
 		netAdapterNames []string,
 		defaultFlowMinimumBandwidthAbsolute int64,
