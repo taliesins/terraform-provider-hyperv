@@ -745,7 +745,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 
 func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][create] creating hyperv machine: %#v", d)
-	client := meta.(*api.HypervClient)
+	client := meta.(api.Client)
 
 	name := ""
 
@@ -857,7 +857,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
+	err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -870,7 +870,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 
 func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv machine: %#v", d)
-	client := meta.(*api.HypervClient)
+	client := meta.(api.Client)
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -912,7 +912,7 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	vmState, err := client.GetVmState(name)
+	vmState, err := client.GetVmStatus(name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1068,7 +1068,7 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 
 func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][update] updating hyperv machine: %#v", d)
-	client := meta.(*api.HypervClient)
+	client := meta.(api.Client)
 
 	name := ""
 
@@ -1248,7 +1248,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		}
 
 		state := api.ToVmState((d.Get("state")).(string))
-		err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
+		err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1262,7 +1262,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][delete] deleting hyperv machine: %#v", d)
 
-	client := meta.(*api.HypervClient)
+	client := meta.(api.Client)
 
 	name := ""
 
@@ -1278,7 +1278,7 @@ func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.Resource
 	}
 
 	state := api.VmState_Off
-	err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, state)
+	err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1292,8 +1292,8 @@ func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func turnOffVmIfOn(data *schema.ResourceData, client *api.HypervClient, name string) (err error) {
-	vmState, err := client.GetVmState(name)
+func turnOffVmIfOn(data *schema.ResourceData, client api.Client, name string) (err error) {
+	vmState, err := client.GetVmStatus(name)
 	if err != nil {
 		return err
 	}
@@ -1307,7 +1307,7 @@ func turnOffVmIfOn(data *schema.ResourceData, client *api.HypervClient, name str
 				return err
 			}
 
-			err = client.UpdateVmState(name, waitForStateTimeout, waitForStatePollPeriod, api.VmState_Off)
+			err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, api.VmState_Off)
 			if err != nil {
 				return err
 			}
@@ -1331,7 +1331,7 @@ func turnOffVmIfOn(data *schema.ResourceData, client *api.HypervClient, name str
 		log.Printf("[INFO][hyperv][turnOffVmIfOn] vm %#v is in a state of %#v and so wait 2 seconds for it turn off", name, vmState.State)
 		time.Sleep(2 * time.Second)
 
-		vmState, err = client.GetVmState(name)
+		vmState, err = client.GetVmStatus(name)
 		if err != nil {
 			return err
 		}

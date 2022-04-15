@@ -6,7 +6,7 @@ import (
 )
 
 func TestSerializeVm(t *testing.T) {
-	vmJson, err := json.Marshal(vm{
+	vmJson, err := json.Marshal(Vm{
 		Name:  "test",
 		Notes: "test notes",
 	})
@@ -30,7 +30,7 @@ func TestDeserializeVm(t *testing.T) {
 }
 `
 
-	var vm vm
+	var vm Vm
 	err := json.Unmarshal([]byte(vmJson), &vm)
 	if err != nil {
 		t.Errorf("Unable to deserialize vm: %s", err.Error())

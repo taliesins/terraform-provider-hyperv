@@ -1,156 +1,16 @@
-package api
+package hyperv_winrm
 
 import (
-	"bytes"
 	"encoding/json"
-	"strconv"
-	"strings"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-type VmState int
-
-const (
-	VmState_Other              VmState = 1
-	VmState_Running            VmState = 2
-	VmState_Off                VmState = 3
-	VmState_Stopping           VmState = 4
-	VmState_Saved              VmState = 6
-	VmState_Paused             VmState = 9
-	VmState_Starting           VmState = 10
-	VmState_Reset              VmState = 11
-	VmState_Saving             VmState = 32773
-	VmState_Pausing            VmState = 32776
-	VmState_Resuming           VmState = 32777
-	VmState_FastSaved          VmState = 32779
-	VmState_FastSaving         VmState = 32780
-	VmState_ForceShutdown      VmState = 32781
-	VmState_ForceReboot        VmState = 32782
-	VmState_RunningCritical    VmState = 32783
-	VmState_OffCritical        VmState = 32784
-	VmState_StoppingCritical   VmState = 32785
-	VmState_SavedCritical      VmState = 32786
-	VmState_PausedCritical     VmState = 32787
-	VmState_StartingCritical   VmState = 32788
-	VmState_ResetCritical      VmState = 32789
-	VmState_SavingCritical     VmState = 32790
-	VmState_PausingCritical    VmState = 32791
-	VmState_ResumingCritical   VmState = 32792
-	VmState_FastSavedCritical  VmState = 32793
-	VmState_FastSavingCritical VmState = 32794
-)
-
-var VmState_name = map[VmState]string{
-	VmState_Other:              "Other",
-	VmState_Running:            "Running",
-	VmState_Off:                "Off",
-	VmState_Stopping:           "Stopping",
-	VmState_Saved:              "Saved",
-	VmState_Paused:             "Paused",
-	VmState_Starting:           "Starting",
-	VmState_Reset:              "Reset",
-	VmState_Saving:             "Saving",
-	VmState_Pausing:            "Pausing",
-	VmState_Resuming:           "Resuming",
-	VmState_FastSaved:          "FastSaved",
-	VmState_FastSaving:         "FastSaving",
-	VmState_ForceShutdown:      "ForceShutdown",
-	VmState_ForceReboot:        "ForceReboot",
-	VmState_RunningCritical:    "RunningCritical",
-	VmState_OffCritical:        "OffCritical",
-	VmState_StoppingCritical:   "StoppingCritical",
-	VmState_SavedCritical:      "SavedCritical",
-	VmState_PausedCritical:     "PausedCritical",
-	VmState_StartingCritical:   "StartingCritical",
-	VmState_ResetCritical:      "ResetCritical",
-	VmState_SavingCritical:     "SavingCritical",
-	VmState_PausingCritical:    "PausingCritical",
-	VmState_ResumingCritical:   "ResumingCritical",
-	VmState_FastSavedCritical:  "FastSavedCritical",
-	VmState_FastSavingCritical: "FastSavingCritical",
-}
-
-var VmState_SettableValue = map[string]VmState{
-	"running": VmState_Running,
-	"off":     VmState_Off,
-}
-
-var VmState_value = map[string]VmState{
-	"other":              VmState_Other,
-	"running":            VmState_Running,
-	"off":                VmState_Off,
-	"stopping":           VmState_Stopping,
-	"saved":              VmState_Saved,
-	"paused":             VmState_Paused,
-	"starting":           VmState_Starting,
-	"reset":              VmState_Reset,
-	"saving":             VmState_Saving,
-	"pausing":            VmState_Pausing,
-	"resuming":           VmState_Resuming,
-	"fastsaved":          VmState_FastSaved,
-	"fastsaving":         VmState_FastSaving,
-	"forceshutdown":      VmState_ForceShutdown,
-	"forcereboot":        VmState_ForceReboot,
-	"runningcritical":    VmState_RunningCritical,
-	"offcritical":        VmState_OffCritical,
-	"stoppingcritical":   VmState_StoppingCritical,
-	"savedcritical":      VmState_SavedCritical,
-	"pausedcritical":     VmState_PausedCritical,
-	"startingcritical":   VmState_StartingCritical,
-	"resetcritical":      VmState_ResetCritical,
-	"savingcritical":     VmState_SavingCritical,
-	"pausingcritical":    VmState_PausingCritical,
-	"resumingcritical":   VmState_ResumingCritical,
-	"fastsavedcritical":  VmState_FastSavedCritical,
-	"fastsavingcritical": VmState_FastSavingCritical,
-}
-
-func (x VmState) String() string {
-	return VmState_name[x]
-}
-
-func ToVmState(x string) VmState {
-	if integerValue, err := strconv.Atoi(x); err == nil {
-		return VmState(integerValue)
-	}
-	return VmState_value[strings.ToLower(x)]
-}
-
-func (d *VmState) MarshalJSON() ([]byte, error) {
-	buffer := bytes.NewBufferString(`"`)
-	buffer.WriteString(d.String())
-	buffer.WriteString(`"`)
-	return buffer.Bytes(), nil
-}
-
-func (d *VmState) UnmarshalJSON(b []byte) error {
-	var s string
-	err := json.Unmarshal(b, &s)
-	if err != nil {
-		var i int
-		err2 := json.Unmarshal(b, &i)
-		if err2 == nil {
-			*d = VmState(i)
-			return nil
-		}
-
-		return err
-	}
-	*d = ToVmState(s)
-	return nil
-}
-
-type vmState struct {
-	State VmState
-}
-
-type getVmStateArgs struct {
+type getVmStatusArgs struct {
 	VmName string
 }
 
-var getVmStateTemplate = template.Must(template.New("GetVmState").Parse(`
+var getVmStatusTemplate = template.Must(template.New("GetVmStatus").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmName = '{{.VmName}}'
 
@@ -166,22 +26,22 @@ if ($vmStateObject) {
 }
 `))
 
-func (c *HypervClient) GetVmState(vmName string) (result vmState, err error) {
-	err = c.runScriptWithResult(getVmStateTemplate, getVmStateArgs{
+func (c *ClientConfig) GetVmStatus(vmName string) (result api.VmStatus, err error) {
+	err = c.WinRmClient.RunScriptWithResult(getVmStatusTemplate, getVmStatusArgs{
 		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-type updateVmStateArgs struct {
+type updateVmStatusArgs struct {
 	VmName      string
 	Timeout     uint32
-	PollPeriod  uint32
-	VmStateJson string
+	PollPeriod   uint32
+	VmStatusJson string
 }
 
-var updateVmStateTemplate = template.Must(template.New("UpdateVmState").Parse(`
+var updateVmStatusTemplate = template.Must(template.New("UpdateVmStatus").Parse(`
 $ErrorActionPreference = 'Stop'
 
 function Test-VmStateRequiresManualIntervention($state){
@@ -243,7 +103,7 @@ function Wait-IsInFinalTransitionState($Name, $Timeout, $PollPeriod){
 }
 
 Import-Module Hyper-V
-$vm = '{{.VmStateJson}}' | ConvertFrom-Json
+$vm = '{{.VmStatusJson}}' | ConvertFrom-Json
 $vmName = '{{.VmName}}'
 $state = [Microsoft.HyperV.PowerShell.VMState]$vm.State
 $vmObject = Get-VM -Name "$($vmName)*" | ?{$_.Name -eq $vmName}
@@ -296,14 +156,14 @@ if ($vmObject.State -ne $state) {
 }
 `))
 
-func (c *HypervClient) UpdateVmState(
+func (c *ClientConfig) UpdateVmStatus(
 	vmName string,
 	timeout uint32,
 	pollPeriod uint32,
-	state VmState,
+	state api.VmState,
 ) (err error) {
 
-	vmStateJson, err := json.Marshal(vmState{
+	vmStatusJson, err := json.Marshal(api.VmStatus{
 		State: state,
 	})
 
@@ -311,19 +171,14 @@ func (c *HypervClient) UpdateVmState(
 		return err
 	}
 
-	err = c.runFireAndForgetScript(updateVmStateTemplate, updateVmStateArgs{
-		VmName:      vmName,
-		Timeout:     timeout,
-		PollPeriod:  pollPeriod,
-		VmStateJson: string(vmStateJson),
+	err = c.WinRmClient.RunFireAndForgetScript(updateVmStatusTemplate, updateVmStatusArgs{
+		VmName:       vmName,
+		Timeout:      timeout,
+		PollPeriod:   pollPeriod,
+		VmStatusJson: string(vmStatusJson),
 	})
 
 	return err
 }
 
-func ExpandVmStateWaitForState(d *schema.ResourceData) (uint32, uint32, error) {
-	waitForIpsTimeout := uint32((d.Get("wait_for_state_timeout")).(int))
-	waitForIpsPollPeriod := uint32((d.Get("wait_for_state_poll_period")).(int))
 
-	return waitForIpsTimeout, waitForIpsPollPeriod, nil
-}

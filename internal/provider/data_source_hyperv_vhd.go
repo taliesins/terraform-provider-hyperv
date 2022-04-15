@@ -129,7 +129,7 @@ func dataSourceHyperVVhd() *schema.Resource {
 
 func datasourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv vhd: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	path := ""
 

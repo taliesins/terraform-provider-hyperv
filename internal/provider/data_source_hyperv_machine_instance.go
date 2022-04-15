@@ -727,7 +727,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 
 func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv machine: %#v", d)
-	client := meta.(*api.HypervClient)
+	client := meta.(api.Client)
 
 	var name string
 	if v, ok := d.GetOk("name"); ok {
@@ -769,7 +769,7 @@ func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	vmState, err := client.GetVmState(name)
+	vmState, err := client.GetVmStatus(name)
 	if err != nil {
 		return diag.FromErr(err)
 	}

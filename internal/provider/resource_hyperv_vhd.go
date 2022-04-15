@@ -158,7 +158,7 @@ func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i inter
 func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 
 	log.Printf("[INFO][hyperv][create] creating hyperv vhd: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	path := ""
 
@@ -202,7 +202,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 
 func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv vhd: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	path := ""
 
@@ -242,7 +242,7 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 
 func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][update] updating hyperv vhd: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	path := ""
 
@@ -292,7 +292,7 @@ func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta i
 func resourceHyperVVhdDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][delete] deleting hyperv vhd: %#v", d)
 
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	path := ""
 

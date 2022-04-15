@@ -7,7 +7,7 @@ import (
 )
 
 func TestSerializeVmHardDiskDrive(t *testing.T) {
-	vmHardDiskDriveJson, err := json.Marshal(vmHardDiskDrive{
+	vmHardDiskDriveJson, err := json.Marshal(VmHardDiskDrive{
 		Path:                          `C:\data\VirtualMachines\web_server\Virtual Hard Disks\MobyLinuxVM.vhdx`,
 		OverrideCacheAttributes:       0,
 		ControllerLocation:            0,
@@ -53,7 +53,7 @@ func TestDeserializeVmHardDiskDrive(t *testing.T) {
 }
 `
 
-	var vmHardDiskDrive vmHardDiskDrive
+	var vmHardDiskDrive VmHardDiskDrive
 	err := json.Unmarshal([]byte(vmHardDiskDriveJson), &vmHardDiskDrive)
 	if err != nil {
 		t.Errorf("Unable to deserialize vmHardDiskDrive: %s", err.Error())
@@ -96,7 +96,7 @@ func TestDeserializeVmHardDiskDrives(t *testing.T) {
 ]
 `
 
-	var vmHardDiskDrives = make([]vmHardDiskDrive, 0)
+	var vmHardDiskDrives = make([]VmHardDiskDrive, 0)
 
 	err := json.Unmarshal([]byte(vmHardDiskDrivesJson), &vmHardDiskDrives)
 	if err != nil {

@@ -133,7 +133,7 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 
 func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][create] creating hyperv switch: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	switchName := ""
 
@@ -225,7 +225,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 
 func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv switch: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	var switchName string
 
@@ -349,7 +349,7 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 
 func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][update] updating hyperv switch: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	switchName := ""
 
@@ -441,7 +441,7 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 func resourceHyperVNetworkSwitchDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][delete] deleting hyperv switch: %#v", d)
 
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	switchName := ""
 

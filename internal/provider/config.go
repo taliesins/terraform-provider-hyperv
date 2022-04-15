@@ -3,20 +3,18 @@ package provider
 import (
 	"context"
 	"fmt"
+	"github.com/taliesins/terraform-provider-hyperv/api"
+	"github.com/taliesins/terraform-provider-hyperv/api/hyperv-winrm"
 	"log"
 	"net"
-	"reflect"
 	"strconv"
 	"strings"
 	"time"
 
 	"github.com/dylanmei/iso8601"
-	"github.com/hashicorp/go-cty/cty"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	pool "github.com/jolestar/go-commons-pool/v2"
-	"github.com/masterzen/winrm"
-	"github.com/taliesins/terraform-provider-hyperv/api"
+	winrm "github.com/masterzen/winrm"
+	winrm_helper "github.com/taliesins/terraform-provider-hyperv/api/winrm-helper"
 )
 
 type Config struct {
@@ -35,7 +33,7 @@ type Config struct {
 	KrbConfig string
 	KrbCCache string
 
-	NTLM            bool
+	NTLM bool
 
 	TLSServerName string
 	CACert        []byte
@@ -46,9 +44,9 @@ type Config struct {
 	Timeout    string
 }
 
-// HypervClient() returns a new client for configuring hyperv.
-func (c *Config) Client() (comm *api.HypervClient, err error) {
-	log.Printf("[INFO][hyperv] HyperV HypervClient configured for HyperV API operations using:\n"+
+// HypervWinRmClient() returns a new client for configuring hyperv.
+func (c *Config) Client() (comm api.Client, err error) {
+	log.Printf("[INFO][hyperv] HyperV HypervWinRmClient configured for HyperV API operations using:\n"+
 		"  Host: %s\n"+
 		"  Port: %d\n"+
 		"  User: %s\n"+
@@ -56,12 +54,12 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 		"  HTTPS: %t\n"+
 		"  Insecure: %t\n"+
 
-		"  KrbRealm: %t\n"+
-		"  KrbSpn: %t\n"+
-		"  KrbConfig: %t\n"+
-		"  KrbCCache: %t\n"+
-
 		"  NTLM: %t\n"+
+
+		"  KrbRealm: %s\n"+
+		"  KrbSpn: %s\n"+
+		"  KrbConfig: %s\n"+
+		"  KrbCCache: %s\n"+
 
 		"  TLSServerName: %s\n"+
 		"  CACert: %t\n"+
@@ -89,7 +87,13 @@ func (c *Config) Client() (comm *api.HypervClient, err error) {
 		c.Timeout,
 	)
 
-	return getHypervClient(c)
+	hyperVProvider, err := getHypervProvider(c)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return hyperVProvider.Client, nil
 }
 
 // New creates a new communicator implementation over WinRM.
@@ -101,10 +105,6 @@ func GetWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 	}
 
 	params := winrm.DefaultParameters
-
-	if config.NTLM {
-		params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
-	}
 
 	if config.KrbRealm != "" {
 		proto := "http"
@@ -124,6 +124,10 @@ func GetWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 				KrbConf:   config.KrbConfig,
 				KrbCCache: config.KrbCCache,
 			}
+		}
+	} else {
+		if config.NTLM {
+			params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
 		}
 	}
 
@@ -194,7 +198,7 @@ func ipFormat(ip string) string {
 	return fmt.Sprintf("[%s]", ip)
 }
 
-func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error) {
+func getHypervProvider(config *Config) (hypervProvider *api.Provider, err error) {
 	ctx := context.Background()
 	factory := pool.NewPooledObjectFactorySimple(
 		func(context.Context) (interface{}, error) {
@@ -214,141 +218,18 @@ func getHypervClient(config *Config) (hypervClient *api.HypervClient, err error)
 	winRmClientPool.Config.MaxTotal = 5
 	winRmClientPool.Config.TimeBetweenEvictionRuns = 10 * time.Second
 
-	hypervClient = &api.HypervClient{
+	winrmHelperProvider, err := winrm_helper.New(&winrm_helper.ClientConfig{
 		WinRmClientPool:  winRmClientPool,
 		Vars:             "",
 		ElevatedUser:     config.User,
 		ElevatedPassword: config.Password,
+	})
+
+	if err != nil {
+		return nil, err
 	}
 
-	return hypervClient, err
-}
-
-func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-
-		mapType := reflect.ValueOf(valid)
-		if mapType.Kind() != reflect.Map {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  "not a map!",
-			})
-
-			return diags
-		}
-
-		mapKeyString, ok := i.(string)
-		if !ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected type of %s to be string", i),
-			})
-
-			return diags
-		}
-
-		if ignoreCase {
-			mapKeyString = strings.ToLower(mapKeyString)
-		}
-
-		mapKeyType := reflect.ValueOf(mapKeyString)
-		mapValueType := mapType.MapIndex(mapKeyType)
-
-		if !mapValueType.IsValid() {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected %s to be one of %v mapKeyString, got %s", i, valid, mapKeyString),
-			})
-
-			return diags
-		}
-
-		return diags
-	}
-}
-
-func IntInSlice(valid []int) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-
-		value, ok := i.(int)
-		if !ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected type of %s to be int", i),
-			})
-
-			return diags
-		}
-
-		for _, validValue := range valid {
-			if value == validValue {
-				return diags
-			}
-		}
-
-		diags = append(diags, diag.Diagnostic{
-			Severity: diag.Error,
-			Summary:  fmt.Sprintf("expected %s to be one of %v, got %v", i, valid, value),
-		})
-
-		return diags
-	}
-}
-
-func IntBetween(min, max int) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-
-		v, ok := i.(int)
-		if !ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected type of %s to be int", i),
-			})
-
-			return diags
-		}
-
-		if v < min || v > max {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected %s to be in the range (%d - %d), got %d", i, min, max, v),
-			})
-		}
-
-		return diags
-	}
-}
-
-func ValueOrIntBetween(value, min, max int) schema.SchemaValidateDiagFunc {
-	return func(i interface{}, path cty.Path) diag.Diagnostics {
-		var diags diag.Diagnostics
-
-		v, ok := i.(int)
-		if !ok {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected type of %s to be int", i),
-			})
-
-			return diags
-		}
-
-		if v == value {
-			return diags
-		}
-
-		if v < min || v > max {
-			diags = append(diags, diag.Diagnostic{
-				Severity: diag.Error,
-				Summary:  fmt.Sprintf("expected %s to be in the range (%d - %d), got %d", i, min, max, v),
-			})
-
-			return diags
-		}
-
-		return diags
-	}
+	return hyperv_winrm.New(&hyperv_winrm.ClientConfig{
+		WinRmClient: winrmHelperProvider.Client,
+	})
 }

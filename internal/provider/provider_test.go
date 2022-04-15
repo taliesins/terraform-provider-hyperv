@@ -1,56 +1,51 @@
 package provider
 
 import (
-	"context"
-	"fmt"
-	"log"
+	"math/rand"
+	"strings"
 	"testing"
+	"time"
 
-	"github.com/masterzen/winrm"
-	"github.com/taliesins/terraform-provider-hyperv/powershell"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func TestGetRemotePath(t *testing.T) {
-	config := &Config{
-		User:          "Administrator",
-		Password:      "",
-		Host:          "localhost",
-		Port:          5986,
-		HTTPS:         true,
-		Insecure:      true,
-		NTLM:          true,
-		TLSServerName: "",
-		CACert:        nil,
-		Key:           nil,
-		Cert:          nil,
-		ScriptPath:    "C:/Temp/terraform_%RAND%.cmd",
-		Timeout:       "30s",
+var (
+	// these will be set by the goreleaser configuration
+	// to appropriate values for the compiled binary
+	version string = "0.0.0"
+
+	// goreleaser can also pass the specific commit if you want
+	commit string = ""
+)
+
+// providerFactories are used to instantiate a provider during acceptance testing.
+// The factory function will be invoked for every Terraform CLI command executed
+// to create a provider server to which the CLI can reattach.
+var providerFactories = map[string]func() (*schema.Provider, error){
+	"hyperv": func() (*schema.Provider, error) {
+		return New(version, commit)(), nil
+	},
+}
+
+func TestProvider(t *testing.T) {
+	if err := New(version, commit)().InternalValidate(); err != nil {
+		t.Fatalf("err: %s", err)
 	}
+}
 
-	client, err := config.Client()
-	if err != nil {
-		t.Errorf("Unable to get client for HyperV: %s", err.Error())
-	}
+func testAccPreCheck(t *testing.T) {
+	// You can add code here to run prior to any test case execution, for example assertions
+	// about the appropriate environment variables being set are common to see in a pre-check
+	// function.
+}
 
-	ctx := context.Background()
-	winrmClient, err := client.WinRmClientPool.BorrowObject(ctx)
+func escapeForHcl(value string) string {
+	return strings.ReplaceAll(value, "\\", "\\\\")
+}
 
-	if err != nil {
-		t.Errorf("Unable to borrow winrm client for HyperV: %s", err.Error())
-	}
-
-	tempFile := fmt.Sprintf("terraform-%s", powershell.TimeOrderedUUID())
-	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
-	log.Printf("Resolving remote temp path of [%s]", tempPath)
-	tempPath, err = powershell.ResolvePath(winrmClient.(*winrm.Client), tempPath)
-	err2 := client.WinRmClientPool.ReturnObject(ctx, winrmClient)
-
-	if err != nil {
-		t.Errorf("Unable to resolve remote path: %s", err.Error())
-	}
-
-	if err2 != nil {
-		t.Errorf("Unable to release winrm client: %s", err2.Error())
-	}
-	log.Printf("Remote temp path resolved to [%s]", tempPath)
+func randInt() int {
+	rand.Seed(time.Now().UnixNano())
+	min := 100
+	max := 999
+	return rand.Intn(max - min + 1) + min
 }

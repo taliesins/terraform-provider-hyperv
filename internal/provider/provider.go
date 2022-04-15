@@ -118,9 +118,6 @@ func New(version string, commit string) func() *schema.Provider {
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("HYPERV_USE_NTLM", DefaultAllowNTLM),
 					Description: "Use NTLM for authentication for HyperV api calls. Can also be set via setting the `HYPERV_USE_NTLM` environment variable to `true` otherwise defaults to `true`.",
-					ConflictsWith: []string{
-						"kerberos_realm",
-					},
 				},
 
 				"kerberos_realm": {
@@ -128,9 +125,6 @@ func New(version string, commit string) func() *schema.Provider {
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_REALM", DefaultKerberosRealm),
 					Description: "Use Kerberos Realm for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_REALM` environment variable otherwise defaults to empty string.",
-					ConflictsWith: []string{
-						"use_ntlm",
-					},
 				},
 
 				"kerberos_service_principal_name": {
@@ -143,14 +137,14 @@ func New(version string, commit string) func() *schema.Provider {
 				"kerberos_config": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_CONFIG", schema.EnvDefaultFunc("KRB5_CONFIG", DefaultKerberosConfig)),
+					DefaultFunc: schema.MultiEnvDefaultFunc([]string{"HYPERV_KERBEROS_CONFIG", "KRB5_CONFIG"}, DefaultKerberosConfig),
 					Description: "Use Kerberos Config for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CONFIG` or `KRB5_CONFIG` environment variable otherwise defaults to `/etc/krb5.conf`.",
 				},
 
 				"kerberos_credential_cache": {
 					Type:        schema.TypeString,
 					Optional:    true,
-					DefaultFunc: schema.EnvDefaultFunc("HYPERV_KERBEROS_CREDENTIAL_CACHE", schema.EnvDefaultFunc("KRB5CCNAME", DefaultKerberosCredentialCache)),
+					DefaultFunc: schema.MultiEnvDefaultFunc([]string{"HYPERV_KERBEROS_CREDENTIAL_CACHE","KRB5CCNAME"}, DefaultKerberosCredentialCache),
 					Description: "Use Kerberos Credential Cache for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CREDENTIAL_CACHE` or `KRB5CCNAME` environment variable otherwise defaults to empty string.",
 				},
 

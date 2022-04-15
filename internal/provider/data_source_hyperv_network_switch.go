@@ -126,7 +126,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 
 func datasourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
 	log.Printf("[INFO][hyperv][read] reading hyperv switch: %#v", d)
-	c := meta.(*api.HypervClient)
+	c := meta.(api.Client)
 
 	var switchName string
 
