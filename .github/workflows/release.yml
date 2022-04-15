@@ -25,13 +25,11 @@ on:
       - .golangci.yml
       - .goreleaser.yml
       - .semgrep.yml
-      - hyperv/**
+      - interal/**
       - api/**
       - powershell/**
-      - docs/index.md
-      - docs/data-sources/**
-      - docs/guides/**
-      - docs/resources/**
+      - examples/**
+      - docs/**
       - go.sum
       - GNUmakefile
       - main.go

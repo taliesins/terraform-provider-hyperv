@@ -80,8 +80,8 @@ func New(version string, commit string) func() *schema.Provider {
 
 				"password": {
 					Type:        schema.TypeString,
-					Required:    true,
-					DefaultFunc: schema.EnvDefaultFunc("HYPERV_PASSWORD", nil),
+					Optional:    true,
+					DefaultFunc: schema.EnvDefaultFunc("HYPERV_PASSWORD", ""),
 					Description: "The password associated with the username to use for HyperV api calls. It can also be sourced from the `HYPERV_PASSWORD` environment variable`.",
 				},
 
