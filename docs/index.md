@@ -53,6 +53,10 @@ resource "hyperv_machine_instance" "webserver" {
 - `host` (String) The host to run HyperV api calls against. It can also be sourced from the `HYPERV_HOST` environment variable otherwise defaults to `127.0.0.1`.
 - `https` (Boolean) Should https be used for HyperV api calls. It can also be sourced from `HYPERV_HTTPS` environment variable otherwise defaults to `true`.
 - `insecure` (Boolean) Skips TLS Verification for HyperV api calls. Generally this is used for self-signed certificates. Should only be used if absolutely needed. Can also be set via setting the `HYPERV_INSECURE` environment variable to `true` otherwise defaults to `false`.
+- `kerberos_config` (String) Use Kerberos Config for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CONFIG` or `KRB5_CONFIG` environment variable otherwise defaults to `/etc/krb5.conf`.
+- `kerberos_credential_cache` (String) Use Kerberos Credential Cache for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_CREDENTIAL_CACHE` or `KRB5CCNAME` environment variable otherwise defaults to empty string.
+- `kerberos_realm` (String) Use Kerberos Realm for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_REALM` environment variable otherwise defaults to empty string.
+- `kerberos_service_principal_name` (String) Use Kerberos Service Principal Name for authentication for HyperV api calls. Can also be set via setting the `HYPERV_KERBEROS_SERVICE_PRINCIPAL_NAME` environment variable otherwise defaults to empty string.
 - `key_path` (String) The path to the certificate private key to use for authentication for HyperV api calls. Can also be sourced from the `HYPERV_KEY_PATH` environment variable otherwise defaults to empty string.
 - `password` (String) The password associated with the username to use for HyperV api calls. It can also be sourced from the `HYPERV_PASSWORD` environment variable`.
 - `port` (Number) The port to run HyperV api calls against. It can also be sourced from the `HYPERV_PORT` environment variable otherwise defaults to `5986`.
