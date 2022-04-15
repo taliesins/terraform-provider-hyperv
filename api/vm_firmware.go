@@ -4,12 +4,10 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
-	"text/template"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ConsoleModeType int
@@ -122,7 +120,7 @@ func (d *IPProtocolPreference) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
-type vmFirmware struct {
+type VmFirmware struct {
 	VmName                       string
 	EnableSecureBoot             OnOffState
 	SecureBootTemplate           string
@@ -132,8 +130,8 @@ type vmFirmware struct {
 }
 
 func DefaultVmFirmwares() (interface{}, error) {
-	result := make([]vmFirmware, 0)
-	vmFirmware := vmFirmware{
+	result := make([]VmFirmware, 0)
+	vmFirmware := VmFirmware{
 		EnableSecureBoot:             OnOffState_On,
 		SecureBootTemplate:           "MicrosoftWindows",
 		PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
@@ -145,8 +143,8 @@ func DefaultVmFirmwares() (interface{}, error) {
 	return result, nil
 }
 
-func ExpandVmFirmwares(d *schema.ResourceData) ([]vmFirmware, error) {
-	expandedVmFirmwares := make([]vmFirmware, 0)
+func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
+	expandedVmFirmwares := make([]VmFirmware, 0)
 
 	if v, ok := d.GetOk("vm_firmware"); ok {
 		vmFirmwares := v.([]interface{})
@@ -158,7 +156,7 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]vmFirmware, error) {
 
 			log.Printf("[DEBUG] firmware = [%+v]", firmware)
 
-			expandedVmFirmware := vmFirmware{
+			expandedVmFirmware := VmFirmware{
 				EnableSecureBoot:             ToOnOffState(firmware["enable_secure_boot"].(string)),
 				SecureBootTemplate:           firmware["secure_boot_template"].(string),
 				PreferredNetworkBootProtocol: ToIPProtocolPreference(firmware["preferred_network_boot_protocol"].(string)),
@@ -168,12 +166,21 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]vmFirmware, error) {
 
 			expandedVmFirmwares = append(expandedVmFirmwares, expandedVmFirmware)
 		}
+	} else {
+		vmFirmware := VmFirmware{
+			EnableSecureBoot:             OnOffState_On,
+			SecureBootTemplate:           "MicrosoftWindows",
+			PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
+			ConsoleMode:                  ConsoleModeType_Default,
+			PauseAfterBootFailure:        OnOffState_Off,
+		}
+		expandedVmFirmwares = append(expandedVmFirmwares, vmFirmware)
 	}
 
 	return expandedVmFirmwares, nil
 }
 
-func FlattenVmFirmwares(vmFirmwares *[]vmFirmware) []interface{} {
+func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 	flattenedVmFirmwares := make([]interface{}, 0)
 
 	if vmFirmwares != nil {
@@ -191,116 +198,17 @@ func FlattenVmFirmwares(vmFirmwares *[]vmFirmware) []interface{} {
 	return flattenedVmFirmwares
 }
 
-type createOrUpdateVmFirmwareArgs struct {
-	VmFirmwareJson string
-}
-
-var createOrUpdateVmFirmwareTemplate = template.Must(template.New("CreateOrUpdateVmFirmware").Parse(`
-$ErrorActionPreference = 'Stop'
-Import-Module Hyper-V
-$vmFirmware = '{{.VmFirmwareJson}}' | ConvertFrom-Json
-
-$SetVMFirmwareArgs = @{}
-$SetVMFirmwareArgs.VMName=$vmFirmware.VmName
-
-$SetVMFirmwareArgs.EnableSecureBoot=$vmFirmware.EnableSecureBoot
-$SetVMFirmwareArgs.SecureBootTemplate=$vmFirmware.SecureBootTemplate
-$SetVMFirmwareArgs.PreferredNetworkBootProtocol=$vmFirmware.PreferredNetworkBootProtocol
-$SetVMFirmwareArgs.ConsoleMode=$vmFirmware.ConsoleMode
-$SetVMFirmwareArgs.PauseAfterBootFailure=$vmFirmware.PauseAfterBootFailure
-
-Set-VMFirmware @SetVMFirmwareArgs
-`))
-
-func (c *HypervClient) CreateOrUpdateVmFirmware(
-	vmName string,
-	enableSecureBoot OnOffState,
-	secureBootTemplate string,
-	preferredNetworkBootProtocol IPProtocolPreference,
-	consoleMode ConsoleModeType,
-	pauseAfterBootFailure OnOffState,
-) (err error) {
-	vmFirmwareJson, err := json.Marshal(vmFirmware{
-		VmName:                       vmName,
-		EnableSecureBoot:             enableSecureBoot,
-		SecureBootTemplate:           secureBootTemplate,
-		PreferredNetworkBootProtocol: preferredNetworkBootProtocol,
-		ConsoleMode:                  consoleMode,
-		PauseAfterBootFailure:        pauseAfterBootFailure,
-	})
-
-	if err != nil {
-		return err
-	}
-
-	err = c.runFireAndForgetScript(createOrUpdateVmFirmwareTemplate, createOrUpdateVmFirmwareArgs{
-		VmFirmwareJson: string(vmFirmwareJson),
-	})
-
-	return err
-}
-
-type getVmFirmwareArgs struct {
-	VmName string
-}
-
-var getVmFirmwareTemplate = template.Must(template.New("GetVmFirmware").Parse(`
-$ErrorActionPreference = 'Stop'
-
-$vmFirmwareObject = Get-VMFirmware -VMName '{{.VmName}}' | %{ @{
-	EnableSecureBoot=             $_.SecureBoot
-	SecureBootTemplate=           $_.SecureBootTemplate
-	PreferredNetworkBootProtocol= $_.PreferredNetworkBootProtocol
-	ConsoleMode=                  $_.ConsoleMode
-	PauseAfterBootFailure=        $_.PauseAfterBootFailure
-}}
-
-if ($vmFirmwareObject) {
-	$vmFirmware = ConvertTo-Json -InputObject $vmFirmwareObject
-	$vmFirmware
-} else {
-	"{}"
-}
-`))
-
-func (c *HypervClient) GetVmFirmware(vmName string) (result vmFirmware, err error) {
-	err = c.runScriptWithResult(getVmFirmwareTemplate, getVmFirmwareArgs{
-		VmName: vmName,
-	}, &result)
-
-	return result, err
-}
-
-func (c *HypervClient) GetNoVmFirmwares() (result []vmFirmware) {
-	result = make([]vmFirmware, 0)
-	return result
-}
-
-func (c *HypervClient) GetVmFirmwares(vmName string) (result []vmFirmware, err error) {
-	result = make([]vmFirmware, 0)
-	vmFirmware, err := c.GetVmFirmware(vmName)
-	if err != nil {
-		return result, err
-	}
-	result = append(result, vmFirmware)
-	return result, err
-}
-
-func (c *HypervClient) CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []vmFirmware) (err error) {
-	if len(vmFirmwares) == 0 {
-		return nil
-	}
-	if len(vmFirmwares) > 1 {
-		return fmt.Errorf("Only 1 vm firmware setting allowed per a vm")
-	}
-
-	vmFirmware := vmFirmwares[0]
-
-	return c.CreateOrUpdateVmFirmware(vmName,
-		vmFirmware.EnableSecureBoot,
-		vmFirmware.SecureBootTemplate,
-		vmFirmware.PreferredNetworkBootProtocol,
-		vmFirmware.ConsoleMode,
-		vmFirmware.PauseAfterBootFailure,
-	)
+type HypervVmFirmwareClient interface {
+	CreateOrUpdateVmFirmware(
+		vmName string,
+		enableSecureBoot OnOffState,
+		secureBootTemplate string,
+		preferredNetworkBootProtocol IPProtocolPreference,
+		consoleMode ConsoleModeType,
+		pauseAfterBootFailure OnOffState,
+	) (err error)
+	GetVmFirmware(vmName string) (result VmFirmware, err error)
+	GetNoVmFirmwares() (result []VmFirmware)
+	GetVmFirmwares(vmName string) (result []VmFirmware, err error)
+	CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []VmFirmware) (err error)
 }

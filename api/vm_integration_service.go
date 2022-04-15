@@ -1,12 +1,10 @@
 package api
 
 import (
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
-	"text/template"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DefaultVmIntegrationServices() (interface{}, error) {
@@ -65,8 +63,8 @@ func DiffSuppressVmIntegrationServices(key, old, new string, d *schema.ResourceD
 	return newValue == oldValue
 }
 
-func GetChangedIntegrationServices(vmIntegrationServices []vmIntegrationService, d *schema.ResourceData) []vmIntegrationService {
-	changedIntegrationServices := make([]vmIntegrationService, 0)
+func GetChangedIntegrationServices(vmIntegrationServices []VmIntegrationService, d *schema.ResourceData) []VmIntegrationService {
+	changedIntegrationServices := make([]VmIntegrationService, 0)
 
 	for _, integrationServiceValue := range vmIntegrationServices {
 		key := "integration_services." + integrationServiceValue.Name
@@ -82,14 +80,14 @@ func GetChangedIntegrationServices(vmIntegrationServices []vmIntegrationService,
 	return changedIntegrationServices
 }
 
-func ExpandIntegrationServices(d *schema.ResourceData) ([]vmIntegrationService, error) {
-	expandedIntegrationServices := make([]vmIntegrationService, 0)
+func ExpandIntegrationServices(d *schema.ResourceData) ([]VmIntegrationService, error) {
+	expandedIntegrationServices := make([]VmIntegrationService, 0)
 
 	if v, ok := d.GetOk("integration_services"); ok {
 		integrationServices := v.(map[string]interface{})
 
 		for integrationServiceKey, integrationServiceValue := range integrationServices {
-			integrationService := vmIntegrationService{
+			integrationService := VmIntegrationService{
 				Name:    integrationServiceKey,
 				Enabled: integrationServiceValue.(bool),
 			}
@@ -101,7 +99,7 @@ func ExpandIntegrationServices(d *schema.ResourceData) ([]vmIntegrationService, 
 	return expandedIntegrationServices, nil
 }
 
-func FlattenIntegrationServices(integrationServices *[]vmIntegrationService) map[string]interface{} {
+func FlattenIntegrationServices(integrationServices *[]VmIntegrationService) map[string]interface{} {
 	flattenedIntegrationServices := make(map[string]interface{})
 
 	if integrationServices != nil {
@@ -113,89 +111,14 @@ func FlattenIntegrationServices(integrationServices *[]vmIntegrationService) map
 	return flattenedIntegrationServices
 }
 
-type vmIntegrationService struct {
+type VmIntegrationService struct {
 	Name    string
 	Enabled bool
 }
 
-type getVmIntegrationServicesArgs struct {
-	VmName string
-}
-
-var getVmIntegrationServicesTemplate = template.Must(template.New("GetVmIntegrationServices").Parse(`
-$ErrorActionPreference = 'Stop'
-$vmIntegrationServicesObject = @(Get-VMIntegrationService -VmName '{{.VmName}}' | %{ @{
-	Name=$_.Name;
-	Enabled=$_.Enabled;
-}})
-
-if ($vmIntegrationServicesObject) {
-	$vmIntegrationServices = ConvertTo-Json -InputObject $vmIntegrationServicesObject
-	$vmIntegrationServices
-} else {
-	"[]"
-}
-`))
-
-func (c *HypervClient) GetVmIntegrationServices(vmName string) (result []vmIntegrationService, err error) {
-	err = c.runScriptWithResult(getVmIntegrationServicesTemplate, getVmIntegrationServicesArgs{
-		VmName: vmName,
-	}, &result)
-
-	return result, err
-}
-
-type enableVmIntegrationServiceArgs struct {
-	VmName string
-	Name   string
-}
-
-var enableVmIntegrationServiceTemplate = template.Must(template.New("EnableVmIntegrationService").Parse(`
-$ErrorActionPreference = 'Stop'
-
-Enable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
-`))
-
-func (c *HypervClient) EnableVmIntegrationService(vmName string, name string) (err error) {
-	err = c.runFireAndForgetScript(enableVmIntegrationServiceTemplate, enableVmIntegrationServiceArgs{
-		VmName: vmName,
-		Name:   name,
-	})
-
-	return err
-}
-
-type disableVmIntegrationServiceArgs struct {
-	VmName string
-	Name   string
-}
-
-var disableVmIntegrationServiceTemplate = template.Must(template.New("DisableVmIntegrationService").Parse(`
-$ErrorActionPreference = 'Stop'
-
-Disable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
-`))
-
-func (c *HypervClient) DisableVmIntegrationService(vmName string, name string) (err error) {
-	err = c.runFireAndForgetScript(disableVmIntegrationServiceTemplate, disableVmIntegrationServiceArgs{
-		VmName: vmName,
-		Name:   name,
-	})
-
-	return err
-}
-
-func (c *HypervClient) CreateOrUpdateVmIntegrationServices(vmName string, integrationServices []vmIntegrationService) (err error) {
-	for _, integrationService := range integrationServices {
-		if integrationService.Enabled {
-			err = c.EnableVmIntegrationService(vmName, integrationService.Name)
-		} else {
-			err = c.DisableVmIntegrationService(vmName, integrationService.Name)
-		}
-		if err != nil {
-			return err
-		}
-	}
-
-	return nil
+type HypervVmIntegrationServiceClient interface {
+	GetVmIntegrationServices(vmName string) (result []VmIntegrationService, err error)
+	EnableVmIntegrationService(vmName string, name string) (err error)
+	DisableVmIntegrationService(vmName string, name string) (err error)
+	CreateOrUpdateVmIntegrationServices(vmName string, integrationServices []VmIntegrationService) (err error)
 }

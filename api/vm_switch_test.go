@@ -6,7 +6,7 @@ import (
 )
 
 func TestSerializeVmSwitch(t *testing.T) {
-	vmSwitchJson, err := json.Marshal(vmSwitch{
+	vmSwitchJson, err := json.Marshal(VmSwitch{
 		Name:                       "test",
 		Notes:                      "test notes",
 		AllowManagementOS:          true,
@@ -48,7 +48,7 @@ func TestDeserializeVmSwitch(t *testing.T) {
 }
 `
 
-	var vmSwitch vmSwitch
+	var vmSwitch VmSwitch
 	err := json.Unmarshal([]byte(vmSwitchJson), &vmSwitch)
 
 	if err != nil {
