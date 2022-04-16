@@ -3,6 +3,8 @@ package provider
 import (
 	"context"
 	"log"
+	"path"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -27,8 +29,23 @@ func resourceHyperVVhd() *schema.Resource {
 		DeleteContext: resourceHyperVVhdDelete,
 		Schema: map[string]*schema.Schema{
 			"path": {
-				Type:        schema.TypeString,
-				Required:    true,
+				Type:     schema.TypeString,
+				Required: true,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					extension := path.Ext(newValue)
+					computedPath := strings.TrimSuffix(newValue, extension)
+
+					//Ignore differencing
+					if strings.HasPrefix(oldValue, computedPath) && strings.HasSuffix(oldValue, extension) {
+						return true
+					}
+
+					if oldValue == newValue {
+						return true
+					}
+
+					return false
+				},
 				Description: "Path to the new virtual hard disk file(s) that is being created or being copied to. If a filename or relative path is specified, the new virtual hard disk path is calculated relative to the current working directory. Depending on the source selected, the path will be used to determine where to copy source vhd/vhdx/vhds file to.",
 			},
 			"source": {

@@ -16,12 +16,13 @@ resource "hyperv_network_switch" "dmz_network_switch" {
 }
 
 resource "hyperv_vhd" "web_server_g1_vhd" {
-  path = "c:\\vhdx\\web_server_g1.vhdx" #Needs to be absolute path
-  size = 10737418240                    #10GB
+  path = "c:\\web_server\\web_server_g1.vhdx" #Needs to be absolute path
+  size = 10737418240                          #10GB
 }
 
 resource "hyperv_machine_instance" "web_server_g1" {
   name                   = "web_server_g1"
+  path                   = "c:\\web_server\\"
   generation             = 1
   processor_count        = 2
   static_memory          = true
@@ -49,17 +50,18 @@ resource "hyperv_machine_instance" "web_server_g1" {
   dvd_drives {
     controller_number   = 0
     controller_location = 1
-    #path = "ubuntu.iso"
+    #path                = "ubuntu.iso"
   }
 }
 
 resource "hyperv_vhd" "web_server_g2_vhd" {
-  path = "c:\\vhdx\\web_server_g2.vhdx" #Needs to be absolute path
-  size = 10737418240                    #10GB
+  path = "c:\\web_server\\web_server_g2.vhdx" #Needs to be absolute path
+  size = 10737418240                          #10GB
 }
 
 resource "hyperv_machine_instance" "web_server_g2" {
-  name                   = "web_server_g2"
+  name = "web_server_g2"
+  #path                   = "c:\\web_server\\"
   generation             = 2
   processor_count        = 2
   static_memory          = true
@@ -90,6 +92,6 @@ resource "hyperv_machine_instance" "web_server_g2" {
   dvd_drives {
     controller_number   = 0
     controller_location = 1
-    #path = "ubuntu.iso"
+    #path                = "ubuntu.iso"
   }
 }
