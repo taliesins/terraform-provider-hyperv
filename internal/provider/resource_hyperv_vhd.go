@@ -2,17 +2,14 @@ package provider
 
 import (
 	"context"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 	"log"
+	"os"
 	"path"
 	"strings"
 	"time"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
-	"os"
-
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 var defaultVVhdTimeoutDuration = time.Minute * 30
@@ -27,6 +24,9 @@ func resourceHyperVVhd() *schema.Resource {
 		ReadContext:   resourceHyperVVhdRead,
 		UpdateContext: resourceHyperVVhdUpdate,
 		DeleteContext: resourceHyperVVhdDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"path": {
 				Type:     schema.TypeString,
@@ -147,7 +147,7 @@ func resourceHyperVVhd() *schema.Resource {
 			"exists": {
 				Type:        schema.TypeBool,
 				Computed:    true,
-				Description: "Does virtual machine exist.",
+				Description: "Does virtual disk exist.",
 			},
 		},
 
@@ -161,7 +161,7 @@ func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i inter
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			// file does not exist
-			diff.SetNewComputed("exists")
+			diff.SetNew("exists", false)
 			return nil
 		} else {
 			// other error
@@ -222,7 +222,7 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 	c := meta.(api.Client)
 
 	path := ""
-
+	d.Set("path", d.Id())
 	if v, ok := d.GetOk("path"); ok {
 		path = v.(string)
 	} else {
@@ -238,7 +238,7 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 		return diag.FromErr(err)
 	}
 
-	if vhd.Path != "" {
+	if vhd.Path == "" {
 		log.Printf("[INFO][hyperv][read] unable to retrieved vhd: %+v", path)
 		if err := d.Set("exists", false); err != nil {
 			return diag.FromErr(err)
@@ -246,6 +246,32 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 	} else {
 		log.Printf("[INFO][hyperv][read] retrieved vhd: %+v", path)
 		if err := d.Set("exists", true); err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if err := d.Set("vhd_type", api.VhdType_name[vhd.VhdType]); err != nil {
+		return diag.FromErr(err)
+	}
+
+	if vhd.VhdType == api.VhdType_Differencing {
+		if err := d.Set("parent_path", vhd.ParentPath); err != nil {
+			return diag.FromErr(err)
+		}
+	} else {
+		if err := d.Set("size", vhd.Size); err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := d.Set("block_size", vhd.BlockSize); err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := d.Set("logical_sector_size", vhd.LogicalSectorSize); err != nil {
+			return diag.FromErr(err)
+		}
+
+		if err := d.Set("physical_sector_size", vhd.PhysicalSectorSize); err != nil {
 			return diag.FromErr(err)
 		}
 	}

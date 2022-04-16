@@ -28,6 +28,9 @@ func resourceHyperVMachineInstance() *schema.Resource {
 		ReadContext:   resourceHyperVMachineInstanceRead,
 		UpdateContext: resourceHyperVMachineInstanceUpdate,
 		DeleteContext: resourceHyperVMachineInstanceDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
@@ -906,6 +909,7 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 	client := meta.(api.Client)
 
 	var name string
+	d.Set("name", d.Id())
 	if v, ok := d.GetOk("name"); ok {
 		name = v.(string)
 	} else {

@@ -23,6 +23,9 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 		ReadContext:   resourceHyperVNetworkSwitchRead,
 		UpdateContext: resourceHyperVNetworkSwitchUpdate,
 		DeleteContext: resourceHyperVNetworkSwitchDelete,
+		Importer: &schema.ResourceImporter{
+			StateContext: schema.ImportStatePassthroughContext,
+		},
 		Schema: map[string]*schema.Schema{
 			"name": {
 				Type:        schema.TypeString,
@@ -228,7 +231,7 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 	c := meta.(api.Client)
 
 	var switchName string
-
+	d.Set("name", d.Id())
 	if v, ok := d.GetOk("name"); ok {
 		switchName = v.(string)
 	} else {
