@@ -166,6 +166,7 @@ resource "hyperv_machine_instance" "default" {
 - `memory_startup_bytes` (Number) Specifies the amount of memory that the virtual machine is to be allocated upon startup. (If the virtual machine does not use dynamic memory, then this is the static amount of memory to be allocated.)
 - `network_adaptors` (Block List) (see [below for nested schema](#nestedblock--network_adaptors))
 - `notes` (String) Specifies a note to be associated with the machine to be created.
+- `path` (String) The path of the virtual machine.
 - `processor_count` (Number) Specifies the number of virtual processors for the virtual machine.
 - `smart_paging_file_path` (String) Specifies the folder in which the Smart Paging file is to be stored.
 - `snapshot_file_location` (String) Specifies the folder in which the virtual machine is to store its snapshot files.

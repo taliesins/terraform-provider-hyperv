@@ -23,6 +23,14 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 				Description: "The name of the virtual machine.",
 			},
 
+			"path": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Computed:    true,
+				ForceNew:    true,
+				Description: "The path of the virtual machine.",
+			},
+
 			"generation": {
 				Type:             schema.TypeInt,
 				Optional:         true,
@@ -850,6 +858,9 @@ func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.Resource
 	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
 
 	if err := d.Set("name", vm.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("path", vm.Path); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("generation", vm.Generation); err != nil {

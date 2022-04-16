@@ -34,6 +34,10 @@ $NewVmArgs = @{
 	NoVHD=$true
 }
 
+if ($vm.Path) {
+	$NewVmArgs.Path = $vm.Path
+}
+
 New-Vm @NewVmArgs
 
 #Delete any auto-generated network adapter
@@ -85,6 +89,7 @@ Set-Vm @SetVmArgs
 
 func (c *ClientConfig) CreateVm(
 	name string,
+	path string,
 	generation int,
 	automaticCriticalErrorAction api.CriticalErrorAction,
 	automaticCriticalErrorActionTimeout int32,
@@ -108,6 +113,7 @@ func (c *ClientConfig) CreateVm(
 ) (err error) {
 	vmJson, err := json.Marshal(api.Vm{
 		Name:                                name,
+		Path:                                path,
 		Generation:                          generation,
 		AutomaticCriticalErrorAction:        automaticCriticalErrorAction,
 		AutomaticCriticalErrorActionTimeout: automaticCriticalErrorActionTimeout,
@@ -149,6 +155,7 @@ var getVmTemplate = template.Must(template.New("GetVm").Parse(`
 $ErrorActionPreference = 'Stop'
 $vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
+	Path=$_.Path;
 	Generation=$_.Generation;
 	AutomaticCriticalErrorAction=$_.AutomaticCriticalErrorAction;
 	AutomaticCriticalErrorActionTimeout=$_.AutomaticCriticalErrorActionTimeout;

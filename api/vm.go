@@ -283,6 +283,7 @@ func (d *OnOffState) UnmarshalJSON(b []byte) error {
 
 type Vm struct {
 	Name                                string
+	Path                                string
 	Generation                          int
 	AutomaticCriticalErrorAction        CriticalErrorAction
 	AutomaticCriticalErrorActionTimeout int32
@@ -309,6 +310,7 @@ type Vm struct {
 type HypervVmClient interface {
 	CreateVm(
 		name string,
+		path string,
 		generation int,
 		automaticCriticalErrorAction CriticalErrorAction,
 		automaticCriticalErrorActionTimeout int32,
@@ -335,7 +337,8 @@ type HypervVmClient interface {
 
 	UpdateVm(
 		name string,
-		//	generation int,
+		// path string,
+		// generation int,
 		automaticCriticalErrorAction CriticalErrorAction,
 		automaticCriticalErrorActionTimeout int32,
 		automaticStartAction StartAction,

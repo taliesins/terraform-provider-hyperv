@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
@@ -32,6 +33,37 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Specifies the name of the new virtual machine.",
+			},
+
+			"path": {
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					if newValue == "" {
+						return true
+					}
+
+					//When specifying path on new-vm it will auto append machine name on the end
+					name := d.Get("name").(string)
+					computedPath := newValue
+					if !strings.HasSuffix(computedPath, "\\") {
+						computedPath += "\\"
+					}
+					computedPath += name
+
+					if computedPath == oldValue {
+						return true
+					}
+
+					if oldValue == newValue {
+						return true
+					}
+
+					return false
+				},
+				Description: "The path of the virtual machine.",
 			},
 
 			"generation": {
@@ -755,6 +787,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.Errorf("[ERROR][hyperv][create] name argument is required")
 	}
 
+	path := (d.Get("path")).(string)
 	generation := (d.Get("generation")).(int)
 	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 	automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
@@ -810,7 +843,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateVm(name, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	err = client.CreateVm(name, path, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -993,6 +1026,9 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
 
 	if err := d.Set("name", vm.Name); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("path", vm.Path); err != nil {
 		return diag.FromErr(err)
 	}
 	if err := d.Set("generation", vm.Generation); err != nil {
