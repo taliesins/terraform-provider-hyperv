@@ -13,7 +13,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 	return &schema.Resource{
 		Description: "Get information about existing virtual network switches.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVNetworkSwitchTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadNetworkSwitchTimeout),
 		},
 		ReadContext: datasourceHyperVNetworkSwitchRead,
 		Schema: map[string]*schema.Schema{

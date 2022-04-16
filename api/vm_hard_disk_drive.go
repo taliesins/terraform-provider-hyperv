@@ -177,26 +177,28 @@ func ExpandHardDiskDrives(d *schema.ResourceData) ([]VmHardDiskDrive, error) {
 }
 
 func FlattenHardDiskDrives(hardDiskDrives *[]VmHardDiskDrive) []interface{} {
-	flattenedHardDiskDrives := make([]interface{}, 0)
-
-	if hardDiskDrives != nil {
-		for _, hardDiskDrive := range *hardDiskDrives {
-			flattenedHardDiskDrive := make(map[string]interface{})
-			flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType.String()
-			flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
-			flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
-			flattenedHardDiskDrive["path"] = hardDiskDrive.Path
-			flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
-			flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
-			flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
-			flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
-			flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
-			flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
-			flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
-			flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
-		}
+	if hardDiskDrives == nil || len(*hardDiskDrives) < 1 {
+		return nil
 	}
 
+	flattenedHardDiskDrives := make([]interface{}, 0)
+
+	for _, hardDiskDrive := range *hardDiskDrives {
+		flattenedHardDiskDrive := make(map[string]interface{})
+		flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType.String()
+		flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
+		flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
+		flattenedHardDiskDrive["path"] = hardDiskDrive.Path
+		flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
+		flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
+		flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
+		flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
+		flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
+		flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
+		flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
+		flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
+	}
+	
 	return flattenedHardDiskDrives
 }
 

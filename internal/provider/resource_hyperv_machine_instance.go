@@ -14,15 +14,22 @@ import (
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
-const MaxUint32 = 4294967295
-
-var defaultVMachineInstanceTimeoutDuration = time.Minute * 30
+const (
+	MaxUint32                    = 4294967295
+	ReadMachineInstanceTimeout = 2 * time.Minute
+	CreateMachineInstanceTimeout = 30 * time.Minute
+	UpdateMachineInstanceTimeout = 30 * time.Minute
+	DeleteMachineInstanceTimeout = 5 * time.Minute
+)
 
 func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V resource allows you to manage virtual machine instances.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVMachineInstanceTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadMachineInstanceTimeout),
+			Create: schema.DefaultTimeout(CreateMachineInstanceTimeout),
+			Update: schema.DefaultTimeout(UpdateMachineInstanceTimeout),
+			Delete: schema.DefaultTimeout(DeleteMachineInstanceTimeout),
 		},
 		CreateContext: resourceHyperVMachineInstanceCreate,
 		ReadContext:   resourceHyperVMachineInstanceRead,
@@ -36,6 +43,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Specifies the name of the new virtual machine.",
+
 			},
 
 			"path": {
@@ -790,6 +798,17 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.Errorf("[ERROR][hyperv][create] name argument is required")
 	}
 
+	if d.IsNewResource() {
+		existing, err := client.VmExists(name)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", name, err))
+		}
+
+		if existing.Exists {
+			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", name, "hyperv_machine_instance"))
+		}
+	}
+
 	path := (d.Get("path")).(string)
 	generation := (d.Get("generation")).(int)
 	automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
@@ -908,16 +927,14 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO][hyperv][read] reading hyperv machine: %#v", d)
 	client := meta.(api.Client)
 
-	var name string
-	d.Set("name", d.Id())
-	if v, ok := d.GetOk("name"); ok {
-		name = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][read] name argument is required")
-	}
+	name := d.Id()
 
 	vm, err := client.GetVm(name)
 	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	if err := d.Set("name", vm.Name); err != nil {
 		return diag.FromErr(err)
 	}
 
@@ -1099,8 +1116,6 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	d.SetId(name)
-
 	log.Printf("[INFO][hyperv][read] read hyperv machine: %#v", d)
 
 	return nil
@@ -1110,13 +1125,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 	log.Printf("[INFO][hyperv][update] updating hyperv machine: %#v", d)
 	client := meta.(api.Client)
 
-	name := ""
-
-	if v, ok := d.GetOk("name"); ok {
-		name = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][update] name argument is required")
-	}
+	name := d.Id()
 
 	generation := (d.Get("generation")).(int)
 
@@ -1304,13 +1313,7 @@ func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.Resource
 
 	client := meta.(api.Client)
 
-	name := ""
-
-	if v, ok := d.GetOk("name"); ok {
-		name = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][delete] name argument is required")
-	}
+	name := d.Id()
 
 	waitForStateTimeout, waitForStatePollPeriod, err := api.ExpandVmStateWaitForState(d)
 	if err != nil {

@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"time"
 
@@ -11,13 +12,21 @@ import (
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
-var defaultVNetworkSwitchTimeoutDuration = time.Minute * 5
+const (
+	ReadNetworkSwitchTimeout       = 1 * time.Minute
+	CreateNetworkSwitchTimeout       = 5 * time.Minute
+	UpdateNetworkSwitchTimeout       = 5 * time.Minute
+	DeleteNetworkSwitchTimeout       = 1 * time.Minute
+)
 
 func resourceHyperVNetworkSwitch() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V resource allows you to manage virtual network switches.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVNetworkSwitchTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadNetworkSwitchTimeout),
+			Create: schema.DefaultTimeout(CreateNetworkSwitchTimeout),
+			Update: schema.DefaultTimeout(UpdateNetworkSwitchTimeout),
+			Delete: schema.DefaultTimeout(DeleteNetworkSwitchTimeout),
 		},
 		CreateContext: resourceHyperVNetworkSwitchCreate,
 		ReadContext:   resourceHyperVNetworkSwitchRead,
@@ -146,6 +155,17 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][create] name argument is required")
 	}
 
+	if d.IsNewResource() {
+		existing, err := c.VMSwitchExists(switchName)
+		if err != nil {
+			return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", switchName, err))
+		}
+
+		if existing.Exists {
+			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", switchName, "hyperv_network_switch"))
+		}
+	}
+
 	notes := (d.Get("notes")).(string)
 	allowManagementOS := (d.Get("allow_management_os")).(bool)
 	embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
@@ -230,15 +250,9 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 	log.Printf("[INFO][hyperv][read] reading hyperv switch: %#v", d)
 	c := meta.(api.Client)
 
-	var switchName string
-	d.Set("name", d.Id())
-	if v, ok := d.GetOk("name"); ok {
-		switchName = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][read] name argument is required")
-	}
+	name := d.Id()
 
-	s, err := c.GetVMSwitch(switchName)
+	s, err := c.GetVMSwitch(name)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -246,9 +260,13 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 
 	log.Printf("[INFO][hyperv][read] retrieved network switch: %+v", s)
 
-	if s.Name != switchName {
-		log.Printf("[INFO][hyperv][read] unable to read hyperv switch as it does not exist: %#v", switchName)
+	if s.Name != name {
+		log.Printf("[INFO][hyperv][read] unable to read hyperv switch as it does not exist: %#v", name)
 		return nil
+	}
+
+	if err := d.Set("name", s.Name); err != nil {
+		return diag.FromErr(err)
 	}
 
 	if s.SwitchType == api.VMSwitchType_Private {
@@ -343,8 +361,6 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	d.SetId(switchName)
-
 	log.Printf("[INFO][hyperv][read] read hyperv switch: %#v", d)
 
 	return nil
@@ -354,14 +370,7 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO][hyperv][update] updating hyperv switch: %#v", d)
 	c := meta.(api.Client)
 
-	switchName := ""
-
-	if v, ok := d.GetOk("name"); ok {
-		switchName = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][update] name argument is required")
-	}
-
+	switchName := d.Id()
 	notes := (d.Get("notes")).(string)
 	allowManagementOS := (d.Get("allow_management_os")).(bool)
 	//embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
@@ -446,14 +455,7 @@ func resourceHyperVNetworkSwitchDelete(ctx context.Context, d *schema.ResourceDa
 
 	c := meta.(api.Client)
 
-	switchName := ""
-
-	if v, ok := d.GetOk("name"); ok {
-		switchName = v.(string)
-	} else {
-		return diag.Errorf("[ERROR][hyperv][delete] name argument is required")
-	}
-
+	switchName := d.Id()
 	err := c.DeleteVMSwitch(switchName)
 
 	if err != nil {

@@ -212,6 +212,10 @@ func ExpandNetworkAdapters(d *schema.ResourceData) ([]VmNetworkAdapter, error) {
 }
 
 func FlattenMandatoryFeatureIds(mandatoryFeatureIdStrings []string) *schema.Set {
+	if mandatoryFeatureIdStrings == nil || len(mandatoryFeatureIdStrings) < 1 {
+		return nil
+	}
+
 	var mandatoryFeatureIds []interface{}
 
 	for _, mandatoryFeatureId := range mandatoryFeatureIdStrings {
@@ -222,54 +226,55 @@ func FlattenMandatoryFeatureIds(mandatoryFeatureIdStrings []string) *schema.Set 
 }
 
 func FlattenNetworkAdapters(networkAdapters *[]VmNetworkAdapter) []interface{} {
+	if networkAdapters == nil || len(*networkAdapters) < 1 {
+		return nil
+	}
+
 	flattenedNetworkAdapters := make([]interface{}, 0)
+	for _, networkAdapter := range *networkAdapters {
+		flattenedNetworkAdapter := make(map[string]interface{})
+		flattenedNetworkAdapter["name"] = networkAdapter.Name
+		flattenedNetworkAdapter["switch_name"] = networkAdapter.SwitchName
+		flattenedNetworkAdapter["management_os"] = networkAdapter.ManagementOs
+		flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
+		flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
+		flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
+		flattenedNetworkAdapter["mac_address_spoofing"] = networkAdapter.MacAddressSpoofing.String()
+		flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard.String()
+		flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard.String()
+		flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring.String()
+		flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag.String()
+		flattenedNetworkAdapter["vmq_weight"] = networkAdapter.VmqWeight
+		flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
+		flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration.String()
+		flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
+		flattenedNetworkAdapter["ipsec_offload_maximum_security_association"] = networkAdapter.IpsecOffloadMaximumSecurityAssociation
+		flattenedNetworkAdapter["maximum_bandwidth"] = networkAdapter.MaximumBandwidth
+		flattenedNetworkAdapter["minimum_bandwidth_absolute"] = networkAdapter.MinimumBandwidthAbsolute
+		flattenedNetworkAdapter["minimum_bandwidth_weight"] = networkAdapter.MinimumBandwidthWeight
+		flattenedNetworkAdapter["mandatory_feature_id"] = FlattenMandatoryFeatureIds(networkAdapter.MandatoryFeatureId)
+		flattenedNetworkAdapter["resource_pool_name"] = networkAdapter.ResourcePoolName
+		flattenedNetworkAdapter["test_replica_pool_name"] = networkAdapter.TestReplicaPoolName
+		flattenedNetworkAdapter["test_replica_switch_name"] = networkAdapter.TestReplicaSwitchName
+		flattenedNetworkAdapter["virtual_subnet_id"] = networkAdapter.VirtualSubnetId
+		flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming.String()
+		flattenedNetworkAdapter["not_monitored_in_cluster"] = networkAdapter.NotMonitoredInCluster
+		flattenedNetworkAdapter["storm_limit"] = networkAdapter.StormLimit
+		flattenedNetworkAdapter["dynamic_ip_address_limit"] = networkAdapter.DynamicIpAddressLimit
+		flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming.String()
+		flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G.String()
+		flattenedNetworkAdapter["packet_direct_num_procs"] = networkAdapter.PacketDirectNumProcs
+		flattenedNetworkAdapter["packet_direct_moderation_count"] = networkAdapter.PacketDirectModerationCount
+		flattenedNetworkAdapter["packet_direct_moderation_interval"] = networkAdapter.PacketDirectModerationInterval
+		flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
+		flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
+		flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
+		flattenedNetworkAdapter["vlan_access"] = networkAdapter.VlanAccess
+		flattenedNetworkAdapter["vlan_id"] = networkAdapter.VlanId
+		flattenedNetworkAdapter["wait_for_ips"] = networkAdapter.WaitForIps
+		flattenedNetworkAdapter["ip_addresses"] = networkAdapter.IpAddresses
 
-	if networkAdapters != nil {
-		for _, networkAdapter := range *networkAdapters {
-			flattenedNetworkAdapter := make(map[string]interface{})
-			flattenedNetworkAdapter["name"] = networkAdapter.Name
-			flattenedNetworkAdapter["switch_name"] = networkAdapter.SwitchName
-			flattenedNetworkAdapter["management_os"] = networkAdapter.ManagementOs
-			flattenedNetworkAdapter["is_legacy"] = networkAdapter.IsLegacy
-			flattenedNetworkAdapter["dynamic_mac_address"] = networkAdapter.DynamicMacAddress
-			flattenedNetworkAdapter["static_mac_address"] = networkAdapter.StaticMacAddress
-			flattenedNetworkAdapter["mac_address_spoofing"] = networkAdapter.MacAddressSpoofing.String()
-			flattenedNetworkAdapter["dhcp_guard"] = networkAdapter.DhcpGuard.String()
-			flattenedNetworkAdapter["router_guard"] = networkAdapter.RouterGuard.String()
-			flattenedNetworkAdapter["port_mirroring"] = networkAdapter.PortMirroring.String()
-			flattenedNetworkAdapter["ieee_priority_tag"] = networkAdapter.IeeePriorityTag.String()
-			flattenedNetworkAdapter["vmq_weight"] = networkAdapter.VmqWeight
-			flattenedNetworkAdapter["iov_queue_pairs_requested"] = networkAdapter.IovQueuePairsRequested
-			flattenedNetworkAdapter["iov_interrupt_moderation"] = networkAdapter.IovInterruptModeration.String()
-			flattenedNetworkAdapter["iov_weight"] = networkAdapter.IovWeight
-			flattenedNetworkAdapter["ipsec_offload_maximum_security_association"] = networkAdapter.IpsecOffloadMaximumSecurityAssociation
-			flattenedNetworkAdapter["maximum_bandwidth"] = networkAdapter.MaximumBandwidth
-			flattenedNetworkAdapter["minimum_bandwidth_absolute"] = networkAdapter.MinimumBandwidthAbsolute
-			flattenedNetworkAdapter["minimum_bandwidth_weight"] = networkAdapter.MinimumBandwidthWeight
-			flattenedNetworkAdapter["mandatory_feature_id"] = FlattenMandatoryFeatureIds(networkAdapter.MandatoryFeatureId)
-			flattenedNetworkAdapter["resource_pool_name"] = networkAdapter.ResourcePoolName
-			flattenedNetworkAdapter["test_replica_pool_name"] = networkAdapter.TestReplicaPoolName
-			flattenedNetworkAdapter["test_replica_switch_name"] = networkAdapter.TestReplicaSwitchName
-			flattenedNetworkAdapter["virtual_subnet_id"] = networkAdapter.VirtualSubnetId
-			flattenedNetworkAdapter["allow_teaming"] = networkAdapter.AllowTeaming.String()
-			flattenedNetworkAdapter["not_monitored_in_cluster"] = networkAdapter.NotMonitoredInCluster
-			flattenedNetworkAdapter["storm_limit"] = networkAdapter.StormLimit
-			flattenedNetworkAdapter["dynamic_ip_address_limit"] = networkAdapter.DynamicIpAddressLimit
-			flattenedNetworkAdapter["device_naming"] = networkAdapter.DeviceNaming.String()
-			flattenedNetworkAdapter["fix_speed_10g"] = networkAdapter.FixSpeed10G.String()
-			flattenedNetworkAdapter["packet_direct_num_procs"] = networkAdapter.PacketDirectNumProcs
-			flattenedNetworkAdapter["packet_direct_moderation_count"] = networkAdapter.PacketDirectModerationCount
-			flattenedNetworkAdapter["packet_direct_moderation_interval"] = networkAdapter.PacketDirectModerationInterval
-			flattenedNetworkAdapter["vrss_enabled"] = networkAdapter.VrssEnabled
-			flattenedNetworkAdapter["vmmq_enabled"] = networkAdapter.VmmqEnabled
-			flattenedNetworkAdapter["vmmq_queue_pairs"] = networkAdapter.VmmqQueuePairs
-			flattenedNetworkAdapter["vlan_access"] = networkAdapter.VlanAccess
-			flattenedNetworkAdapter["vlan_id"] = networkAdapter.VlanId
-			flattenedNetworkAdapter["wait_for_ips"] = networkAdapter.WaitForIps
-			flattenedNetworkAdapter["ip_addresses"] = networkAdapter.IpAddresses
-
-			flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
-		}
+		flattenedNetworkAdapters = append(flattenedNetworkAdapters, flattenedNetworkAdapter)
 	}
 
 	return flattenedNetworkAdapters

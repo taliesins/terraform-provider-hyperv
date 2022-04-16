@@ -6,6 +6,31 @@ import (
 	"text/template"
 )
 
+type existsVMSwitchArgs struct {
+	Name string
+}
+
+var existsVMSwitchTemplate = template.Must(template.New("ExistsVMSwitch").Parse(`
+$ErrorActionPreference = 'Stop'
+$vmSwitchObject = Get-VMSwitch -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' }
+
+if ($vmSwitchObject){
+	$exists = ConvertTo-Json -InputObject @{Exists=$true}
+	$exists
+} else {
+	$exists = ConvertTo-Json -InputObject @{Exists=$false}
+	$exists
+}
+`))
+
+func (c *ClientConfig) VMSwitchExists(name string) (result api.VmSwitchExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(existsVMSwitchTemplate, existsVMSwitchArgs{
+		Name: name,
+	}, &result)
+
+	return result, err
+}
+
 type createVMSwitchArgs struct {
 	VmSwitchJson string
 }

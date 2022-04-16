@@ -281,6 +281,10 @@ func (d *OnOffState) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type VmExists struct {
+	Exists bool
+}
+
 type Vm struct {
 	Name                                string
 	Path                                string
@@ -308,6 +312,7 @@ type Vm struct {
 }
 
 type HypervVmClient interface {
+	VmExists(name string) (result VmExists, err error)
 	CreateVm(
 		name string,
 		path string,

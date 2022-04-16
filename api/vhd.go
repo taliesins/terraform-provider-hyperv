@@ -125,6 +125,10 @@ func (d *VhdFormat) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type VhdExists struct {
+	Exists bool
+}
+
 type Vhd struct {
 	Path                    string
 	BlockSize               uint32
@@ -145,6 +149,7 @@ type Vhd struct {
 }
 
 type HypervVhdClient interface {
+	VhdExists(path string) (result VhdExists, err error)
 	CreateOrUpdateVhd(path string, source string, sourceVm string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error)
 	ResizeVhd(path string, size uint64) (err error)
 	GetVhd(path string) (result Vhd, err error)

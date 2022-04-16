@@ -31,17 +31,19 @@ func ExpandDvdDrives(d *schema.ResourceData) ([]VmDvdDrive, error) {
 }
 
 func FlattenDvdDrives(dvdDrives *[]VmDvdDrive) []interface{} {
+	if dvdDrives == nil || len(*dvdDrives) < 1 {
+		return nil
+	}
+
 	flattenedDvdDrives := make([]interface{}, 0)
 
-	if dvdDrives != nil {
-		for _, dvdDrive := range *dvdDrives {
-			flattenedDvdDrive := make(map[string]interface{})
-			flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
-			flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
-			flattenedDvdDrive["path"] = dvdDrive.Path
-			flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
-			flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
-		}
+	for _, dvdDrive := range *dvdDrives {
+		flattenedDvdDrive := make(map[string]interface{})
+		flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
+		flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
+		flattenedDvdDrive["path"] = dvdDrive.Path
+		flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
+		flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
 	}
 
 	return flattenedDvdDrives

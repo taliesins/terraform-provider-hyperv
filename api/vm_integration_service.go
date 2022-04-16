@@ -100,12 +100,14 @@ func ExpandIntegrationServices(d *schema.ResourceData) ([]VmIntegrationService, 
 }
 
 func FlattenIntegrationServices(integrationServices *[]VmIntegrationService) map[string]interface{} {
+	if integrationServices == nil || len(*integrationServices) < 1 {
+		return nil
+	}
+
 	flattenedIntegrationServices := make(map[string]interface{})
 
-	if integrationServices != nil {
-		for _, integrationService := range *integrationServices {
-			flattenedIntegrationServices[integrationService.Name] = integrationService.Enabled
-		}
+	for _, integrationService := range *integrationServices {
+		flattenedIntegrationServices[integrationService.Name] = integrationService.Enabled
 	}
 
 	return flattenedIntegrationServices

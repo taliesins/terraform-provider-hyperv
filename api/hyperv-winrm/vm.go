@@ -6,6 +6,31 @@ import (
 	"text/template"
 )
 
+type existsVmArgs struct {
+	Name string
+}
+
+var existsVmTemplate = template.Must(template.New("ExistsVm").Parse(`
+$ErrorActionPreference = 'Stop'
+$vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+
+if ($vmObject){
+	$exists = ConvertTo-Json -InputObject @{Exists=$true}
+	$exists
+} else {
+	$exists = ConvertTo-Json -InputObject @{Exists=$false}
+	$exists
+}
+`))
+
+func (c *ClientConfig) VmExists(name string) (result api.VmExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(existsVmTemplate, existsVmArgs{
+		Name: name,
+	}, &result)
+
+	return result, err
+}
+
 type createVmArgs struct {
 	VmJson string
 }

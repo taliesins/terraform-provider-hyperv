@@ -13,7 +13,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V data source provides information about existing virtual machine instances.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVMachineInstanceTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadMachineInstanceTimeout),
 		},
 		ReadContext: datasourceHyperVMachineInstanceRead,
 		Schema: map[string]*schema.Schema{

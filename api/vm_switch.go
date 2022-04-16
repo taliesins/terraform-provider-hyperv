@@ -122,6 +122,10 @@ func (d *VMSwitchType) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type VmSwitchExists struct {
+	Exists bool
+}
+
 type VmSwitch struct {
 	Name                                string
 	Notes                               string
@@ -140,6 +144,7 @@ type VmSwitch struct {
 }
 
 type HypervVmSwitchClient interface {
+	VMSwitchExists(name string) (result VmSwitchExists, err error)
 	CreateVMSwitch(
 		name string,
 		notes string,

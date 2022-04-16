@@ -13,7 +13,7 @@ func dataSourceHyperVVhd() *schema.Resource {
 	return &schema.Resource{
 		Description: "Get information about existing vhd/vhdx/vhds.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVVhdTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadVhdTimeout),
 		},
 		ReadContext: datasourceHyperVVhdRead,
 		Schema: map[string]*schema.Schema{

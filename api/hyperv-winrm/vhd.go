@@ -7,6 +7,31 @@ import (
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
+type existsVhdArgs struct {
+	Path string
+}
+
+var existsVhdTemplate = template.Must(template.New("ExistsVhd").Parse(`
+$ErrorActionPreference = 'Stop'
+$path='{{.Path}}'
+
+if (Test-Path $path) {
+	$exists = ConvertTo-Json -InputObject @{Exists=$true}
+	$exists
+} else {
+	$exists = ConvertTo-Json -InputObject @{Exists=$false}
+	$exists
+}
+`))
+
+func (c *ClientConfig) VhdExists(path string) (result api.VhdExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(existsVhdTemplate, existsVhdArgs{
+		Path: path,
+	}, &result)
+
+	return result, err
+}
+
 type createOrUpdateVhdArgs struct {
 	Source     string
 	SourceVm   string
