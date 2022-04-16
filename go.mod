@@ -6,7 +6,7 @@ require (
 	github.com/dylanmei/iso8601 v0.1.0
 	github.com/hashicorp/go-cty v1.4.1-0.20200414143053-d3edf31b6320
 	github.com/hashicorp/terraform-plugin-docs v0.7.0
-	github.com/hashicorp/terraform-plugin-sdk/v2 v2.13.0
+	github.com/hashicorp/terraform-plugin-sdk/v2 v2.14.0
 	github.com/jolestar/go-commons-pool/v2 v2.1.1
 	github.com/masterzen/winrm v0.0.0-20211231115050-232efb40349e
 	github.com/segmentio/ksuid v1.0.4
@@ -22,6 +22,7 @@ require (
 	github.com/apparentlymart/go-textseg/v13 v13.0.0 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
+	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/fatih/color v1.13.0 // indirect
 	github.com/gofrs/uuid v4.2.0+incompatible // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
@@ -33,14 +34,14 @@ require (
 	github.com/hashicorp/go-hclog v1.2.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-plugin v1.4.3 // indirect
-	github.com/hashicorp/go-uuid v1.0.2 // indirect
+	github.com/hashicorp/go-uuid v1.0.3 // indirect
 	github.com/hashicorp/go-version v1.4.0 // indirect
 	github.com/hashicorp/hc-install v0.3.1 // indirect
 	github.com/hashicorp/hcl/v2 v2.11.1 // indirect
 	github.com/hashicorp/logutils v1.0.0 // indirect
-	github.com/hashicorp/terraform-exec v0.16.0 // indirect
+	github.com/hashicorp/terraform-exec v0.16.1 // indirect
 	github.com/hashicorp/terraform-json v0.13.0 // indirect
-	github.com/hashicorp/terraform-plugin-go v0.8.0 // indirect
+	github.com/hashicorp/terraform-plugin-go v0.9.0 // indirect
 	github.com/hashicorp/terraform-plugin-log v0.3.0 // indirect
 	github.com/hashicorp/terraform-registry-address v0.0.0-20210412075316-9b2996cce896 // indirect
 	github.com/hashicorp/terraform-svchost v0.0.0-20200729002733-f050f53b9734 // indirect
@@ -80,7 +81,7 @@ require (
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20211208223120-3a66f561d7aa // indirect
 	google.golang.org/grpc v1.45.0 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/protobuf v1.28.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
