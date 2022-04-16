@@ -139,7 +139,7 @@ func datasourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.Errorf("[ERROR][hyperv][read] path argument is required")
 	}
 
-	vhd, err := c.GetVhd(path)
+	vhd, err := c.GetVhd(ctx, path)
 	if err != nil {
 		return diag.FromErr(err)
 	}

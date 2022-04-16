@@ -156,7 +156,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	if d.IsNewResource() {
-		existing, err := c.VMSwitchExists(switchName)
+		existing, err := c.VMSwitchExists(ctx, switchName)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", switchName, err))
 		}
@@ -234,7 +234,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][create] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
-	err := c.CreateVMSwitch(switchName, notes, allowManagementOS, embeddedTeamingEnabled, iovEnabled, packetDirectEnabled, bandwidthReservationMode, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
+	err := c.CreateVMSwitch(ctx, switchName, notes, allowManagementOS, embeddedTeamingEnabled, iovEnabled, packetDirectEnabled, bandwidthReservationMode, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -252,7 +252,7 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 
 	name := d.Id()
 
-	s, err := c.GetVMSwitch(name)
+	s, err := c.GetVMSwitch(ctx, name)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -439,7 +439,7 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][update] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
-	err := c.UpdateVMSwitch(switchName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
+	err := c.UpdateVMSwitch(ctx, switchName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -456,7 +456,7 @@ func resourceHyperVNetworkSwitchDelete(ctx context.Context, d *schema.ResourceDa
 	c := meta.(api.Client)
 
 	switchName := d.Id()
-	err := c.DeleteVMSwitch(switchName)
+	err := c.DeleteVMSwitch(ctx, switchName)
 
 	if err != nil {
 		return diag.FromErr(err)

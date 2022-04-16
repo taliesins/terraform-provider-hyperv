@@ -27,7 +27,7 @@ type ClientConfig struct {
 	Vars             string
 }
 
-func (c *ClientConfig) RunFireAndForgetScript(script *template.Template, args interface{}) error {
+func (c *ClientConfig) RunFireAndForgetScript(ctx context.Context, script *template.Template, args interface{}) error {
 	var scriptRendered bytes.Buffer
 	err := script.Execute(&scriptRendered, args)
 
@@ -37,7 +37,6 @@ func (c *ClientConfig) RunFireAndForgetScript(script *template.Template, args in
 
 	command := scriptRendered.String()
 
-	ctx := context.Background()
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
@@ -61,7 +60,7 @@ func (c *ClientConfig) RunFireAndForgetScript(script *template.Template, args in
 	return nil
 }
 
-func (c *ClientConfig) RunScriptWithResult(script *template.Template, args interface{}, result interface{}) (err error) {
+func (c *ClientConfig) RunScriptWithResult(ctx context.Context, script *template.Template, args interface{}, result interface{}) (err error) {
 	var scriptRendered bytes.Buffer
 	err = script.Execute(&scriptRendered, args)
 
@@ -71,7 +70,6 @@ func (c *ClientConfig) RunScriptWithResult(script *template.Template, args inter
 
 	command := scriptRendered.String()
 
-	ctx := context.Background()
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {

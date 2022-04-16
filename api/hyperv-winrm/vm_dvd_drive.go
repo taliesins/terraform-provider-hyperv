@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"text/template"
 
@@ -31,6 +32,7 @@ Add-VmDvdDrive @NewVmDvdDriveArgs
 `))
 
 func (c *ClientConfig) CreateVmDvdDrive(
+	ctx context.Context,
 	vmName string,
 	controllerNumber int,
 	controllerLocation int,
@@ -50,7 +52,7 @@ func (c *ClientConfig) CreateVmDvdDrive(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createVmDvdDriveTemplate, createVmDvdDriveArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createVmDvdDriveTemplate, createVmDvdDriveArgs{
 		VmDvdDriveJson: string(vmDvdDriveJson),
 	})
 
@@ -80,10 +82,10 @@ if ($vmDvdDrivesObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmDvdDrives(vmName string) (result []api.VmDvdDrive, err error) {
+func (c *ClientConfig) GetVmDvdDrives(ctx context.Context, vmName string) (result []api.VmDvdDrive, err error) {
 	result = make([]api.VmDvdDrive, 0)
 
-	err = c.WinRmClient.RunScriptWithResult(getVmDvdDrivesTemplate, getVmDvdDrivesArgs{
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmDvdDrivesTemplate, getVmDvdDrivesArgs{
 		VmName: vmName,
 	}, &result)
 
@@ -127,6 +129,7 @@ Set-VMDvdDrive @SetVmDvdDriveArgs
 `))
 
 func (c *ClientConfig) UpdateVmDvdDrive(
+	ctx context.Context,
 	vmName string,
 	controllerNumber int,
 	controllerLocation int,
@@ -148,7 +151,7 @@ func (c *ClientConfig) UpdateVmDvdDrive(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVmDvdDriveTemplate, updateVmDvdDriveArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVmDvdDriveTemplate, updateVmDvdDriveArgs{
 		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
@@ -170,8 +173,8 @@ $ErrorActionPreference = 'Stop'
 @(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive -Force
 `))
 
-func (c *ClientConfig) DeleteVmDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVmDvdDriveTemplate, deleteVmDvdDriveArgs{
+func (c *ClientConfig) DeleteVmDvdDrive(ctx context.Context, vmName string, controllerNumber int, controllerLocation int) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVmDvdDriveTemplate, deleteVmDvdDriveArgs{
 		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
@@ -180,8 +183,8 @@ func (c *ClientConfig) DeleteVmDvdDrive(vmName string, controllerNumber int, con
 	return err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []api.VmDvdDrive) (err error) {
-	currentDvdDrives, err := c.GetVmDvdDrives(vmName)
+func (c *ClientConfig) CreateOrUpdateVmDvdDrives(ctx context.Context, vmName string, dvdDrives []api.VmDvdDrive) (err error) {
+	currentDvdDrives, err := c.GetVmDvdDrives(ctx, vmName)
 	if err != nil {
 		return err
 	}
@@ -191,7 +194,7 @@ func (c *ClientConfig) CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []api.
 
 	for i := currentDvdDrivesLength - 1; i > desiredDvdDrivesLength-1; i-- {
 		currentDvdDrive := currentDvdDrives[i]
-		err = c.DeleteVmDvdDrive(vmName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
+		err = c.DeleteVmDvdDrive(ctx, vmName, currentDvdDrive.ControllerNumber, currentDvdDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
@@ -206,6 +209,7 @@ func (c *ClientConfig) CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []api.
 		dvdDrive := dvdDrives[i]
 
 		err = c.UpdateVmDvdDrive(
+			ctx,
 			vmName,
 			currentDvdDrive.ControllerNumber,
 			currentDvdDrive.ControllerLocation,
@@ -222,6 +226,7 @@ func (c *ClientConfig) CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []api.
 	for i := currentDvdDrivesLength - 1 + 1; i <= desiredDvdDrivesLength-1; i++ {
 		dvdDrive := dvdDrives[i]
 		err = c.CreateVmDvdDrive(
+			ctx,
 			vmName,
 			dvdDrive.ControllerNumber,
 			dvdDrive.ControllerLocation,

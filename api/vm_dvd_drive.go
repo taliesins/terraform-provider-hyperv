@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -60,14 +61,16 @@ type VmDvdDrive struct {
 
 type HypervVmDvdDriveClient interface {
 	CreateVmDvdDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int,
 		controllerLocation int,
 		path string,
 		resourcePoolName string,
 	) (err error)
-	GetVmDvdDrives(vmName string) (result []VmDvdDrive, err error)
+	GetVmDvdDrives(ctx context.Context, vmName string) (result []VmDvdDrive, err error)
 	UpdateVmDvdDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int,
 		controllerLocation int,
@@ -76,6 +79,6 @@ type HypervVmDvdDriveClient interface {
 		path string,
 		resourcePoolName string,
 	) (err error)
-	DeleteVmDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error)
-	CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []VmDvdDrive) (err error)
+	DeleteVmDvdDrive(ctx context.Context, vmName string, controllerNumber int, controllerLocation int) (err error)
+	CreateOrUpdateVmDvdDrives(ctx context.Context, vmName string, dvdDrives []VmDvdDrive) (err error)
 }

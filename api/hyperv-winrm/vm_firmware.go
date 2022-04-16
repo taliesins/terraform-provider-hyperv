@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/taliesins/terraform-provider-hyperv/api"
@@ -29,6 +30,7 @@ Set-VMFirmware @SetVMFirmwareArgs
 `))
 
 func (c *ClientConfig) CreateOrUpdateVmFirmware(
+	ctx context.Context,
 	vmName string,
 	enableSecureBoot api.OnOffState,
 	secureBootTemplate string,
@@ -49,7 +51,7 @@ func (c *ClientConfig) CreateOrUpdateVmFirmware(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createOrUpdateVmFirmwareTemplate, createOrUpdateVmFirmwareArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createOrUpdateVmFirmwareTemplate, createOrUpdateVmFirmwareArgs{
 		VmFirmwareJson: string(vmFirmwareJson),
 	})
 
@@ -79,22 +81,22 @@ if ($vmFirmwareObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmFirmware(vmName string) (result api.VmFirmware, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVmFirmwareTemplate, getVmFirmwareArgs{
+func (c *ClientConfig) GetVmFirmware(ctx context.Context, vmName string) (result api.VmFirmware, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmFirmwareTemplate, getVmFirmwareArgs{
 		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-func (c *ClientConfig) GetNoVmFirmwares() (result []api.VmFirmware) {
+func (c *ClientConfig) GetNoVmFirmwares(ctx context.Context,) (result []api.VmFirmware) {
 	result = make([]api.VmFirmware, 0)
 	return result
 }
 
-func (c *ClientConfig) GetVmFirmwares(vmName string) (result []api.VmFirmware, err error) {
+func (c *ClientConfig) GetVmFirmwares(ctx context.Context, vmName string) (result []api.VmFirmware, err error) {
 	result = make([]api.VmFirmware, 0)
-	vmFirmware, err := c.GetVmFirmware(vmName)
+	vmFirmware, err := c.GetVmFirmware(ctx, vmName)
 	if err != nil {
 		return result, err
 	}
@@ -102,7 +104,7 @@ func (c *ClientConfig) GetVmFirmwares(vmName string) (result []api.VmFirmware, e
 	return result, err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []api.VmFirmware) (err error) {
+func (c *ClientConfig) CreateOrUpdateVmFirmwares(ctx context.Context, vmName string, vmFirmwares []api.VmFirmware) (err error) {
 	if len(vmFirmwares) == 0 {
 		return nil
 	}
@@ -112,7 +114,7 @@ func (c *ClientConfig) CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []ap
 
 	vmFirmware := vmFirmwares[0]
 
-	return c.CreateOrUpdateVmFirmware(vmName,
+	return c.CreateOrUpdateVmFirmware(ctx, vmName,
 		vmFirmware.EnableSecureBoot,
 		vmFirmware.SecureBootTemplate,
 		vmFirmware.PreferredNetworkBootProtocol,

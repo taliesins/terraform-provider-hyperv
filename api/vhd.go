@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -149,9 +150,9 @@ type Vhd struct {
 }
 
 type HypervVhdClient interface {
-	VhdExists(path string) (result VhdExists, err error)
-	CreateOrUpdateVhd(path string, source string, sourceVm string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error)
-	ResizeVhd(path string, size uint64) (err error)
-	GetVhd(path string) (result Vhd, err error)
-	DeleteVhd(path string) (err error)
+	VhdExists(ctx context.Context, path string) (result VhdExists, err error)
+	CreateOrUpdateVhd(ctx context.Context, path string, source string, sourceVm string, sourceDisk int, vhdType VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error)
+	ResizeVhd(ctx context.Context, path string, size uint64) (err error)
+	GetVhd(ctx context.Context, path string) (result Vhd, err error)
+	DeleteVhd(ctx context.Context, path string) (err error)
 }

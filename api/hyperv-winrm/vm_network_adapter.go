@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
@@ -105,6 +106,7 @@ if ($vmNetworkAdapter.VlanAccess -and $vmNetworkAdapter.VlanId) {
 `))
 
 func (c *ClientConfig) CreateVmNetworkAdapter(
+	ctx context.Context,
 	vmName string,
 	name string,
 	switchName string,
@@ -192,7 +194,7 @@ func (c *ClientConfig) CreateVmNetworkAdapter(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createVmNetworkAdapterTemplate, createVmNetworkAdapterArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createVmNetworkAdapterTemplate, createVmNetworkAdapterArgs{
 		VmNetworkAdapterJson: string(vmNetworkAdapterJson),
 	})
 
@@ -260,10 +262,10 @@ if ($vmNetworkAdaptersObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmNetworkAdapters(vmName string, networkAdaptersWaitForIps []api.VmNetworkAdapterWaitForIp) (result []api.VmNetworkAdapter, err error) {
+func (c *ClientConfig) GetVmNetworkAdapters(ctx context.Context, vmName string, networkAdaptersWaitForIps []api.VmNetworkAdapterWaitForIp) (result []api.VmNetworkAdapter, err error) {
 	result = make([]api.VmNetworkAdapter, 0)
 
-	err = c.WinRmClient.RunScriptWithResult(getVmNetworkAdaptersTemplate, getVmNetworkAdaptersArgs{
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmNetworkAdaptersTemplate, getVmNetworkAdaptersArgs{
 		VmName: vmName,
 	}, &result)
 
@@ -387,6 +389,7 @@ Wait-ForNetworkAdapterIps -Name $vmName -Timeout $timeout -PollPeriod $pollPerio
 `))
 
 func (c *ClientConfig) WaitForVmNetworkAdaptersIps(
+	ctx context.Context,
 	vmName string,
 	timeout uint32,
 	pollPeriod uint32,
@@ -399,7 +402,7 @@ func (c *ClientConfig) WaitForVmNetworkAdaptersIps(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(waitForVmNetworkAdaptersIpsTemplate, waitForVmNetworkAdaptersIpsArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, waitForVmNetworkAdaptersIpsTemplate, waitForVmNetworkAdaptersIpsArgs{
 		VmName:                          vmName,
 		Timeout:                         timeout,
 		PollPeriod:                      pollPeriod,
@@ -510,6 +513,7 @@ if ($vmNetworkAdapter.VlanAccess -and $vmNetworkAdapter.VlanId) {
 `))
 
 func (c *ClientConfig) UpdateVmNetworkAdapter(
+	ctx context.Context,
 	vmName string,
 	index int,
 	name string,
@@ -599,7 +603,7 @@ func (c *ClientConfig) UpdateVmNetworkAdapter(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVmNetworkAdapterTemplate, updateVmNetworkAdapterArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVmNetworkAdapterTemplate, updateVmNetworkAdapterArgs{
 		VmName:               vmName,
 		Index:                index,
 		VmNetworkAdapterJson: string(vmNetworkAdapterJson),
@@ -619,8 +623,8 @@ $ErrorActionPreference = 'Stop'
 @(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}] | Remove-VMNetworkAdapter -Force
 `))
 
-func (c *ClientConfig) DeleteVmNetworkAdapter(vmName string, index int) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVmNetworkAdapterTemplate, deleteVmNetworkAdapterArgs{
+func (c *ClientConfig) DeleteVmNetworkAdapter(ctx context.Context, vmName string, index int) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVmNetworkAdapterTemplate, deleteVmNetworkAdapterArgs{
 		VmName: vmName,
 		Index:  index,
 	})
@@ -628,11 +632,11 @@ func (c *ClientConfig) DeleteVmNetworkAdapter(vmName string, index int) (err err
 	return err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(vmName string, networkAdapters []api.VmNetworkAdapter) (err error) {
+func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(ctx context.Context, vmName string, networkAdapters []api.VmNetworkAdapter) (err error) {
 	networkAdaptersWaitForIps := make([]api.VmNetworkAdapterWaitForIp, 0)
 
 	//Empty networkAdaptersWaitForIps is ok as we aren't using the results anywhere
-	currentNetworkAdapters, err := c.GetVmNetworkAdapters(vmName, networkAdaptersWaitForIps)
+	currentNetworkAdapters, err := c.GetVmNetworkAdapters(ctx, vmName, networkAdaptersWaitForIps)
 	if err != nil {
 		return err
 	}
@@ -642,7 +646,7 @@ func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(vmName string, networkAda
 
 	for i := currentNetworkAdaptersLength - 1; i > desiredNetworkAdaptersLength-1; i-- {
 		currentNetworkAdapter := currentNetworkAdapters[i]
-		err = c.DeleteVmNetworkAdapter(vmName, currentNetworkAdapter.Index)
+		err = c.DeleteVmNetworkAdapter(ctx, vmName, currentNetworkAdapter.Index)
 		if err != nil {
 			return err
 		}
@@ -656,6 +660,7 @@ func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(vmName string, networkAda
 		currentNetworkAdapter := currentNetworkAdapters[i]
 		networkAdapter := networkAdapters[i]
 		err = c.UpdateVmNetworkAdapter(
+			ctx,
 			vmName,
 			currentNetworkAdapter.Index,
 			networkAdapter.Name,
@@ -705,6 +710,7 @@ func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(vmName string, networkAda
 	for i := currentNetworkAdaptersLength - 1 + 1; i <= desiredNetworkAdaptersLength-1; i++ {
 		networkAdapter := networkAdapters[i]
 		err = c.CreateVmNetworkAdapter(
+			ctx,
 			vmName,
 			networkAdapter.Name,
 			networkAdapter.SwitchName,

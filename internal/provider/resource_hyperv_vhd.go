@@ -222,7 +222,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 	}
 
 	if d.IsNewResource() {
-		existing, err := c.VhdExists(path)
+		existing, err := c.VhdExists(ctx, path)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", path, err))
 		}
@@ -242,7 +242,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 	logicalSectorSize := uint32((d.Get("logical_sector_size")).(int))
 	physicalSectorSize := uint32((d.Get("physical_sector_size")).(int))
 
-	err := c.CreateOrUpdateVhd(path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
+	err := c.CreateOrUpdateVhd(ctx, path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -250,7 +250,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 
 	if size > 0 && parentPath == "" {
 		//Update vhd size
-		err = c.ResizeVhd(path, size)
+		err = c.ResizeVhd(ctx, path, size)
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -269,7 +269,7 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 
 	path := d.Id()
 
-	vhd, err := c.GetVhd(path)
+	vhd, err := c.GetVhd(ctx, path)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -341,7 +341,7 @@ func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta i
 
 	if !exists || d.HasChange("path") || d.HasChange("source") || d.HasChange("source_vm") || d.HasChange("source_disk") || d.HasChange("parent_path") {
 		//delete it as its changed
-		err := c.CreateOrUpdateVhd(path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
+		err := c.CreateOrUpdateVhd(ctx, path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
 
 		if err != nil {
 			return diag.FromErr(err)
@@ -351,7 +351,7 @@ func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta i
 	if size > 0 && parentPath == "" {
 		if !exists || d.HasChange("size") {
 			//Update vhd size
-			err := c.ResizeVhd(path, size)
+			err := c.ResizeVhd(ctx, path, size)
 
 			if err != nil {
 				return diag.FromErr(err)
@@ -371,7 +371,7 @@ func resourceHyperVVhdDelete(ctx context.Context, d *schema.ResourceData, meta i
 
 	path := d.Id()
 
-	err := c.DeleteVhd(path)
+	err := c.DeleteVhd(ctx, path)
 
 	if err != nil {
 		return diag.FromErr(err)

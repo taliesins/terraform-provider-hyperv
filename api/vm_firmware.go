@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -204,6 +205,7 @@ func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 
 type HypervVmFirmwareClient interface {
 	CreateOrUpdateVmFirmware(
+		ctx context.Context,
 		vmName string,
 		enableSecureBoot OnOffState,
 		secureBootTemplate string,
@@ -211,8 +213,8 @@ type HypervVmFirmwareClient interface {
 		consoleMode ConsoleModeType,
 		pauseAfterBootFailure OnOffState,
 	) (err error)
-	GetVmFirmware(vmName string) (result VmFirmware, err error)
-	GetNoVmFirmwares() (result []VmFirmware)
-	GetVmFirmwares(vmName string) (result []VmFirmware, err error)
-	CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []VmFirmware) (err error)
+	GetVmFirmware(ctx context.Context, vmName string) (result VmFirmware, err error)
+	GetNoVmFirmwares(ctx context.Context) (result []VmFirmware)
+	GetVmFirmwares(ctx context.Context, vmName string) (result []VmFirmware, err error)
+	CreateOrUpdateVmFirmwares(ctx context.Context, vmName string, vmFirmwares []VmFirmware) (err error)
 }

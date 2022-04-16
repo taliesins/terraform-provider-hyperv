@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -144,8 +145,9 @@ type VmSwitch struct {
 }
 
 type HypervVmSwitchClient interface {
-	VMSwitchExists(name string) (result VmSwitchExists, err error)
+	VMSwitchExists(ctx context.Context, name string) (result VmSwitchExists, err error)
 	CreateVMSwitch(
+		ctx context.Context,
 		name string,
 		notes string,
 		allowManagementOS bool,
@@ -161,8 +163,9 @@ type HypervVmSwitchClient interface {
 		defaultQueueVmmqQueuePairs int32,
 		defaultQueueVrssEnabled bool,
 	) (err error)
-	GetVMSwitch(name string) (result VmSwitch, err error)
+	GetVMSwitch(ctx context.Context, name string) (result VmSwitch, err error)
 	UpdateVMSwitch(
+		ctx context.Context,
 		name string,
 		notes string,
 		allowManagementOS bool,
@@ -178,5 +181,5 @@ type HypervVmSwitchClient interface {
 		defaultQueueVmmqQueuePairs int32,
 		defaultQueueVrssEnabled bool,
 	) (err error)
-	DeleteVMSwitch(name string) (err error)
+	DeleteVMSwitch(ctx context.Context, name string) (err error)
 }

@@ -799,7 +799,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 	}
 
 	if d.IsNewResource() {
-		existing, err := client.VmExists(name)
+		existing, err := client.VmExists(ctx, name)
 		if err != nil {
 			return diag.FromErr(fmt.Errorf("checking for existing %s: %+v", name, err))
 		}
@@ -865,7 +865,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateVm(name, path, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	err = client.CreateVm(ctx, name, path, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -876,33 +876,33 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+		err = client.CreateOrUpdateVmFirmwares(ctx, name, vmFirmwares)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 	}
 
-	err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
+	err = client.CreateOrUpdateVmProcessors(ctx, name, vmProcessors)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateOrUpdateVmNetworkAdapters(name, networkAdapters)
+	err = client.CreateOrUpdateVmNetworkAdapters(ctx, name, networkAdapters)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateOrUpdateVmIntegrationServices(name, integrationServices)
+	err = client.CreateOrUpdateVmIntegrationServices(ctx, name, integrationServices)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateOrUpdateVmDvdDrives(name, dvdDrives)
+	err = client.CreateOrUpdateVmDvdDrives(ctx, name, dvdDrives)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.CreateOrUpdateVmHardDiskDrives(name, hardDiskDrives)
+	err = client.CreateOrUpdateVmHardDiskDrives(ctx, name, hardDiskDrives)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -912,7 +912,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
+	err = client.UpdateVmStatus(ctx, name, waitForStateTimeout, waitForStatePollPeriod, state)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -929,7 +929,7 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 
 	name := d.Id()
 
-	vm, err := client.GetVm(name)
+	vm, err := client.GetVm(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -938,35 +938,35 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	vmFirmwares := client.GetNoVmFirmwares()
+	vmFirmwares := client.GetNoVmFirmwares(ctx)
 	if vm.Generation > 1 {
-		vmFirmwares, err = client.GetVmFirmwares(name)
+		vmFirmwares, err = client.GetVmFirmwares(ctx, name)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 	}
 
-	vmProcessors, err := client.GetVmProcessors(name)
+	vmProcessors, err := client.GetVmProcessors(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	integrationServices, err := client.GetVmIntegrationServices(name)
+	integrationServices, err := client.GetVmIntegrationServices(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	dvdDrives, err := client.GetVmDvdDrives(name)
+	dvdDrives, err := client.GetVmDvdDrives(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	hardDiskDrives, err := client.GetVmHardDiskDrives(name)
+	hardDiskDrives, err := client.GetVmHardDiskDrives(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	vmState, err := client.GetVmStatus(name)
+	vmState, err := client.GetVmStatus(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -976,12 +976,12 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	err = client.WaitForVmNetworkAdaptersIps(name, waitForIpsTimeout, waitForIpsPollPeriod, networkAdaptersWaitForIps)
+	err = client.WaitForVmNetworkAdaptersIps(ctx, name, waitForIpsTimeout, waitForIpsPollPeriod, networkAdaptersWaitForIps)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	networkAdapters, err := client.GetVmNetworkAdapters(name, networkAdaptersWaitForIps)
+	networkAdapters, err := client.GetVmNetworkAdapters(ctx, name, networkAdaptersWaitForIps)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1156,7 +1156,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		d.HasChange("hard_disk_drives")
 
 	if hasChangesThatRequireVmToBeOff {
-		err := turnOffVmIfOn(d, client, name)
+		err := turnOffVmIfOn(ctx, d, client, name)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1210,7 +1210,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.Errorf("[ERROR][hyperv][update] Either dynamic or static memory must be selected i.e. static_memory=true and dynamic_memory=false")
 		}
 
-		err := client.UpdateVm(name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		err := client.UpdateVm(ctx, name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1222,7 +1222,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmFirmwares(name, vmFirmwares)
+		err = client.CreateOrUpdateVmFirmwares(ctx, name, vmFirmwares)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1234,7 +1234,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmProcessors(name, vmProcessors)
+		err = client.CreateOrUpdateVmProcessors(ctx, name, vmProcessors)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1248,7 +1248,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 
 		changedIntegrationServices := api.GetChangedIntegrationServices(integrationServices, d)
 
-		err = client.CreateOrUpdateVmIntegrationServices(name, changedIntegrationServices)
+		err = client.CreateOrUpdateVmIntegrationServices(ctx, name, changedIntegrationServices)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1260,7 +1260,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmNetworkAdapters(name, networkAdapters)
+		err = client.CreateOrUpdateVmNetworkAdapters(ctx, name, networkAdapters)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1272,7 +1272,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmDvdDrives(name, dvdDrives)
+		err = client.CreateOrUpdateVmDvdDrives(ctx, name, dvdDrives)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1284,7 +1284,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 			return diag.FromErr(err)
 		}
 
-		err = client.CreateOrUpdateVmHardDiskDrives(name, hardDiskDrives)
+		err = client.CreateOrUpdateVmHardDiskDrives(ctx, name, hardDiskDrives)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1297,7 +1297,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		}
 
 		state := api.ToVmState((d.Get("state")).(string))
-		err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
+		err = client.UpdateVmStatus(ctx, name, waitForStateTimeout, waitForStatePollPeriod, state)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -1321,12 +1321,12 @@ func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.Resource
 	}
 
 	state := api.VmState_Off
-	err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, state)
+	err = client.UpdateVmStatus(ctx, name, waitForStateTimeout, waitForStatePollPeriod, state)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	err = client.DeleteVm(name)
+	err = client.DeleteVm(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1335,8 +1335,8 @@ func resourceHyperVMachineInstanceDelete(ctx context.Context, d *schema.Resource
 	return nil
 }
 
-func turnOffVmIfOn(data *schema.ResourceData, client api.Client, name string) (err error) {
-	vmState, err := client.GetVmStatus(name)
+func turnOffVmIfOn(ctx context.Context, data *schema.ResourceData, client api.Client, name string) (err error) {
+	vmState, err := client.GetVmStatus(ctx, name)
 	if err != nil {
 		return err
 	}
@@ -1350,7 +1350,7 @@ func turnOffVmIfOn(data *schema.ResourceData, client api.Client, name string) (e
 				return err
 			}
 
-			err = client.UpdateVmStatus(name, waitForStateTimeout, waitForStatePollPeriod, api.VmState_Off)
+			err = client.UpdateVmStatus(ctx, name, waitForStateTimeout, waitForStatePollPeriod, api.VmState_Off)
 			if err != nil {
 				return err
 			}
@@ -1374,7 +1374,7 @@ func turnOffVmIfOn(data *schema.ResourceData, client api.Client, name string) (e
 		log.Printf("[INFO][hyperv][turnOffVmIfOn] vm %#v is in a state of %#v and so wait 2 seconds for it turn off", name, vmState.State)
 		time.Sleep(2 * time.Second)
 
-		vmState, err = client.GetVmStatus(name)
+		vmState, err = client.GetVmStatus(ctx, name)
 		if err != nil {
 			return err
 		}

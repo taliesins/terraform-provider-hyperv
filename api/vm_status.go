@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strconv"
@@ -152,8 +153,9 @@ func ExpandVmStateWaitForState(d *schema.ResourceData) (uint32, uint32, error) {
 }
 
 type HypervVmStatusClient interface {
-	GetVmStatus(vmName string) (result VmStatus, err error)
+	GetVmStatus(ctx context.Context, vmName string) (result VmStatus, err error)
 	UpdateVmStatus(
+		ctx context.Context,
 		vmName string,
 		timeout uint32,
 		pollPeriod uint32,

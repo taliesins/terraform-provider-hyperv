@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"text/template"
 
@@ -24,8 +25,8 @@ if (Test-Path $path) {
 }
 `))
 
-func (c *ClientConfig) VhdExists(path string) (result api.VhdExists, err error) {
-	err = c.WinRmClient.RunScriptWithResult(existsVhdTemplate, existsVhdArgs{
+func (c *ClientConfig) VhdExists(ctx context.Context, path string) (result api.VhdExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, existsVhdTemplate, existsVhdArgs{
 		Path: path,
 	}, &result)
 
@@ -256,7 +257,7 @@ if (!(Test-Path -Path $vhd.Path)) {
 }
 `))
 
-func (c *ClientConfig) CreateOrUpdateVhd(path string, source string, sourceVm string, sourceDisk int, vhdType api.VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
+func (c *ClientConfig) CreateOrUpdateVhd(ctx context.Context, path string, source string, sourceVm string, sourceDisk int, vhdType api.VhdType, parentPath string, size uint64, blockSize uint32, logicalSectorSize uint32, physicalSectorSize uint32) (err error) {
 	vhdJson, err := json.Marshal(api.Vhd{
 		Path:               path,
 		VhdType:            vhdType,
@@ -271,7 +272,7 @@ func (c *ClientConfig) CreateOrUpdateVhd(path string, source string, sourceVm st
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createOrUpdateVhdTemplate, createOrUpdateVhdArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createOrUpdateVhdTemplate, createOrUpdateVhdArgs{
 		Source:     source,
 		SourceVm:   sourceVm,
 		SourceDisk: sourceDisk,
@@ -294,8 +295,8 @@ if ($vhd.Size -ne {{.Size}}){
 }
 `))
 
-func (c *ClientConfig) ResizeVhd(path string, size uint64) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(resizeVhdTemplate, resizeVhdArgs{
+func (c *ClientConfig) ResizeVhd(ctx context.Context, path string, size uint64) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, resizeVhdTemplate, resizeVhdArgs{
 		Path: path,
 		Size: size,
 	})
@@ -341,8 +342,8 @@ if ($vhdObject){
 }
 `))
 
-func (c *ClientConfig) GetVhd(path string) (result api.Vhd, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVhdTemplate, getVhdArgs{
+func (c *ClientConfig) GetVhd(ctx context.Context, path string) (result api.Vhd, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVhdTemplate, getVhdArgs{
 		Path: path,
 	}, &result)
 
@@ -365,8 +366,8 @@ Get-ChildItem -Path $targetDirectory |?{$_.BaseName.StartsWith($targetName)} | %
 }
 `))
 
-func (c *ClientConfig) DeleteVhd(path string) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVhdTemplate, deleteVhdArgs{
+func (c *ClientConfig) DeleteVhd(ctx context.Context, path string) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVhdTemplate, deleteVhdArgs{
 		Path: path,
 	})
 

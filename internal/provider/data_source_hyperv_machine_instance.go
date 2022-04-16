@@ -744,40 +744,40 @@ func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.Resource
 		return diag.Errorf("[ERROR][hyperv][read] name argument is required")
 	}
 
-	vm, err := client.GetVm(name)
+	vm, err := client.GetVm(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	vmFirmwares := client.GetNoVmFirmwares()
+	vmFirmwares := client.GetNoVmFirmwares(ctx)
 	if vm.Generation > 1 {
-		vmFirmwares, err = client.GetVmFirmwares(name)
+		vmFirmwares, err = client.GetVmFirmwares(ctx, name)
 		if err != nil {
 			return diag.FromErr(err)
 		}
 	}
 
-	vmProcessors, err := client.GetVmProcessors(name)
+	vmProcessors, err := client.GetVmProcessors(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	integrationServices, err := client.GetVmIntegrationServices(name)
+	integrationServices, err := client.GetVmIntegrationServices(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	dvdDrives, err := client.GetVmDvdDrives(name)
+	dvdDrives, err := client.GetVmDvdDrives(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	hardDiskDrives, err := client.GetVmHardDiskDrives(name)
+	hardDiskDrives, err := client.GetVmHardDiskDrives(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	vmState, err := client.GetVmStatus(name)
+	vmState, err := client.GetVmStatus(ctx, name)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -787,12 +787,12 @@ func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	err = client.WaitForVmNetworkAdaptersIps(name, waitForIpsTimeout, waitForIpsPollPeriod, networkAdaptersWaitForIps)
+	err = client.WaitForVmNetworkAdaptersIps(ctx, name, waitForIpsTimeout, waitForIpsPollPeriod, networkAdaptersWaitForIps)
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	networkAdapters, err := client.GetVmNetworkAdapters(name, networkAdaptersWaitForIps)
+	networkAdapters, err := client.GetVmNetworkAdapters(ctx, name, networkAdaptersWaitForIps)
 	if err != nil {
 		return diag.FromErr(err)
 	}

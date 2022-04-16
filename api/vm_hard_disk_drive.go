@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -198,7 +199,7 @@ func FlattenHardDiskDrives(hardDiskDrives *[]VmHardDiskDrive) []interface{} {
 		flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
 		flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
 	}
-	
+
 	return flattenedHardDiskDrives
 }
 
@@ -220,6 +221,7 @@ type VmHardDiskDrive struct {
 
 type HypervVmHardDiskDriveClient interface {
 	CreateVmHardDiskDrive(
+		ctx context.Context,
 		vmName string,
 		controllerType ControllerType,
 		controllerNumber int32,
@@ -234,8 +236,9 @@ type HypervVmHardDiskDriveClient interface {
 		overrideCacheAttributes CacheAttributes,
 
 	) (err error)
-	GetVmHardDiskDrives(vmName string) (result []VmHardDiskDrive, err error)
+	GetVmHardDiskDrives(ctx context.Context, vmName string) (result []VmHardDiskDrive, err error)
 	UpdateVmHardDiskDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int32,
 		controllerLocation int32,
@@ -251,6 +254,6 @@ type HypervVmHardDiskDriveClient interface {
 		qosPolicyId string,
 		overrideCacheAttributes CacheAttributes,
 	) (err error)
-	DeleteVmHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error)
-	CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDrives []VmHardDiskDrive) (err error)
+	DeleteVmHardDiskDrive(ctx context.Context, vmname string, controllerNumber int32, controllerLocation int32) (err error)
+	CreateOrUpdateVmHardDiskDrives(ctx context.Context, vmName string, hardDiskDrives []VmHardDiskDrive) (err error)
 }

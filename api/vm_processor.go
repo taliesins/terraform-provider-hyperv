@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
@@ -119,6 +120,7 @@ type VmProcessor struct {
 
 type HypervVmProcessorClient interface {
 	CreateOrUpdateVmProcessor(
+		ctx context.Context,
 		vmName string,
 		compatibilityForMigrationEnabled bool,
 		compatibilityForOlderOperatingSystemsEnabled bool,
@@ -131,6 +133,6 @@ type HypervVmProcessorClient interface {
 		enableHostResourceProtection bool,
 		exposeVirtualizationExtensions bool,
 	) (err error)
-	GetVmProcessors(vmName string) (result []VmProcessor, err error)
-	CreateOrUpdateVmProcessors(vmName string, vmProcessors []VmProcessor) (err error)
+	GetVmProcessors(ctx context.Context, vmName string) (result []VmProcessor, err error)
+	CreateOrUpdateVmProcessors(ctx context.Context, vmName string, vmProcessors []VmProcessor) (err error)
 }

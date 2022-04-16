@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -361,6 +362,7 @@ func ExpandVmNetworkAdapterWaitForIps(d *schema.ResourceData) ([]VmNetworkAdapte
 
 type HypervVmNetworkAdapterClient interface {
 	CreateVmNetworkAdapter(
+		ctx context.Context,
 		vmName string,
 		name string,
 		switchName string,
@@ -402,13 +404,15 @@ type HypervVmNetworkAdapterClient interface {
 		vlanId int,
 	) (err error)
 	WaitForVmNetworkAdaptersIps(
+		ctx context.Context,
 		vmName string,
 		timeout uint32,
 		pollPeriod uint32,
 		vmNetworkAdaptersWaitForIps []VmNetworkAdapterWaitForIp,
 	) (err error)
-	GetVmNetworkAdapters(vmName string, networkAdaptersWaitForIps []VmNetworkAdapterWaitForIp) (result []VmNetworkAdapter, err error)
+	GetVmNetworkAdapters(ctx context.Context, vmName string, networkAdaptersWaitForIps []VmNetworkAdapterWaitForIp) (result []VmNetworkAdapter, err error)
 	UpdateVmNetworkAdapter(
+		ctx context.Context,
 		vmName string,
 		index int,
 		name string,
@@ -450,6 +454,6 @@ type HypervVmNetworkAdapterClient interface {
 		vlanAccess bool,
 		vlanId int,
 	) (err error)
-	DeleteVmNetworkAdapter(vmName string, index int) (err error)
-	CreateOrUpdateVmNetworkAdapters(vmName string, networkAdapters []VmNetworkAdapter) (err error)
+	DeleteVmNetworkAdapter(ctx context.Context, vmName string, index int) (err error)
+	CreateOrUpdateVmNetworkAdapters(ctx context.Context, vmName string, networkAdapters []VmNetworkAdapter) (err error)
 }
