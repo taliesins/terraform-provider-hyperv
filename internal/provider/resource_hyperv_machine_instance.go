@@ -63,11 +63,11 @@ func resourceHyperVMachineInstance() *schema.Resource {
 					}
 					computedPath += name
 
-					if computedPath == oldValue {
+					if strings.EqualFold(computedPath, oldValue) {
 						return true
 					}
 
-					if oldValue == newValue {
+					if strings.EqualFold(oldValue, newValue) {
 						return true
 					}
 
