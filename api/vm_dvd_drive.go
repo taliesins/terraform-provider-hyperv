@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
@@ -31,17 +32,19 @@ func ExpandDvdDrives(d *schema.ResourceData) ([]VmDvdDrive, error) {
 }
 
 func FlattenDvdDrives(dvdDrives *[]VmDvdDrive) []interface{} {
+	if dvdDrives == nil || len(*dvdDrives) < 1 {
+		return nil
+	}
+
 	flattenedDvdDrives := make([]interface{}, 0)
 
-	if dvdDrives != nil {
-		for _, dvdDrive := range *dvdDrives {
-			flattenedDvdDrive := make(map[string]interface{})
-			flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
-			flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
-			flattenedDvdDrive["path"] = dvdDrive.Path
-			flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
-			flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
-		}
+	for _, dvdDrive := range *dvdDrives {
+		flattenedDvdDrive := make(map[string]interface{})
+		flattenedDvdDrive["controller_number"] = dvdDrive.ControllerNumber
+		flattenedDvdDrive["controller_location"] = dvdDrive.ControllerLocation
+		flattenedDvdDrive["path"] = dvdDrive.Path
+		flattenedDvdDrive["resource_pool_name"] = dvdDrive.ResourcePoolName
+		flattenedDvdDrives = append(flattenedDvdDrives, flattenedDvdDrive)
 	}
 
 	return flattenedDvdDrives
@@ -58,14 +61,16 @@ type VmDvdDrive struct {
 
 type HypervVmDvdDriveClient interface {
 	CreateVmDvdDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int,
 		controllerLocation int,
 		path string,
 		resourcePoolName string,
 	) (err error)
-	GetVmDvdDrives(vmName string) (result []VmDvdDrive, err error)
+	GetVmDvdDrives(ctx context.Context, vmName string) (result []VmDvdDrive, err error)
 	UpdateVmDvdDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int,
 		controllerLocation int,
@@ -74,6 +79,6 @@ type HypervVmDvdDriveClient interface {
 		path string,
 		resourcePoolName string,
 	) (err error)
-	DeleteVmDvdDrive(vmName string, controllerNumber int, controllerLocation int) (err error)
-	CreateOrUpdateVmDvdDrives(vmName string, dvdDrives []VmDvdDrive) (err error)
+	DeleteVmDvdDrive(ctx context.Context, vmName string, controllerNumber int, controllerLocation int) (err error)
+	CreateOrUpdateVmDvdDrives(ctx context.Context, vmName string, dvdDrives []VmDvdDrive) (err error)
 }

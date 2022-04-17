@@ -1,10 +1,36 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
 )
+
+type existsVmArgs struct {
+	Name string
+}
+
+var existsVmTemplate = template.Must(template.New("ExistsVm").Parse(`
+$ErrorActionPreference = 'Stop'
+$vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' }
+
+if ($vmObject){
+	$exists = ConvertTo-Json -InputObject @{Exists=$true}
+	$exists
+} else {
+	$exists = ConvertTo-Json -InputObject @{Exists=$false}
+	$exists
+}
+`))
+
+func (c *ClientConfig) VmExists(ctx context.Context, name string) (result api.VmExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, existsVmTemplate, existsVmArgs{
+		Name: name,
+	}, &result)
+
+	return result, err
+}
 
 type createVmArgs struct {
 	VmJson string
@@ -88,6 +114,7 @@ Set-Vm @SetVmArgs
 `))
 
 func (c *ClientConfig) CreateVm(
+	ctx context.Context,
 	name string,
 	path string,
 	generation int,
@@ -140,7 +167,7 @@ func (c *ClientConfig) CreateVm(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createVmTemplate, createVmArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createVmTemplate, createVmArgs{
 		VmJson: string(vmJson),
 	})
 
@@ -186,8 +213,8 @@ if ($vmObject) {
 }
 `))
 
-func (c *ClientConfig) GetVm(name string) (result api.Vm, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVmTemplate, getVmArgs{
+func (c *ClientConfig) GetVm(ctx context.Context, name string) (result api.Vm, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmTemplate, getVmArgs{
 		Name: name,
 	}, &result)
 
@@ -255,6 +282,7 @@ Set-Vm @SetVmArgs
 `))
 
 func (c *ClientConfig) UpdateVm(
+	ctx context.Context,
 	name string,
 	//	generation int,
 	automaticCriticalErrorAction api.CriticalErrorAction,
@@ -305,7 +333,7 @@ func (c *ClientConfig) UpdateVm(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVmTemplate, updateVmArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVmTemplate, updateVmArgs{
 		VmJson: string(vmJson),
 	})
 
@@ -321,8 +349,8 @@ $ErrorActionPreference = 'Stop'
 Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}'} | Remove-VM -force
 `))
 
-func (c *ClientConfig) DeleteVm(name string) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVmTemplate, deleteVmArgs{
+func (c *ClientConfig) DeleteVm(ctx context.Context, name string) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVmTemplate, deleteVmArgs{
 		Name: name,
 	})
 

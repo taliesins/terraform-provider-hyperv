@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
@@ -38,6 +39,7 @@ Add-VmHardDiskDrive @NewVmHardDiskDriveArgs
 `))
 
 func (c *ClientConfig) CreateVmHardDiskDrive(
+	ctx context.Context,
 	vmName string,
 	controllerType api.ControllerType,
 	controllerNumber int32,
@@ -72,7 +74,7 @@ func (c *ClientConfig) CreateVmHardDiskDrive(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createVmHardDiskDriveTemplate, createVmHardDiskDriveArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createVmHardDiskDriveTemplate, createVmHardDiskDriveArgs{
 		VmHardDiskDriveJson: string(vmHardDiskDriveJson),
 	})
 
@@ -107,10 +109,10 @@ if ($vmHardDiskDrivesObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmHardDiskDrives(vmName string) (result []api.VmHardDiskDrive, err error) {
+func (c *ClientConfig) GetVmHardDiskDrives(ctx context.Context, vmName string) (result []api.VmHardDiskDrive, err error) {
 	result = make([]api.VmHardDiskDrive, 0)
 
-	err = c.WinRmClient.RunScriptWithResult(getVmHardDiskDrivesTemplate, getVmHardDiskDrivesArgs{
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmHardDiskDrivesTemplate, getVmHardDiskDrivesArgs{
 		VmName: vmName,
 	}, &result)
 
@@ -159,6 +161,7 @@ Set-VMHardDiskDrive @SetVmHardDiskDriveArgs
 `))
 
 func (c *ClientConfig) UpdateVmHardDiskDrive(
+	ctx context.Context,
 	vmName string,
 	controllerNumber int32,
 	controllerLocation int32,
@@ -194,7 +197,7 @@ func (c *ClientConfig) UpdateVmHardDiskDrive(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVmHardDiskDriveTemplate, updateVmHardDiskDriveArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVmHardDiskDriveTemplate, updateVmHardDiskDriveArgs{
 		VmName:              vmName,
 		ControllerNumber:    controllerNumber,
 		ControllerLocation:  controllerLocation,
@@ -216,8 +219,8 @@ $ErrorActionPreference = 'Stop'
 @(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive -Force
 `))
 
-func (c *ClientConfig) DeleteVmHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVmHardDiskDriveTemplate, deleteVmHardDiskDriveArgs{
+func (c *ClientConfig) DeleteVmHardDiskDrive(ctx context.Context, vmname string, controllerNumber int32, controllerLocation int32) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVmHardDiskDriveTemplate, deleteVmHardDiskDriveArgs{
 		VmName:             vmname,
 		ControllerNumber:   controllerNumber,
 		ControllerLocation: controllerLocation,
@@ -226,8 +229,8 @@ func (c *ClientConfig) DeleteVmHardDiskDrive(vmname string, controllerNumber int
 	return err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDrives []api.VmHardDiskDrive) (err error) {
-	currentHardDiskDrives, err := c.GetVmHardDiskDrives(vmName)
+func (c *ClientConfig) CreateOrUpdateVmHardDiskDrives(ctx context.Context, vmName string, hardDiskDrives []api.VmHardDiskDrive) (err error) {
+	currentHardDiskDrives, err := c.GetVmHardDiskDrives(ctx, vmName)
 	if err != nil {
 		return err
 	}
@@ -237,7 +240,7 @@ func (c *ClientConfig) CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDri
 
 	for i := currentHardDiskDrivesLength - 1; i > desiredHardDiskDrivesLength-1; i-- {
 		currentHardDiskDrive := currentHardDiskDrives[i]
-		err = c.DeleteVmHardDiskDrive(vmName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
+		err = c.DeleteVmHardDiskDrive(ctx, vmName, currentHardDiskDrive.ControllerNumber, currentHardDiskDrive.ControllerLocation)
 		if err != nil {
 			return err
 		}
@@ -252,6 +255,7 @@ func (c *ClientConfig) CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDri
 		hardDiskDrive := hardDiskDrives[i]
 
 		err = c.UpdateVmHardDiskDrive(
+			ctx,
 			vmName,
 			currentHardDiskDrive.ControllerNumber,
 			currentHardDiskDrive.ControllerLocation,
@@ -275,6 +279,7 @@ func (c *ClientConfig) CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDri
 	for i := currentHardDiskDrivesLength - 1 + 1; i <= desiredHardDiskDrivesLength-1; i++ {
 		hardDiskDrive := hardDiskDrives[i]
 		err = c.CreateVmHardDiskDrive(
+			ctx,
 			vmName,
 			hardDiskDrive.ControllerType,
 			hardDiskDrive.ControllerNumber,

@@ -50,13 +50,16 @@ resource "hyperv_vhd" "web_server_vhd" {
 
 ### Read-Only
 
-- `exists` (Boolean) Does virtual machine exist.
+- `exists` (Boolean) Does virtual disk exist.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
 
 Optional:
 
-- `default` (String)
+- `create` (String)
+- `delete` (String)
+- `read` (String)
+- `update` (String)
 
 

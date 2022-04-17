@@ -61,6 +61,9 @@ resource "hyperv_network_switch" "default" {
 
 Optional:
 
-- `default` (String)
+- `create` (String)
+- `delete` (String)
+- `read` (String)
+- `update` (String)
 
 

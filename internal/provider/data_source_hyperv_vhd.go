@@ -13,7 +13,7 @@ func dataSourceHyperVVhd() *schema.Resource {
 	return &schema.Resource{
 		Description: "Get information about existing vhd/vhdx/vhds.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVVhdTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadVhdTimeout),
 		},
 		ReadContext: datasourceHyperVVhdRead,
 		Schema: map[string]*schema.Schema{
@@ -139,7 +139,7 @@ func datasourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.Errorf("[ERROR][hyperv][read] path argument is required")
 	}
 
-	vhd, err := c.GetVhd(path)
+	vhd, err := c.GetVhd(ctx, path)
 	if err != nil {
 		return diag.FromErr(err)
 	}

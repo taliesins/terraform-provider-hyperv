@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -166,7 +167,9 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
 
 			expandedVmFirmwares = append(expandedVmFirmwares, expandedVmFirmware)
 		}
-	} else {
+	}
+
+	if len(expandedVmFirmwares) < 1 {
 		vmFirmware := VmFirmware{
 			EnableSecureBoot:             OnOffState_On,
 			SecureBootTemplate:           "MicrosoftWindows",
@@ -181,18 +184,20 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
 }
 
 func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
+	if vmFirmwares == nil || len(*vmFirmwares) < 1 {
+		return nil
+	}
+
 	flattenedVmFirmwares := make([]interface{}, 0)
 
-	if vmFirmwares != nil {
-		for _, vmFirmware := range *vmFirmwares {
-			flattenedVmFirmware := make(map[string]interface{})
-			flattenedVmFirmware["enable_secure_boot"] = vmFirmware.EnableSecureBoot.String()
-			flattenedVmFirmware["secure_boot_template"] = vmFirmware.SecureBootTemplate
-			flattenedVmFirmware["preferred_network_boot_protocol"] = vmFirmware.PreferredNetworkBootProtocol.String()
-			flattenedVmFirmware["console_mode"] = vmFirmware.ConsoleMode.String()
-			flattenedVmFirmware["pause_after_boot_failure"] = vmFirmware.PauseAfterBootFailure.String()
-			flattenedVmFirmwares = append(flattenedVmFirmwares, flattenedVmFirmware)
-		}
+	for _, vmFirmware := range *vmFirmwares {
+		flattenedVmFirmware := make(map[string]interface{})
+		flattenedVmFirmware["enable_secure_boot"] = vmFirmware.EnableSecureBoot.String()
+		flattenedVmFirmware["secure_boot_template"] = vmFirmware.SecureBootTemplate
+		flattenedVmFirmware["preferred_network_boot_protocol"] = vmFirmware.PreferredNetworkBootProtocol.String()
+		flattenedVmFirmware["console_mode"] = vmFirmware.ConsoleMode.String()
+		flattenedVmFirmware["pause_after_boot_failure"] = vmFirmware.PauseAfterBootFailure.String()
+		flattenedVmFirmwares = append(flattenedVmFirmwares, flattenedVmFirmware)
 	}
 
 	return flattenedVmFirmwares
@@ -200,6 +205,7 @@ func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 
 type HypervVmFirmwareClient interface {
 	CreateOrUpdateVmFirmware(
+		ctx context.Context,
 		vmName string,
 		enableSecureBoot OnOffState,
 		secureBootTemplate string,
@@ -207,8 +213,8 @@ type HypervVmFirmwareClient interface {
 		consoleMode ConsoleModeType,
 		pauseAfterBootFailure OnOffState,
 	) (err error)
-	GetVmFirmware(vmName string) (result VmFirmware, err error)
-	GetNoVmFirmwares() (result []VmFirmware)
-	GetVmFirmwares(vmName string) (result []VmFirmware, err error)
-	CreateOrUpdateVmFirmwares(vmName string, vmFirmwares []VmFirmware) (err error)
+	GetVmFirmware(ctx context.Context, vmName string) (result VmFirmware, err error)
+	GetNoVmFirmwares(ctx context.Context) (result []VmFirmware)
+	GetVmFirmwares(ctx context.Context, vmName string) (result []VmFirmware, err error)
+	CreateOrUpdateVmFirmwares(ctx context.Context, vmName string, vmFirmwares []VmFirmware) (err error)
 }

@@ -48,6 +48,6 @@ datasource "hyperv_network_switch" "default" {
 
 Optional:
 
-- `default` (String)
+- `read` (String)
 
 

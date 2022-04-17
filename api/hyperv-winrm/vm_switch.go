@@ -1,10 +1,36 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
 )
+
+type existsVMSwitchArgs struct {
+	Name string
+}
+
+var existsVMSwitchTemplate = template.Must(template.New("ExistsVMSwitch").Parse(`
+$ErrorActionPreference = 'Stop'
+$vmSwitchObject = Get-VMSwitch -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' }
+
+if ($vmSwitchObject){
+	$exists = ConvertTo-Json -InputObject @{Exists=$true}
+	$exists
+} else {
+	$exists = ConvertTo-Json -InputObject @{Exists=$false}
+	$exists
+}
+`))
+
+func (c *ClientConfig) VMSwitchExists(ctx context.Context, name string) (result api.VmSwitchExists, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, existsVMSwitchTemplate, existsVMSwitchArgs{
+		Name: name,
+	}, &result)
+
+	return result, err
+}
 
 type createVMSwitchArgs struct {
 	VmSwitchJson string
@@ -66,6 +92,7 @@ Set-VMSwitch @SetVmSwitchArgs
 `))
 
 func (c *ClientConfig) CreateVMSwitch(
+	ctx context.Context,
 	name string,
 	notes string,
 	allowManagementOS bool,
@@ -103,7 +130,7 @@ func (c *ClientConfig) CreateVMSwitch(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createVMSwitchTemplate, createVMSwitchArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createVMSwitchTemplate, createVMSwitchArgs{
 		VmSwitchJson: string(vmSwitchJson),
 	})
 
@@ -141,8 +168,8 @@ if ($vmSwitchObject){
 }
 `))
 
-func (c *ClientConfig) GetVMSwitch(name string) (result api.VmSwitch, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVMSwitchTemplate, getVMSwitchArgs{
+func (c *ClientConfig) GetVMSwitch(ctx context.Context, name string) (result api.VmSwitch, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVMSwitchTemplate, getVMSwitchArgs{
 		Name: name,
 	}, &result)
 
@@ -205,6 +232,7 @@ Set-VMSwitch @SetVmSwitchArgs
 `))
 
 func (c *ClientConfig) UpdateVMSwitch(
+	ctx context.Context,
 	name string,
 	notes string,
 	allowManagementOS bool,
@@ -242,7 +270,7 @@ func (c *ClientConfig) UpdateVMSwitch(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVMSwitchTemplate, updateVMSwitchArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVMSwitchTemplate, updateVMSwitchArgs{
 		VmSwitchJson: string(vmSwitchJson),
 	})
 
@@ -258,8 +286,8 @@ $ErrorActionPreference = 'Stop'
 Get-VMSwitch -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}'} | Remove-VMSwitch -Force
 `))
 
-func (c *ClientConfig) DeleteVMSwitch(name string) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(deleteVMSwitchTemplate, deleteVMSwitchArgs{
+func (c *ClientConfig) DeleteVMSwitch(ctx context.Context, name string) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, deleteVMSwitchTemplate, deleteVMSwitchArgs{
 		Name: name,
 	})
 

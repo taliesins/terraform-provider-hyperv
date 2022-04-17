@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
 )
@@ -24,8 +25,8 @@ if ($vmIntegrationServicesObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmIntegrationServices(vmName string) (result []api.VmIntegrationService, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVmIntegrationServicesTemplate, getVmIntegrationServicesArgs{
+func (c *ClientConfig) GetVmIntegrationServices(ctx context.Context, vmName string) (result []api.VmIntegrationService, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmIntegrationServicesTemplate, getVmIntegrationServicesArgs{
 		VmName: vmName,
 	}, &result)
 
@@ -43,8 +44,8 @@ $ErrorActionPreference = 'Stop'
 Enable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
 `))
 
-func (c *ClientConfig) EnableVmIntegrationService(vmName string, name string) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(enableVmIntegrationServiceTemplate, enableVmIntegrationServiceArgs{
+func (c *ClientConfig) EnableVmIntegrationService(ctx context.Context, vmName string, name string) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, enableVmIntegrationServiceTemplate, enableVmIntegrationServiceArgs{
 		VmName: vmName,
 		Name:   name,
 	})
@@ -63,8 +64,8 @@ $ErrorActionPreference = 'Stop'
 Disable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
 `))
 
-func (c *ClientConfig) DisableVmIntegrationService(vmName string, name string) (err error) {
-	err = c.WinRmClient.RunFireAndForgetScript(disableVmIntegrationServiceTemplate, disableVmIntegrationServiceArgs{
+func (c *ClientConfig) DisableVmIntegrationService(ctx context.Context, vmName string, name string) (err error) {
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, disableVmIntegrationServiceTemplate, disableVmIntegrationServiceArgs{
 		VmName: vmName,
 		Name:   name,
 	})
@@ -72,12 +73,12 @@ func (c *ClientConfig) DisableVmIntegrationService(vmName string, name string) (
 	return err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmIntegrationServices(vmName string, integrationServices []api.VmIntegrationService) (err error) {
+func (c *ClientConfig) CreateOrUpdateVmIntegrationServices(ctx context.Context, vmName string, integrationServices []api.VmIntegrationService) (err error) {
 	for _, integrationService := range integrationServices {
 		if integrationService.Enabled {
-			err = c.EnableVmIntegrationService(vmName, integrationService.Name)
+			err = c.EnableVmIntegrationService(ctx, vmName, integrationService.Name)
 		} else {
-			err = c.DisableVmIntegrationService(vmName, integrationService.Name)
+			err = c.DisableVmIntegrationService(ctx, vmName, integrationService.Name)
 		}
 		if err != nil {
 			return err

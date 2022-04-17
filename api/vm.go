@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"strconv"
 	"strings"
@@ -281,6 +282,10 @@ func (d *OnOffState) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type VmExists struct {
+	Exists bool
+}
+
 type Vm struct {
 	Name                                string
 	Path                                string
@@ -308,7 +313,9 @@ type Vm struct {
 }
 
 type HypervVmClient interface {
+	VmExists(ctx context.Context, name string) (result VmExists, err error)
 	CreateVm(
+		ctx context.Context,
 		name string,
 		path string,
 		generation int,
@@ -333,9 +340,10 @@ type HypervVmClient interface {
 		staticMemory bool,
 	) (err error)
 
-	GetVm(name string) (result Vm, err error)
+	GetVm(ctx context.Context, name string) (result Vm, err error)
 
 	UpdateVm(
+		ctx context.Context,
 		name string,
 		// path string,
 		// generation int,
@@ -360,5 +368,5 @@ type HypervVmClient interface {
 		staticMemory bool,
 	) (err error)
 
-	DeleteVm(name string) (err error)
+	DeleteVm(ctx context.Context, name string) (err error)
 }

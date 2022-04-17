@@ -13,7 +13,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 	return &schema.Resource{
 		Description: "Get information about existing virtual network switches.",
 		Timeouts: &schema.ResourceTimeout{
-			Default: &defaultVNetworkSwitchTimeoutDuration,
+			Read: schema.DefaultTimeout(ReadNetworkSwitchTimeout),
 		},
 		ReadContext: datasourceHyperVNetworkSwitchRead,
 		Schema: map[string]*schema.Schema{
@@ -136,7 +136,7 @@ func datasourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][read] name argument is required")
 	}
 
-	s, err := c.GetVMSwitch(switchName)
+	s, err := c.GetVMSwitch(ctx, switchName)
 
 	if err != nil {
 		return diag.FromErr(err)

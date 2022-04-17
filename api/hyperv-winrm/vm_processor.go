@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/taliesins/terraform-provider-hyperv/api"
@@ -40,6 +41,7 @@ Set-VMProcessor @SetVMProcessorArgs
 `))
 
 func (c *ClientConfig) CreateOrUpdateVmProcessor(
+	ctx context.Context,
 	vmName string,
 	compatibilityForMigrationEnabled bool,
 	compatibilityForOlderOperatingSystemsEnabled bool,
@@ -70,7 +72,7 @@ func (c *ClientConfig) CreateOrUpdateVmProcessor(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(createOrUpdateVmProcessorTemplate, createOrUpdateVmProcessorArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, createOrUpdateVmProcessorTemplate, createOrUpdateVmProcessorArgs{
 		VmProcessorJson: string(vmProcessorJson),
 	})
 
@@ -105,17 +107,17 @@ if ($vmProcessorObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmProcessor(vmName string) (result api.VmProcessor, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVmProcessorTemplate, getVmProcessorArgs{
+func (c *ClientConfig) GetVmProcessor(ctx context.Context, vmName string) (result api.VmProcessor, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmProcessorTemplate, getVmProcessorArgs{
 		VmName: vmName,
 	}, &result)
 
 	return result, err
 }
 
-func (c *ClientConfig) GetVmProcessors(vmName string) (result []api.VmProcessor, err error) {
+func (c *ClientConfig) GetVmProcessors(ctx context.Context, vmName string) (result []api.VmProcessor, err error) {
 	result = make([]api.VmProcessor, 0)
-	vmProcessor, err := c.GetVmProcessor(vmName)
+	vmProcessor, err := c.GetVmProcessor(ctx, vmName)
 	if err != nil {
 		return result, err
 	}
@@ -123,7 +125,7 @@ func (c *ClientConfig) GetVmProcessors(vmName string) (result []api.VmProcessor,
 	return result, err
 }
 
-func (c *ClientConfig) CreateOrUpdateVmProcessors(vmName string, vmProcessors []api.VmProcessor) (err error) {
+func (c *ClientConfig) CreateOrUpdateVmProcessors(ctx context.Context, vmName string, vmProcessors []api.VmProcessor) (err error) {
 	if len(vmProcessors) == 0 {
 		return nil
 	}
@@ -133,7 +135,7 @@ func (c *ClientConfig) CreateOrUpdateVmProcessors(vmName string, vmProcessors []
 
 	vmProcessor := vmProcessors[0]
 
-	return c.CreateOrUpdateVmProcessor(vmName,
+	return c.CreateOrUpdateVmProcessor(ctx, vmName,
 		vmProcessor.CompatibilityForMigrationEnabled,
 		vmProcessor.CompatibilityForOlderOperatingSystemsEnabled,
 		vmProcessor.HwThreadCountPerCore,

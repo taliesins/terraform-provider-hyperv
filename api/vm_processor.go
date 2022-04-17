@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
@@ -79,23 +80,25 @@ func ExpandVmProcessors(d *schema.ResourceData) ([]VmProcessor, error) {
 }
 
 func FlattenVmProcessors(vmProcessors *[]VmProcessor) []interface{} {
+	if vmProcessors == nil || len(*vmProcessors) < 1 {
+		return nil
+	}
+
 	flattenedVmProcessors := make([]interface{}, 0)
 
-	if vmProcessors != nil {
-		for _, vmProcessor := range *vmProcessors {
-			flattenedVmProcessor := make(map[string]interface{})
-			flattenedVmProcessor["compatibility_for_migration_enabled"] = vmProcessor.CompatibilityForMigrationEnabled
-			flattenedVmProcessor["compatibility_for_older_operating_systems_enabled"] = vmProcessor.CompatibilityForOlderOperatingSystemsEnabled
-			flattenedVmProcessor["hw_thread_count_per_core"] = vmProcessor.HwThreadCountPerCore
-			flattenedVmProcessor["maximum"] = vmProcessor.Maximum
-			flattenedVmProcessor["reserve"] = vmProcessor.Reserve
-			flattenedVmProcessor["relative_weight"] = vmProcessor.RelativeWeight
-			flattenedVmProcessor["maximum_count_per_numa_node"] = vmProcessor.MaximumCountPerNumaNode
-			flattenedVmProcessor["maximum_count_per_numa_socket"] = vmProcessor.MaximumCountPerNumaSocket
-			flattenedVmProcessor["enable_host_resource_protection"] = vmProcessor.EnableHostResourceProtection
-			flattenedVmProcessor["expose_virtualization_extensions"] = vmProcessor.ExposeVirtualizationExtensions
-			flattenedVmProcessors = append(flattenedVmProcessors, flattenedVmProcessor)
-		}
+	for _, vmProcessor := range *vmProcessors {
+		flattenedVmProcessor := make(map[string]interface{})
+		flattenedVmProcessor["compatibility_for_migration_enabled"] = vmProcessor.CompatibilityForMigrationEnabled
+		flattenedVmProcessor["compatibility_for_older_operating_systems_enabled"] = vmProcessor.CompatibilityForOlderOperatingSystemsEnabled
+		flattenedVmProcessor["hw_thread_count_per_core"] = vmProcessor.HwThreadCountPerCore
+		flattenedVmProcessor["maximum"] = vmProcessor.Maximum
+		flattenedVmProcessor["reserve"] = vmProcessor.Reserve
+		flattenedVmProcessor["relative_weight"] = vmProcessor.RelativeWeight
+		flattenedVmProcessor["maximum_count_per_numa_node"] = vmProcessor.MaximumCountPerNumaNode
+		flattenedVmProcessor["maximum_count_per_numa_socket"] = vmProcessor.MaximumCountPerNumaSocket
+		flattenedVmProcessor["enable_host_resource_protection"] = vmProcessor.EnableHostResourceProtection
+		flattenedVmProcessor["expose_virtualization_extensions"] = vmProcessor.ExposeVirtualizationExtensions
+		flattenedVmProcessors = append(flattenedVmProcessors, flattenedVmProcessor)
 	}
 
 	return flattenedVmProcessors
@@ -117,6 +120,7 @@ type VmProcessor struct {
 
 type HypervVmProcessorClient interface {
 	CreateOrUpdateVmProcessor(
+		ctx context.Context,
 		vmName string,
 		compatibilityForMigrationEnabled bool,
 		compatibilityForOlderOperatingSystemsEnabled bool,
@@ -129,6 +133,6 @@ type HypervVmProcessorClient interface {
 		enableHostResourceProtection bool,
 		exposeVirtualizationExtensions bool,
 	) (err error)
-	GetVmProcessors(vmName string) (result []VmProcessor, err error)
-	CreateOrUpdateVmProcessors(vmName string, vmProcessors []VmProcessor) (err error)
+	GetVmProcessors(ctx context.Context, vmName string) (result []VmProcessor, err error)
+	CreateOrUpdateVmProcessors(ctx context.Context, vmName string, vmProcessors []VmProcessor) (err error)
 }

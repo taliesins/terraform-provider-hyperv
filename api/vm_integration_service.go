@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
@@ -100,12 +101,14 @@ func ExpandIntegrationServices(d *schema.ResourceData) ([]VmIntegrationService, 
 }
 
 func FlattenIntegrationServices(integrationServices *[]VmIntegrationService) map[string]interface{} {
+	if integrationServices == nil || len(*integrationServices) < 1 {
+		return nil
+	}
+
 	flattenedIntegrationServices := make(map[string]interface{})
 
-	if integrationServices != nil {
-		for _, integrationService := range *integrationServices {
-			flattenedIntegrationServices[integrationService.Name] = integrationService.Enabled
-		}
+	for _, integrationService := range *integrationServices {
+		flattenedIntegrationServices[integrationService.Name] = integrationService.Enabled
 	}
 
 	return flattenedIntegrationServices
@@ -117,8 +120,8 @@ type VmIntegrationService struct {
 }
 
 type HypervVmIntegrationServiceClient interface {
-	GetVmIntegrationServices(vmName string) (result []VmIntegrationService, err error)
-	EnableVmIntegrationService(vmName string, name string) (err error)
-	DisableVmIntegrationService(vmName string, name string) (err error)
-	CreateOrUpdateVmIntegrationServices(vmName string, integrationServices []VmIntegrationService) (err error)
+	GetVmIntegrationServices(ctx context.Context, vmName string) (result []VmIntegrationService, err error)
+	EnableVmIntegrationService(ctx context.Context, vmName string, name string) (err error)
+	DisableVmIntegrationService(ctx context.Context, vmName string, name string) (err error)
+	CreateOrUpdateVmIntegrationServices(ctx context.Context, vmName string, integrationServices []VmIntegrationService) (err error)
 }

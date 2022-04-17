@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -177,24 +178,26 @@ func ExpandHardDiskDrives(d *schema.ResourceData) ([]VmHardDiskDrive, error) {
 }
 
 func FlattenHardDiskDrives(hardDiskDrives *[]VmHardDiskDrive) []interface{} {
+	if hardDiskDrives == nil || len(*hardDiskDrives) < 1 {
+		return nil
+	}
+
 	flattenedHardDiskDrives := make([]interface{}, 0)
 
-	if hardDiskDrives != nil {
-		for _, hardDiskDrive := range *hardDiskDrives {
-			flattenedHardDiskDrive := make(map[string]interface{})
-			flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType.String()
-			flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
-			flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
-			flattenedHardDiskDrive["path"] = hardDiskDrive.Path
-			flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
-			flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
-			flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
-			flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
-			flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
-			flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
-			flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
-			flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
-		}
+	for _, hardDiskDrive := range *hardDiskDrives {
+		flattenedHardDiskDrive := make(map[string]interface{})
+		flattenedHardDiskDrive["controller_type"] = hardDiskDrive.ControllerType.String()
+		flattenedHardDiskDrive["controller_number"] = hardDiskDrive.ControllerNumber
+		flattenedHardDiskDrive["controller_location"] = hardDiskDrive.ControllerLocation
+		flattenedHardDiskDrive["path"] = hardDiskDrive.Path
+		flattenedHardDiskDrive["disk_number"] = hardDiskDrive.DiskNumber
+		flattenedHardDiskDrive["resource_pool_name"] = hardDiskDrive.ResourcePoolName
+		flattenedHardDiskDrive["support_persistent_reservations"] = hardDiskDrive.SupportPersistentReservations
+		flattenedHardDiskDrive["maximum_iops"] = hardDiskDrive.MaximumIops
+		flattenedHardDiskDrive["minimum_iops"] = hardDiskDrive.MinimumIops
+		flattenedHardDiskDrive["qos_policy_id"] = hardDiskDrive.QosPolicyId
+		flattenedHardDiskDrive["override_cache_attributes"] = hardDiskDrive.OverrideCacheAttributes.String()
+		flattenedHardDiskDrives = append(flattenedHardDiskDrives, flattenedHardDiskDrive)
 	}
 
 	return flattenedHardDiskDrives
@@ -218,6 +221,7 @@ type VmHardDiskDrive struct {
 
 type HypervVmHardDiskDriveClient interface {
 	CreateVmHardDiskDrive(
+		ctx context.Context,
 		vmName string,
 		controllerType ControllerType,
 		controllerNumber int32,
@@ -232,8 +236,9 @@ type HypervVmHardDiskDriveClient interface {
 		overrideCacheAttributes CacheAttributes,
 
 	) (err error)
-	GetVmHardDiskDrives(vmName string) (result []VmHardDiskDrive, err error)
+	GetVmHardDiskDrives(ctx context.Context, vmName string) (result []VmHardDiskDrive, err error)
 	UpdateVmHardDiskDrive(
+		ctx context.Context,
 		vmName string,
 		controllerNumber int32,
 		controllerLocation int32,
@@ -249,6 +254,6 @@ type HypervVmHardDiskDriveClient interface {
 		qosPolicyId string,
 		overrideCacheAttributes CacheAttributes,
 	) (err error)
-	DeleteVmHardDiskDrive(vmname string, controllerNumber int32, controllerLocation int32) (err error)
-	CreateOrUpdateVmHardDiskDrives(vmName string, hardDiskDrives []VmHardDiskDrive) (err error)
+	DeleteVmHardDiskDrive(ctx context.Context, vmname string, controllerNumber int32, controllerLocation int32) (err error)
+	CreateOrUpdateVmHardDiskDrives(ctx context.Context, vmName string, hardDiskDrives []VmHardDiskDrive) (err error)
 }

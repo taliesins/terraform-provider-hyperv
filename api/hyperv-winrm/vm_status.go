@@ -1,6 +1,7 @@
 package hyperv_winrm
 
 import (
+	"context"
 	"encoding/json"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
@@ -26,8 +27,8 @@ if ($vmStateObject) {
 }
 `))
 
-func (c *ClientConfig) GetVmStatus(vmName string) (result api.VmStatus, err error) {
-	err = c.WinRmClient.RunScriptWithResult(getVmStatusTemplate, getVmStatusArgs{
+func (c *ClientConfig) GetVmStatus(ctx context.Context, vmName string) (result api.VmStatus, err error) {
+	err = c.WinRmClient.RunScriptWithResult(ctx, getVmStatusTemplate, getVmStatusArgs{
 		VmName: vmName,
 	}, &result)
 
@@ -157,6 +158,7 @@ if ($vmObject.State -ne $state) {
 `))
 
 func (c *ClientConfig) UpdateVmStatus(
+	ctx context.Context,
 	vmName string,
 	timeout uint32,
 	pollPeriod uint32,
@@ -171,7 +173,7 @@ func (c *ClientConfig) UpdateVmStatus(
 		return err
 	}
 
-	err = c.WinRmClient.RunFireAndForgetScript(updateVmStatusTemplate, updateVmStatusArgs{
+	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVmStatusTemplate, updateVmStatusArgs{
 		VmName:       vmName,
 		Timeout:      timeout,
 		PollPeriod:   pollPeriod,
