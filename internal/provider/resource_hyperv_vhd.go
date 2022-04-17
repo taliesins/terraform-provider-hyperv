@@ -45,11 +45,11 @@ func resourceHyperVVhd() *schema.Resource {
 					computedPath := strings.TrimSuffix(newValue, extension)
 
 					//Ignore differencing
-					if strings.HasPrefix(oldValue, computedPath) && strings.HasSuffix(oldValue, extension) {
+					if strings.HasPrefix(strings.ToLower(oldValue), strings.ToLower(computedPath)) && strings.HasSuffix(strings.ToLower(oldValue), strings.ToLower(extension)) {
 						return true
 					}
 
-					if oldValue == newValue {
+					if strings.EqualFold(oldValue, newValue) {
 						return true
 					}
 
@@ -106,6 +106,13 @@ func resourceHyperVVhd() *schema.Resource {
 					"source_vm",
 					"source_disk",
 					"size",
+				},
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					if strings.EqualFold(oldValue, newValue) {
+						return true
+					}
+
+					return false
 				},
 				Description: "This field is mutually exclusive with the fields `source`, `source_vm`, `source_disk`, `size`. Specifies the path to the parent of the differencing disk to be created (this parameter may be specified only for the creation of a differencing disk).",
 			},
