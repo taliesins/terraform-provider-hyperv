@@ -89,7 +89,7 @@ func (c *ClientConfig) GetVmFirmware(ctx context.Context, vmName string) (result
 	return result, err
 }
 
-func (c *ClientConfig) GetNoVmFirmwares(ctx context.Context,) (result []api.VmFirmware) {
+func (c *ClientConfig) GetNoVmFirmwares(ctx context.Context) (result []api.VmFirmware) {
 	result = make([]api.VmFirmware, 0)
 	return result
 }

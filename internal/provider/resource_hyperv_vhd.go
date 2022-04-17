@@ -14,17 +14,17 @@ import (
 )
 
 const (
-	ReadVhdTimeout         = 1 * time.Minute
-	CreateVhdTimeout       = 5 * time.Minute
-	UpdateVhdTimeout       = 5 * time.Minute
-	DeleteVhdTimeout       = 1 * time.Minute
+	ReadVhdTimeout   = 1 * time.Minute
+	CreateVhdTimeout = 5 * time.Minute
+	UpdateVhdTimeout = 5 * time.Minute
+	DeleteVhdTimeout = 1 * time.Minute
 )
 
 func resourceHyperVVhd() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V resource allows you to manage VHDs.",
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(ReadVhdTimeout),
+			Read:   schema.DefaultTimeout(ReadVhdTimeout),
 			Create: schema.DefaultTimeout(CreateVhdTimeout),
 			Update: schema.DefaultTimeout(UpdateVhdTimeout),
 			Delete: schema.DefaultTimeout(DeleteVhdTimeout),
@@ -228,7 +228,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", path, "hyperv_vhd"))
+			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", path, "hyperv_vhd", "hyperv_vhd", path))
 		}
 	}
 

@@ -80,7 +80,7 @@ func ExpandVmProcessors(d *schema.ResourceData) ([]VmProcessor, error) {
 }
 
 func FlattenVmProcessors(vmProcessors *[]VmProcessor) []interface{} {
-	if vmProcessors == nil || len(*vmProcessors) < 1  {
+	if vmProcessors == nil || len(*vmProcessors) < 1 {
 		return nil
 	}
 

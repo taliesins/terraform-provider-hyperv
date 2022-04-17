@@ -16,7 +16,7 @@ import (
 
 const (
 	MaxUint32                    = 4294967295
-	ReadMachineInstanceTimeout = 2 * time.Minute
+	ReadMachineInstanceTimeout   = 2 * time.Minute
 	CreateMachineInstanceTimeout = 30 * time.Minute
 	UpdateMachineInstanceTimeout = 30 * time.Minute
 	DeleteMachineInstanceTimeout = 5 * time.Minute
@@ -26,7 +26,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V resource allows you to manage virtual machine instances.",
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(ReadMachineInstanceTimeout),
+			Read:   schema.DefaultTimeout(ReadMachineInstanceTimeout),
 			Create: schema.DefaultTimeout(CreateMachineInstanceTimeout),
 			Update: schema.DefaultTimeout(UpdateMachineInstanceTimeout),
 			Delete: schema.DefaultTimeout(DeleteMachineInstanceTimeout),
@@ -43,7 +43,6 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:        schema.TypeString,
 				Required:    true,
 				Description: "Specifies the name of the new virtual machine.",
-
 			},
 
 			"path": {
@@ -805,7 +804,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", name, "hyperv_machine_instance"))
+			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", name, "hyperv_machine_instance", "hyperv_machine_instance", name))
 		}
 	}
 

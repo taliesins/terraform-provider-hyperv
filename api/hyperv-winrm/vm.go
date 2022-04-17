@@ -13,7 +13,7 @@ type existsVmArgs struct {
 
 var existsVmTemplate = template.Must(template.New("ExistsVm").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' }
 
 if ($vmObject){
 	$exists = ConvertTo-Json -InputObject @{Exists=$true}

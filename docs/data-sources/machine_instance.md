@@ -155,7 +155,7 @@ Read-Only:
 
 Optional:
 
-- `default` (String)
+- `read` (String)
 
 
 <a id="nestedblock--vm_firmware"></a>

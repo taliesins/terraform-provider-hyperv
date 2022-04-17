@@ -273,7 +273,10 @@ Read-Only:
 
 Optional:
 
-- `default` (String)
+- `create` (String)
+- `delete` (String)
+- `read` (String)
+- `update` (String)
 
 
 <a id="nestedblock--vm_firmware"></a>

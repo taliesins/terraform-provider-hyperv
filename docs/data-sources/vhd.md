@@ -48,6 +48,6 @@ datasource "hyperv_vhd" "web_server_vhd" {
 
 Optional:
 
-- `default` (String)
+- `read` (String)
 
 

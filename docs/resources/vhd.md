@@ -57,6 +57,9 @@ resource "hyperv_vhd" "web_server_vhd" {
 
 Optional:
 
-- `default` (String)
+- `create` (String)
+- `delete` (String)
+- `read` (String)
+- `update` (String)
 
 

@@ -13,17 +13,17 @@ import (
 )
 
 const (
-	ReadNetworkSwitchTimeout       = 1 * time.Minute
-	CreateNetworkSwitchTimeout       = 5 * time.Minute
-	UpdateNetworkSwitchTimeout       = 5 * time.Minute
-	DeleteNetworkSwitchTimeout       = 1 * time.Minute
+	ReadNetworkSwitchTimeout   = 1 * time.Minute
+	CreateNetworkSwitchTimeout = 5 * time.Minute
+	UpdateNetworkSwitchTimeout = 5 * time.Minute
+	DeleteNetworkSwitchTimeout = 1 * time.Minute
 )
 
 func resourceHyperVNetworkSwitch() *schema.Resource {
 	return &schema.Resource{
 		Description: "This Hyper-V resource allows you to manage virtual network switches.",
 		Timeouts: &schema.ResourceTimeout{
-			Read: schema.DefaultTimeout(ReadNetworkSwitchTimeout),
+			Read:   schema.DefaultTimeout(ReadNetworkSwitchTimeout),
 			Create: schema.DefaultTimeout(CreateNetworkSwitchTimeout),
 			Update: schema.DefaultTimeout(UpdateNetworkSwitchTimeout),
 			Delete: schema.DefaultTimeout(DeleteNetworkSwitchTimeout),
@@ -162,7 +162,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.", switchName, "hyperv_network_switch"))
+			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", switchName, "hyperv_network_switch", "hyperv_network_switch", switchName))
 		}
 	}
 
