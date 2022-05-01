@@ -12,7 +12,7 @@ type getVmIntegrationServicesArgs struct {
 
 var getVmIntegrationServicesTemplate = template.Must(template.New("GetVmIntegrationServices").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmIntegrationServicesObject = @(Get-VMIntegrationService -VmName '{{.VmName}}' | %{ @{
+$vmIntegrationServicesObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMIntegrationService | %{ @{
 	Name=$_.Name;
 	Enabled=$_.Enabled;
 }})
@@ -41,7 +41,7 @@ type enableVmIntegrationServiceArgs struct {
 var enableVmIntegrationServiceTemplate = template.Must(template.New("EnableVmIntegrationService").Parse(`
 $ErrorActionPreference = 'Stop'
 
-Enable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
+Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Enable-VMIntegrationService -Name '{{.Name}}'
 `))
 
 func (c *ClientConfig) EnableVmIntegrationService(ctx context.Context, vmName string, name string) (err error) {
@@ -61,7 +61,7 @@ type disableVmIntegrationServiceArgs struct {
 var disableVmIntegrationServiceTemplate = template.Must(template.New("DisableVmIntegrationService").Parse(`
 $ErrorActionPreference = 'Stop'
 
-Disable-VMIntegrationService -VmName '{{.VmName}}' -Name '{{.Name}}'
+Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Disable-VMIntegrationService -Name '{{.Name}}'
 `))
 
 func (c *ClientConfig) DisableVmIntegrationService(ctx context.Context, vmName string, name string) (err error) {

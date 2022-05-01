@@ -3,6 +3,7 @@ package provider
 import (
 	"context"
 	"log"
+	"strings"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -24,10 +25,33 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 			},
 
 			"path": {
-				Type:        schema.TypeString,
-				Optional:    true,
-				Computed:    true,
-				ForceNew:    true,
+				Type:     schema.TypeString,
+				Optional: true,
+				Computed: true,
+				ForceNew: true,
+				DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+					if newValue == "" {
+						return true
+					}
+
+					//When specifying path on new-vm it will auto append machine name on the end
+					name := d.Get("name").(string)
+					computedPath := newValue
+					if !strings.HasSuffix(computedPath, "\\") {
+						computedPath += "\\"
+					}
+					computedPath += name
+
+					if strings.EqualFold(computedPath, oldValue) {
+						return true
+					}
+
+					if strings.EqualFold(oldValue, newValue) {
+						return true
+					}
+
+					return false
+				},
 				Description: "The path of the virtual machine.",
 			},
 
@@ -221,55 +245,6 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 				Optional:    true,
 				Default:     5,
 				Description: "The amount of time in seconds to wait between trying to get ip addresses for network cards on the virtual machine.",
-			},
-
-			"vm_firmware": {
-				Type:        schema.TypeList,
-				Optional:    true,
-				MaxItems:    1,
-				DefaultFunc: api.DefaultVmFirmwares,
-				Elem: &schema.Resource{
-					Schema: map[string]*schema.Schema{
-						"enable_secure_boot": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          api.OnOffState_name[api.OnOffState_On],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
-							Description:      "Specifies whether to enable secure boot. Valid values to use are `On`, `Off`.",
-						},
-
-						"secure_boot_template": {
-							Type:        schema.TypeString,
-							Optional:    true,
-							Default:     "MicrosoftWindows",
-							Description: "Specifies the name of the secure boot template. Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`.",
-						},
-
-						"preferred_network_boot_protocol": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          api.IPProtocolPreference_name[api.IPProtocolPreference_IPv4],
-							ValidateDiagFunc: stringKeyInMap(api.IPProtocolPreference_value, true),
-							Description:      "Specifies the IP protocol version to use during a network boot. Valid values to use are `IPv4`, `IPv6`.",
-						},
-
-						"console_mode": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          api.ConsoleModeType_name[api.ConsoleModeType_Default],
-							ValidateDiagFunc: stringKeyInMap(api.ConsoleModeType_value, true),
-							Description:      "Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface. Valid values to use are `Default`, `COM1`, `COM2`, `None`.",
-						},
-
-						"pause_after_boot_failure": {
-							Type:             schema.TypeString,
-							Optional:         true,
-							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
-							Description:      "Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused. Valid values to use are `On`, `Off`.",
-						},
-					},
-				},
 			},
 
 			"vm_processor": {
@@ -728,6 +703,144 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 						},
 					},
 				},
+			},
+
+			"vm_firmware": {
+				Type:     schema.TypeList,
+				Optional: true,
+				MaxItems: 1,
+				//DefaultFunc: api.DefaultVmFirmwares,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"boot_order": {
+							Type:     schema.TypeList,
+							Optional: true,
+							Elem: &schema.Resource{
+								Schema: map[string]*schema.Schema{
+									"boot_type": {
+										Type:             schema.TypeString,
+										Required:         true,
+										ValidateDiagFunc: stringKeyInMap(api.Gen2BootType_value, true),
+										Description:      "The type of boot device. Valid values to use are `NetworkAdapter`, `HardDiskDrive` and `DvdDrive`.",
+									},
+									"network_adapter_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "",
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "" || oldValue == newValue {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the name of ethernet adapter.",
+									},
+									"switch_name": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "",
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "" || oldValue == newValue {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the name of ethernet adapter switch.",
+									},
+									"mac_address": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "",
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "" || strings.EqualFold(oldValue, newValue) {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the mac address of ethernet adapter.",
+									},
+									"path": {
+										Type:     schema.TypeString,
+										Optional: true,
+										Default:  "",
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "" || strings.EqualFold(oldValue, newValue) {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the file path of hard disk drive or dvd drive.",
+									},
+									"controller_number": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										Default:  -1,
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "-1" {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the number of the controller to which the hard disk drive or dvd drive.",
+									},
+									"controller_location": {
+										Type:     schema.TypeInt,
+										Optional: true,
+										Default:  -1,
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "-1" {
+												return true
+											}
+											return false
+										},
+										Description: "Specifies the number of the location on the controller at which the hard disk drive or dvd drive.",
+									},
+								},
+							},
+							Description: "The boot order of the devices that the generation 2 virtual machine should try to use for boot up.",
+						},
+
+						"enable_secure_boot": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          api.OnOffState_name[api.OnOffState_On],
+							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							Description:      "Specifies whether to enable secure boot. Valid values to use are `On`, `Off`.",
+						},
+
+						"secure_boot_template": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "MicrosoftWindows",
+							Description: "Specifies the name of the secure boot template. If secure boot is enabled, you must have a valid secure boot template for the guest operating system to start. Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`.",
+						},
+
+						"preferred_network_boot_protocol": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          api.IPProtocolPreference_name[api.IPProtocolPreference_IPv4],
+							ValidateDiagFunc: stringKeyInMap(api.IPProtocolPreference_value, true),
+							Description:      "Specifies the IP protocol version to use during a network boot. Valid values to use are `IPv4`, `IPv6`.",
+						},
+
+						"console_mode": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          api.ConsoleModeType_name[api.ConsoleModeType_Default],
+							ValidateDiagFunc: stringKeyInMap(api.ConsoleModeType_value, true),
+							Description:      "Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface. Valid values to use are `Default`, `COM1`, `COM2`, `None`.",
+						},
+
+						"pause_after_boot_failure": {
+							Type:             schema.TypeString,
+							Optional:         true,
+							Default:          api.OnOffState_name[api.OnOffState_Off],
+							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							Description:      "Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused. Valid values to use are `On`, `Off`.",
+						},
+					},
+				},
+				Description: "",
 			},
 		},
 	}

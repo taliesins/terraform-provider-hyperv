@@ -71,6 +71,16 @@ resource "hyperv_machine_instance" "web_server_g2" {
 
   vm_firmware {
     pause_after_boot_failure = "Off"
+    boot_order {
+       boot_type = "HardDiskDrive"
+       controller_number = 0
+       controller_location = 0
+    }
+
+    boot_order {
+        boot_type = "NetworkAdapter"
+        network_adapter_name = "wan"
+    }
   }
 
   vm_processor {

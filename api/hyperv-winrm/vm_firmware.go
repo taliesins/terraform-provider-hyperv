@@ -17,9 +17,62 @@ $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
 $vmFirmware = '{{.VmFirmwareJson}}' | ConvertFrom-Json
 
+$bootOrders = @($vmFirmware.BootOrders | %{
+	$bootOrder = $_
+	if ($bootOrder.Type -eq 'NetworkAdapter') {
+		$networkAdapter = Get-VMNetworkAdapter -VMName $vmFirmware.VmName
+		if ($bootOrder.NetworkAdapterName) {
+			$networkAdapter = $networkAdapter | ?{$_.Name -eq $bootOrder.NetworkAdapterName}
+		}
+
+		if ($bootOrder.SwitchName) {
+			$networkAdapter = $networkAdapter | ?{$_.SwitchName -eq $bootOrder.SwitchName}
+		}
+
+		if ($bootOrder.MacAddress) {
+			$networkAdapter = $networkAdapter | ?{$_.MacAddress -ieq $bootOrder.MacAddress}
+		}
+
+		$networkAdapter
+	} elseif ($bootOrder.Type -eq 'HardDiskDrive') {
+		$hardDiskDrive = Get-VMHardDiskDrive -VMName $vmFirmware.VmName
+
+		if ($bootOrder.Path) {
+			$hardDiskDrive = $hardDiskDrive | ?{$_.Path -ieq $bootOrder.Path}
+		}
+
+		if ($bootOrder.ControllerNumber -gt -1) {
+			$hardDiskDrive = $hardDiskDrive | ?{$_.ControllerNumber -eq $bootOrder.ControllerNumber}
+		}
+
+		if ($bootOrder.ControllerLocation -gt -1) {
+			$hardDiskDrive = $hardDiskDrive | ?{$_.ControllerLocation -eq $bootOrder.ControllerLocation}
+		}
+
+		$hardDiskDrive
+
+	} elseif ($bootOrder.Type -eq 'DvdDrive') {
+		$dvdDrive = Get-VMDvdDrive -VMName $vmFirmware.VmName
+
+		if ($bootOrder.Path) {
+			$dvdDrive = $dvdDrive | ?{$_.Path -ieq $bootOrder.Path}
+		}
+
+		if ($bootOrder.ControllerNumber -gt -1) {
+			$dvdDrive = $dvdDrive | ?{$_.ControllerNumber -eq $bootOrder.ControllerNumber}
+		}
+
+		if ($bootOrder.ControllerLocation -gt -1) {
+			$dvdDrive = $dvdDrive | ?{$_.ControllerLocation -eq $bootOrder.ControllerLocation}
+		}
+
+		$dvdDrive
+	}
+})
+
 $SetVMFirmwareArgs = @{}
 $SetVMFirmwareArgs.VMName=$vmFirmware.VmName
-
+$SetVMFirmwareArgs.BootOrder=$bootOrders
 $SetVMFirmwareArgs.EnableSecureBoot=$vmFirmware.EnableSecureBoot
 $SetVMFirmwareArgs.SecureBootTemplate=$vmFirmware.SecureBootTemplate
 $SetVMFirmwareArgs.PreferredNetworkBootProtocol=$vmFirmware.PreferredNetworkBootProtocol
@@ -32,6 +85,7 @@ Set-VMFirmware @SetVMFirmwareArgs
 func (c *ClientConfig) CreateOrUpdateVmFirmware(
 	ctx context.Context,
 	vmName string,
+	bootOrders []api.Gen2BootOrder,
 	enableSecureBoot api.OnOffState,
 	secureBootTemplate string,
 	preferredNetworkBootProtocol api.IPProtocolPreference,
@@ -40,6 +94,7 @@ func (c *ClientConfig) CreateOrUpdateVmFirmware(
 ) (err error) {
 	vmFirmwareJson, err := json.Marshal(api.VmFirmware{
 		VmName:                       vmName,
+		BootOrders:                   bootOrders,
 		EnableSecureBoot:             enableSecureBoot,
 		SecureBootTemplate:           secureBootTemplate,
 		PreferredNetworkBootProtocol: preferredNetworkBootProtocol,
@@ -65,7 +120,14 @@ type getVmFirmwareArgs struct {
 var getVmFirmwareTemplate = template.Must(template.New("GetVmFirmware").Parse(`
 $ErrorActionPreference = 'Stop'
 
-$vmFirmwareObject = Get-VMFirmware -VMName '{{.VmName}}' | %{ @{
+$vmFirmwareObject = Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMFirmware | %{ @{
+	BootOrders= @($_.BootOrder | %{
+		if ($_.BootType -eq 'Network') {
+			@{Type='NetworkAdapter';NetworkAdapterName=$_.Device.Name;SwitchName=$_.Device.SwitchName;MacAddress=$_.Device.MacAddress;Path='';ControllerNumber=-1;ControllerLocation=-1;}
+		} elseif ($_.BootType -eq 'Drive') {
+			@{Type=@(if ($_.Device.Name.StartsWith('Hard Drive')) { 'HardDiskDrive' } else {'DvdDrive'});NetworkAdapterName='';SwitchName='';MacAddress='';Path=$_.Device.Path;ControllerNumber=$_.Device.ControllerNumber;ControllerLocation=$_.Device.ControllerLocation;}
+		}
+	})
 	EnableSecureBoot=             $_.SecureBoot
 	SecureBootTemplate=           $_.SecureBootTemplate
 	PreferredNetworkBootProtocol= $_.PreferredNetworkBootProtocol
@@ -115,6 +177,7 @@ func (c *ClientConfig) CreateOrUpdateVmFirmwares(ctx context.Context, vmName str
 	vmFirmware := vmFirmwares[0]
 
 	return c.CreateOrUpdateVmFirmware(ctx, vmName,
+		vmFirmware.BootOrders,
 		vmFirmware.EnableSecureBoot,
 		vmFirmware.SecureBootTemplate,
 		vmFirmware.PreferredNetworkBootProtocol,

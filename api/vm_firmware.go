@@ -121,8 +121,76 @@ func (d *IPProtocolPreference) UnmarshalJSON(b []byte) error {
 	return nil
 }
 
+type Gen2BootType int
+
+const (
+	Gen2BootType_HardDiskDrive  Gen2BootType = 1
+	Gen2BootType_DvdDrive       Gen2BootType = 2
+	Gen2BootType_NetworkAdapter Gen2BootType = 3
+)
+
+var Gen2BootType_name = map[Gen2BootType]string{
+	Gen2BootType_HardDiskDrive:  "HardDiskDrive",
+	Gen2BootType_DvdDrive:       "DvdDrive",
+	Gen2BootType_NetworkAdapter: "NetworkAdapter",
+}
+
+var Gen2BootType_value = map[string]Gen2BootType{
+	"harddiskdrive":  Gen2BootType_HardDiskDrive,
+	"dvddrive":       Gen2BootType_DvdDrive,
+	"networkadapter": Gen2BootType_NetworkAdapter,
+}
+
+func (x Gen2BootType) String() string {
+	return Gen2BootType_name[x]
+}
+
+func ToGen2BootType(x string) Gen2BootType {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return Gen2BootType(integerValue)
+	}
+	return Gen2BootType_value[strings.ToLower(x)]
+}
+
+func (d *Gen2BootType) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *Gen2BootType) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = Gen2BootType(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToGen2BootType(s)
+	return nil
+}
+
+type Gen2BootOrder struct {
+	Type Gen2BootType
+
+	NetworkAdapterName string
+	SwitchName         string
+	MacAddress         string
+
+	Path               string
+	ControllerNumber   int
+	ControllerLocation int
+}
+
 type VmFirmware struct {
 	VmName                       string
+	BootOrders                   []Gen2BootOrder
 	EnableSecureBoot             OnOffState
 	SecureBootTemplate           string
 	PreferredNetworkBootProtocol IPProtocolPreference
@@ -133,6 +201,7 @@ type VmFirmware struct {
 func DefaultVmFirmwares() (interface{}, error) {
 	result := make([]VmFirmware, 0)
 	vmFirmware := VmFirmware{
+		BootOrders:                   []Gen2BootOrder{},
 		EnableSecureBoot:             OnOffState_On,
 		SecureBootTemplate:           "MicrosoftWindows",
 		PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
@@ -142,6 +211,34 @@ func DefaultVmFirmwares() (interface{}, error) {
 
 	result = append(result, vmFirmware)
 	return result, nil
+}
+
+func ExpandGen2BootOrder(bootOrders []interface{}) ([]Gen2BootOrder, error) {
+	gen2bootOrders := make([]Gen2BootOrder, 0)
+	for _, bootOrder := range bootOrders {
+		bootOrder, ok := bootOrder.(map[string]interface{})
+		if !ok {
+			return nil, fmt.Errorf("[ERROR][hyperv] boot_order should be a Hash - was '%+v'", bootOrder)
+		}
+
+		log.Printf("[DEBUG] bootOrder = [%+v]", bootOrder)
+
+		expandedGen2BootOrder := Gen2BootOrder{
+			Type: ToGen2BootType(bootOrder["boot_type"].(string)),
+
+			NetworkAdapterName: bootOrder["network_adapter_name"].(string),
+			SwitchName:         bootOrder["switch_name"].(string),
+			MacAddress:         bootOrder["mac_address"].(string),
+
+			Path:               bootOrder["path"].(string),
+			ControllerNumber:   bootOrder["controller_number"].(int),
+			ControllerLocation: bootOrder["controller_location"].(int),
+		}
+
+		gen2bootOrders = append(gen2bootOrders, expandedGen2BootOrder)
+	}
+
+	return gen2bootOrders, nil
 }
 
 func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
@@ -157,7 +254,13 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
 
 			log.Printf("[DEBUG] firmware = [%+v]", firmware)
 
+			bootOrders, err := ExpandGen2BootOrder(firmware["boot_order"].([]interface{}))
+			if err != nil {
+				return nil, err
+			}
+
 			expandedVmFirmware := VmFirmware{
+				BootOrders:                   bootOrders,
 				EnableSecureBoot:             ToOnOffState(firmware["enable_secure_boot"].(string)),
 				SecureBootTemplate:           firmware["secure_boot_template"].(string),
 				PreferredNetworkBootProtocol: ToIPProtocolPreference(firmware["preferred_network_boot_protocol"].(string)),
@@ -171,6 +274,7 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
 
 	if len(expandedVmFirmwares) < 1 {
 		vmFirmware := VmFirmware{
+			BootOrders:                   []Gen2BootOrder{},
 			EnableSecureBoot:             OnOffState_On,
 			SecureBootTemplate:           "MicrosoftWindows",
 			PreferredNetworkBootProtocol: IPProtocolPreference_IPv4,
@@ -183,6 +287,30 @@ func ExpandVmFirmwares(d *schema.ResourceData) ([]VmFirmware, error) {
 	return expandedVmFirmwares, nil
 }
 
+func FlattenGen2BootOrders(bootOrders []Gen2BootOrder) []interface{} {
+	if bootOrders == nil || len(bootOrders) < 1 {
+		return nil
+	}
+
+	flattenedGen2BootOrders := make([]interface{}, 0)
+
+	for _, bootOrder := range bootOrders {
+		flattenedGen2BootOrder := make(map[string]interface{})
+		flattenedGen2BootOrder["boot_type"] = bootOrder.Type.String()
+
+		flattenedGen2BootOrder["network_adapter_name"] = bootOrder.NetworkAdapterName
+		flattenedGen2BootOrder["switch_name"] = bootOrder.SwitchName
+		flattenedGen2BootOrder["mac_address"] = bootOrder.MacAddress
+
+		flattenedGen2BootOrder["path"] = bootOrder.Path
+		flattenedGen2BootOrder["controller_number"] = bootOrder.ControllerNumber
+		flattenedGen2BootOrder["controller_location"] = bootOrder.ControllerLocation
+		flattenedGen2BootOrders = append(flattenedGen2BootOrders, flattenedGen2BootOrder)
+	}
+
+	return flattenedGen2BootOrders
+}
+
 func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 	if vmFirmwares == nil || len(*vmFirmwares) < 1 {
 		return nil
@@ -191,7 +319,9 @@ func FlattenVmFirmwares(vmFirmwares *[]VmFirmware) []interface{} {
 	flattenedVmFirmwares := make([]interface{}, 0)
 
 	for _, vmFirmware := range *vmFirmwares {
+		flattenedGen2BootOrder := FlattenGen2BootOrders(vmFirmware.BootOrders)
 		flattenedVmFirmware := make(map[string]interface{})
+		flattenedVmFirmware["boot_order"] = flattenedGen2BootOrder
 		flattenedVmFirmware["enable_secure_boot"] = vmFirmware.EnableSecureBoot.String()
 		flattenedVmFirmware["secure_boot_template"] = vmFirmware.SecureBootTemplate
 		flattenedVmFirmware["preferred_network_boot_protocol"] = vmFirmware.PreferredNetworkBootProtocol.String()
@@ -207,6 +337,7 @@ type HypervVmFirmwareClient interface {
 	CreateOrUpdateVmFirmware(
 		ctx context.Context,
 		vmName string,
+		bootOrders []Gen2BootOrder,
 		enableSecureBoot OnOffState,
 		secureBootTemplate string,
 		preferredNetworkBootProtocol IPProtocolPreference,

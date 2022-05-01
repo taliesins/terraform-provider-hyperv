@@ -86,7 +86,7 @@ type getVmProcessorArgs struct {
 var getVmProcessorTemplate = template.Must(template.New("GetVmProcessor").Parse(`
 $ErrorActionPreference = 'Stop'
 
-$vmProcessorObject = Get-VMProcessor -VMName '{{.VmName}}' | %{ @{
+$vmProcessorObject = Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMProcessor | %{ @{
 	CompatibilityForMigrationEnabled=$_.CompatibilityForMigrationEnabled
 	CompatibilityForOlderOperatingSystemsEnabled=$_.CompatibilityForOlderOperatingSystemsEnabled
 	HwThreadCountPerCore=$_.HwThreadCountPerCore

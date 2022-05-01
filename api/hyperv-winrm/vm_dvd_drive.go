@@ -65,7 +65,7 @@ type getVmDvdDrivesArgs struct {
 
 var getVmDvdDrivesTemplate = template.Must(template.New("GetVmDvdDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmDvdDrivesObject = @(Get-VMDvdDrive -VmName '{{.VmName}}' | %{ @{
+$vmDvdDrivesObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMDvdDrive | %{ @{
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
 	Path=$_.Path;
@@ -104,7 +104,7 @@ $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
 $vmDvdDrive = '{{.VmDvdDriveJson}}' | ConvertFrom-Json
 
-$vmDvdDrivesObject = @(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
+$vmDvdDrivesObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMDvdDrive -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
 
 if (!$vmDvdDrivesObject){
 	throw "VM dvd drive does not exist - {{.ControllerLocation}} {{.ControllerNumber}}"
@@ -116,7 +116,13 @@ $SetVmDvdDriveArgs.ControllerLocation=$vmDvdDrivesObject.ControllerLocation
 $SetVmDvdDriveArgs.ControllerNumber=$vmDvdDrivesObject.ControllerNumber
 $SetVmDvdDriveArgs.ToControllerLocation=$vmDvdDrive.ControllerLocation
 $SetVmDvdDriveArgs.ToControllerNumber=$vmDvdDrive.ControllerNumber
-$SetVmDvdDriveArgs.ResourcePoolName=$vmDvdDrive.ResourcePoolName
+if ($vmDvdDrivesObject.ResourcePoolName -ne $vmDvdDrive.ResourcePoolName) {
+	if ($vmDvdDrive.ResourcePoolName) {
+		$SetVmDvdDriveArgs.ResourcePoolName=$vmDvdDrive.ResourcePoolName
+	} else {
+		throw "Unable to remove resource pool from dvd drive $(ConvertTo-Json -InputObject $vmDvdDrivesObject)"
+	}
+}
 $SetVmDvdDriveArgs.Path=$vmDvdDrive.Path
 $SetVmDvdDriveArgs.AllowUnverifiedPaths=$true
 
@@ -170,7 +176,7 @@ type deleteVmDvdDriveArgs struct {
 var deleteVmDvdDriveTemplate = template.Must(template.New("DeleteVmDvdDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMDvdDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive -Force
+@(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMDvdDrive -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMDvdDrive
 `))
 
 func (c *ClientConfig) DeleteVmDvdDrive(ctx context.Context, vmName string, controllerNumber int, controllerLocation int) (err error) {
