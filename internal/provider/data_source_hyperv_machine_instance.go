@@ -776,10 +776,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  -1,
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-											if newValue == "-1" {
-												return true
-											}
-											return false
+											return newValue == "-1"
 										},
 										Description: "Specifies the number of the controller to which the hard disk drive or dvd drive.",
 									},
@@ -788,10 +785,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  -1,
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-											if newValue == "-1" {
-												return true
-											}
-											return false
+											return newValue == "-1"
 										},
 										Description: "Specifies the number of the location on the controller at which the hard disk drive or dvd drive.",
 									},
