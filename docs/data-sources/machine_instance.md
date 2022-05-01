@@ -163,11 +163,29 @@ Optional:
 
 Optional:
 
+- `boot_order` (Block List) The boot order of the devices that the generation 2 virtual machine should try to use for boot up. (see [below for nested schema](#nestedblock--vm_firmware--boot_order))
 - `console_mode` (String) Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface. Valid values to use are `Default`, `COM1`, `COM2`, `None`.
 - `enable_secure_boot` (String) Specifies whether to enable secure boot. Valid values to use are `On`, `Off`.
 - `pause_after_boot_failure` (String) Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused. Valid values to use are `On`, `Off`.
 - `preferred_network_boot_protocol` (String) Specifies the IP protocol version to use during a network boot. Valid values to use are `IPv4`, `IPv6`.
-- `secure_boot_template` (String) Specifies the name of the secure boot template. Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`.
+- `secure_boot_template` (String) Specifies the name of the secure boot template. If secure boot is enabled, you must have a valid secure boot template for the guest operating system to start. Example values to use are `MicrosoftWindows`,`MicrosoftUEFICertificateAuthority`, `OpenSourceShieldedVM`.
+
+<a id="nestedblock--vm_firmware--boot_order"></a>
+### Nested Schema for `vm_firmware.boot_order`
+
+Required:
+
+- `boot_type` (String) The type of boot device. Valid values to use are `NetworkAdapter`, `HardDiskDrive` and `DvdDrive`.
+
+Optional:
+
+- `controller_location` (Number) Specifies the number of the location on the controller at which the hard disk drive or dvd drive.
+- `controller_number` (Number) Specifies the number of the controller to which the hard disk drive or dvd drive.
+- `mac_address` (String) Specifies the mac address of ethernet adapter.
+- `network_adapter_name` (String) Specifies the name of ethernet adapter.
+- `path` (String) Specifies the file path of hard disk drive or dvd drive.
+- `switch_name` (String) Specifies the name of ethernet adapter switch.
+
 
 
 <a id="nestedblock--vm_processor"></a>
