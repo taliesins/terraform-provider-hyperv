@@ -172,6 +172,12 @@ function Get-FileFromUri {
         $filename = [System.IO.Path]::GetFileName($fUri.LocalPath)
         $response.Close()
 
+        $origExt = [System.IO.Path]::GetExtension($Url)
+        $newExt = [System.IO.Path]::GetExtension($filename)
+        if ($newExt -ne $origExt) {
+            $filename += $origExt
+        }
+
         $destination = (Get-Item -Path ".\" -Verbose).FullName
         if ($FolderPath) { $destination = $FolderPath }
         if ($destination.EndsWith('\')) {
