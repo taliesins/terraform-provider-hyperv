@@ -155,7 +155,7 @@ function Get-FileFromUri {
         $req.Method = "HEAD"
         $response = $req.GetResponse()
         $fUri = $response.ResponseUri
-        $filename = [System.IO.Path]::GetFileName($fUri.LocalPath);
+        $filename = [System.IO.Path]::GetFileName($fUri.LocalPath)
         $response.Close()
 
         $destination = (Get-Item -Path ".\" -Verbose).FullName
@@ -166,8 +166,8 @@ function Get-FileFromUri {
         else {
             $destination += '\' + $filename
         }
-        $webclient = New-Object System.Net.webclient
-        $webclient.downloadfile($fUri.AbsoluteUri, $destination)
+        $webclient = New-Object System.Net.WebClient
+        $webclient.DownloadFile($fUri.AbsoluteUri, $destination)
     }
 }
 
