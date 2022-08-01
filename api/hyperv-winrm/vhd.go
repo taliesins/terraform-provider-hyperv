@@ -51,13 +51,13 @@ $vhd = '{{.VhdJson}}' | ConvertFrom-Json
 $vhdType = [Microsoft.Vhd.PowerShell.VhdType]$vhd.VhdType
 
 function Get-7ZipPath {
-	if (Get-Command "7z" -ErrorAction SilentlyContinue) { 
-   		return "7z"
+	if (Get-Command "7z" -ErrorAction SilentlyContinue) {
+		return "7z"
 	} elseif (test-path "$env:ProgramFiles\7-Zip\7z.exe") {
 		return "$env:ProgramFiles\7-Zip\7z.exe"
 	} elseif (test-path "${env:ProgramFiles(x86)}\7-Zip\7z.exe") {
 		return "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
-	} else { 
+	} else {
 		return ""
 	}
 }
@@ -186,7 +186,7 @@ function Test-Uri {
 
 if (!(Test-Path -Path $vhd.Path)) {
     $pathDirectory = [System.IO.Path]::GetDirectoryName($vhd.Path)
-	$pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
+    $pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
 
     if (!(Test-Path $pathDirectory)) {
         New-Item -ItemType Directory -Force -Path $pathDirectory
@@ -202,7 +202,7 @@ if (!(Test-Path -Path $vhd.Path)) {
         }
 
         Remove-Item "$pathDirectory\$sourceVm" -Force -Recurse
-		Get-VHD -path $vhd.Path
+        Get-VHD -path $vhd.Path
     } elseif ($source) {
         Push-Location $pathDirectory
         
