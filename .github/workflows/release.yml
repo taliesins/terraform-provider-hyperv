@@ -122,7 +122,7 @@ jobs:
         path: terraform-plugin-dir
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
-      uses: hashicorp/setup-terraform@v1.4.0
+      uses: hashicorp/setup-terraform@v2.0.0
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
@@ -248,12 +248,12 @@ jobs:
           key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - name: goreleaser check
         continue-on-error: true
-        uses: goreleaser/goreleaser-action@v2.9.1
+        uses: goreleaser/goreleaser-action@v3.0.0
         with:
           args: check
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v4.3.0
+        uses: crazy-max/ghaction-import-gpg@v5.1.0
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           gpg-private-key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -263,7 +263,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: goreleaser release
-        uses: goreleaser/goreleaser-action@v2.9.1
+        uses: goreleaser/goreleaser-action@v3.0.0
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           version: latest
@@ -310,7 +310,7 @@ jobs:
           echo "skipped: $SKIPPED"
 
       - name: goreleaser snapshot
-        uses: goreleaser/goreleaser-action@v2.9.1
+        uses: goreleaser/goreleaser-action@v3.0.0
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=.github/CLEANCHANGELOG.md
@@ -332,7 +332,7 @@ jobs:
           esac
           echo "::set-output name=artifact::$ARTIFACT-$(date -u +'%Y-%m-%dT%H-%M')"
       - name: upload snapshot artifact
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           name: ${{steps.naming.outputs.artifact}}
