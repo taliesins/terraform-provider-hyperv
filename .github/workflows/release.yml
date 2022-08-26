@@ -122,7 +122,7 @@ jobs:
         path: terraform-plugin-dir
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
-      uses: hashicorp/setup-terraform@v1.4.0
+      uses: hashicorp/setup-terraform@v2.0.0
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
