@@ -28,7 +28,6 @@ datasource "hyperv_vhd" "web_server_vhd" {
 ### Optional
 
 - `block_size` (Number) Specifies the block size, in bytes, of the virtual hard disk to be created.
-- `id` (String) The ID of this resource.
 - `logical_sector_size` (Number) Specifies the logical sector size, in bytes, of the virtual hard disk to be created. Valid values to use are `0`, `512`, `4096`.
 - `parent_path` (String) Specifies the path to the parent of the differencing disk to be created (this parameter may be specified only for the creation of a differencing disk)
 - `physical_sector_size` (Number) Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.
@@ -42,6 +41,7 @@ datasource "hyperv_vhd" "web_server_vhd" {
 ### Read-Only
 
 - `exists` (Boolean)
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`
