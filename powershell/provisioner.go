@@ -33,7 +33,6 @@ func winPath(path string) string {
 }
 
 func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (remoteAbsolutePath string, err error) {
-
 	tempFile := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	tempPath := fmt.Sprintf(`%s\%s`, `$env:TEMP`, tempFile)
 	if os.Getenv("WINRMCP_DEBUG") != "" {
@@ -282,7 +281,6 @@ func cleanupContent(client *winrm.Client, filePath string) error {
 }
 
 func appendContent(shell *winrm.Shell, filePath, content string) error {
-
 	var appendFileTemplateRendered bytes.Buffer
 	err := appendFileTemplate.Execute(&appendFileTemplateRendered, appendFileTemplateOptions{
 		FilePath: filePath,
@@ -465,7 +463,7 @@ func generateElevatedRunner(client *winrm.Client, elevatedUser string, elevatedP
 	return elevatedRemotePath, nil
 }
 
-//Run powershell
+// Run powershell
 func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword string, vars string, commandText string) (exitStatus int, stdout string, stderr string, err error) {
 	name := fmt.Sprintf("terraform-%s", TimeOrderedUUID())
 	fileName := fmt.Sprintf(`shell-%s.ps1`, name)

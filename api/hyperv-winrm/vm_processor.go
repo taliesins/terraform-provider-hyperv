@@ -4,8 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type createOrUpdateVmProcessorArgs struct {

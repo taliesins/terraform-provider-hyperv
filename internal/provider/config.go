@@ -3,13 +3,14 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/taliesins/terraform-provider-hyperv/api"
-	"github.com/taliesins/terraform-provider-hyperv/api/hyperv-winrm"
 	"log"
 	"net"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
+	hyperv_winrm "github.com/taliesins/terraform-provider-hyperv/api/hyperv-winrm"
 
 	"github.com/dylanmei/iso8601"
 	pool "github.com/jolestar/go-commons-pool/v2"

@@ -33,7 +33,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 			"allow_management_os": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     true, //This is tied to the switch type used. internal=true;private=false;external=true or false
+				Default:     true, // This is tied to the switch type used. internal=true;private=false;external=true or false
 				Description: "Specifies if the HyperV host machine will have access to network switch when created. It provides this access via a virtual adaptor, so you will need to either configure static ips on the virtual adaptor or configure a dhcp on a machine connected to the network switch. This is tied to the switch type used: `internal=true`;`private=false`;`external=true or false`.",
 			},
 

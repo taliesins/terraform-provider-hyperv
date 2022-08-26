@@ -3,14 +3,15 @@ package provider
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"log"
 	"os"
 	"path"
 	"strings"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 const (
@@ -44,7 +45,7 @@ func resourceHyperVVhd() *schema.Resource {
 					extension := path.Ext(newValue)
 					computedPath := strings.TrimSuffix(newValue, extension)
 
-					//Ignore differencing
+					// Ignore differencing
 					if strings.HasPrefix(strings.ToLower(oldValue), strings.ToLower(computedPath)) && strings.HasSuffix(strings.ToLower(oldValue), strings.ToLower(extension)) {
 						return true
 					}
@@ -181,7 +182,7 @@ func resourceHyperVVhd() *schema.Resource {
 					"parent_path",
 				},
 				ValidateDiagFunc: IntInSlice([]int{0, 512, 4096}),
-				Description:      "This field is mutually exclusive with the fields	`source`, `source_vm`, `parent_path`. Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.",
+				Description: "This field is mutually exclusive with the fields	`source`, `source_vm`, `parent_path`. Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.",
 			},
 			"exists": {
 				Type:        schema.TypeBool,
@@ -212,7 +213,6 @@ func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i inter
 }
 
 func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-
 	log.Printf("[INFO][hyperv][create] creating hyperv vhd: %#v", d)
 	c := meta.(api.Client)
 
@@ -252,7 +252,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 	}
 
 	if size > 0 && parentPath == "" {
-		//Update vhd size
+		// Update vhd size
 		err = c.ResizeVhd(ctx, path, size)
 
 		if err != nil {
@@ -343,7 +343,7 @@ func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta i
 	exists := (d.Get("exists")).(bool)
 
 	if !exists || d.HasChange("path") || d.HasChange("source") || d.HasChange("source_vm") || d.HasChange("source_disk") || d.HasChange("parent_path") {
-		//delete it as its changed
+		// delete it as its changed
 		err := c.CreateOrUpdateVhd(ctx, path, source, sourceVm, sourceDisk, vhdType, parentPath, size, blockSize, logicalSectorSize, physicalSectorSize)
 
 		if err != nil {
@@ -353,7 +353,7 @@ func resourceHyperVVhdUpdate(ctx context.Context, d *schema.ResourceData, meta i
 
 	if size > 0 && parentPath == "" {
 		if !exists || d.HasChange("size") {
-			//Update vhd size
+			// Update vhd size
 			err := c.ResizeVhd(ctx, path, size)
 
 			if err != nil {

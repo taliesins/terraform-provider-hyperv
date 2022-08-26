@@ -3,8 +3,9 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type existsVmArgs struct {

@@ -55,7 +55,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						return true
 					}
 
-					//When specifying path on new-vm it will auto append machine name on the end
+					// When specifying path on new-vm it will auto append machine name on the end
 					name := d.Get("name").(string)
 					computedPath := newValue
 					if !strings.HasSuffix(computedPath, "\\") {
@@ -375,7 +375,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"maximum_count_per_numa_node": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Default:          0, //Dynamic value
+							Default:          0, // Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaNode,
 							Description:      "Specifies the maximum number of processors per NUMA node to be configured for the virtual machine.",
 						},
@@ -383,7 +383,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 						"maximum_count_per_numa_socket": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Default:          0, //Dynamic value
+							Default:          0, // Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaSocket,
 							Description:      "Specifies the maximum number of sockets per NUMA node to be configured for the virtual machine.",
 						},
@@ -933,10 +933,10 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-        if !d.IsNewResource() && vm.Name == "" {
+	if !d.IsNewResource() && vm.Name == "" {
 		d.SetId("")
 		return nil
-        }
+	}
 
 	if err := d.Set("name", vm.Name); err != nil {
 		return diag.FromErr(err)
@@ -1185,7 +1185,6 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		d.HasChange("smart_paging_file_path") ||
 		d.HasChange("snapshot_file_location") ||
 		d.HasChange("static_memory") {
-
 		automaticCriticalErrorAction := api.ToCriticalErrorAction((d.Get("automatic_critical_error_action")).(string))
 		automaticCriticalErrorActionTimeout := int32((d.Get("automatic_critical_error_action_timeout")).(int))
 		automaticStartAction := api.ToStartAction((d.Get("automatic_start_action")).(string))

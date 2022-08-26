@@ -327,7 +327,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 						"maximum_count_per_numa_node": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Default:          0, //Dynamic value
+							Default:          0, // Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaNode,
 							Description:      "Specifies the maximum number of processors per NUMA node to be configured for the virtual machine.",
 						},
@@ -335,7 +335,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 						"maximum_count_per_numa_socket": {
 							Type:             schema.TypeInt,
 							Optional:         true,
-							Default:          0, //Dynamic value
+							Default:          0, // Dynamic value
 							DiffSuppressFunc: api.DiffSuppressVmProcessorMaximumCountPerNumaSocket,
 							Description:      "Specifies the maximum number of sockets per NUMA node to be configured for the virtual machine.",
 						},

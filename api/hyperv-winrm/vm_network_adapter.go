@@ -3,8 +3,9 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type createVmNetworkAdapterArgs struct {
@@ -147,7 +148,6 @@ func (c *ClientConfig) CreateVmNetworkAdapter(
 	vlanAccess bool,
 	vlanId int,
 ) (err error) {
-
 	vmNetworkAdapterJson, err := json.Marshal(api.VmNetworkAdapter{
 		VmName:                                 vmName,
 		Name:                                   name,
@@ -269,7 +269,7 @@ func (c *ClientConfig) GetVmNetworkAdapters(ctx context.Context, vmName string, 
 		VmName: vmName,
 	}, &result)
 
-	//Enrich network adapter with config settings that are not stored in hyperv
+	// Enrich network adapter with config settings that are not stored in hyperv
 	for _, networkAdapterWaitForIps := range networkAdaptersWaitForIps {
 		for networkAdapterIndex, networkAdapter := range result {
 			if networkAdapterWaitForIps.Name == networkAdapter.Name {
@@ -395,7 +395,6 @@ func (c *ClientConfig) WaitForVmNetworkAdaptersIps(
 	pollPeriod uint32,
 	vmNetworkAdaptersWaitForIps []api.VmNetworkAdapterWaitForIp,
 ) (err error) {
-
 	vmNetworkAdaptersWaitForIpsJson, err := json.Marshal(vmNetworkAdaptersWaitForIps)
 
 	if err != nil {
@@ -555,7 +554,6 @@ func (c *ClientConfig) UpdateVmNetworkAdapter(
 	vlanAccess bool,
 	vlanId int,
 ) (err error) {
-
 	vmNetworkAdapterJson, err := json.Marshal(api.VmNetworkAdapter{
 		VmName:                                 vmName,
 		Index:                                  index,
@@ -635,7 +633,7 @@ func (c *ClientConfig) DeleteVmNetworkAdapter(ctx context.Context, vmName string
 func (c *ClientConfig) CreateOrUpdateVmNetworkAdapters(ctx context.Context, vmName string, networkAdapters []api.VmNetworkAdapter) (err error) {
 	networkAdaptersWaitForIps := make([]api.VmNetworkAdapterWaitForIp, 0)
 
-	//Empty networkAdaptersWaitForIps is ok as we aren't using the results anywhere
+	// Empty networkAdaptersWaitForIps is ok as we aren't using the results anywhere
 	currentNetworkAdapters, err := c.GetVmNetworkAdapters(ctx, vmName, networkAdaptersWaitForIps)
 	if err != nil {
 		return err

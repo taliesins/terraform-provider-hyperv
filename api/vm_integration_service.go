@@ -2,10 +2,11 @@ package api
 
 import (
 	"context"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DefaultVmIntegrationServices() (interface{}, error) {
@@ -28,7 +29,7 @@ func getDefaultValueForVmIntegrationService(integrationServiceKey string, _ *sch
 		if integrationServiceValue, ok := integrationServiceValueInterface.(bool); ok {
 			return integrationServiceValue
 		}
-		//its not a bool something went wrong
+		// its not a bool something went wrong
 	}
 
 	return false
@@ -38,12 +39,12 @@ func DiffSuppressVmIntegrationServices(key, old, new string, d *schema.ResourceD
 	integrationServiceKey := strings.TrimPrefix(key, "integration_services.")
 
 	if integrationServiceKey == "%" {
-		//We do not care about the number of elements as we only tack things we have specified
+		// We do not care about the number of elements as we only tack things we have specified
 		return true
 	}
 
 	if new == "" {
-		//We have not explicitly set a value, so allow any value as we are not tracking it
+		// We have not explicitly set a value, so allow any value as we are not tracking it
 		return true
 	}
 

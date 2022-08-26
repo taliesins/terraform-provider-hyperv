@@ -5,11 +5,12 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
 	"path/filepath"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type ControllerType int
@@ -125,7 +126,7 @@ func (d *CacheAttributes) UnmarshalJSON(b []byte) error {
 func DiffSuppressVmHardDiskPath(key, old, new string, d *schema.ResourceData) bool {
 	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", key, old, new)
 	if new == "" {
-		//We have not explicitly set a value, so allow any value as we are not tracking it
+		// We have not explicitly set a value, so allow any value as we are not tracking it
 		return true
 	}
 
@@ -133,7 +134,7 @@ func DiffSuppressVmHardDiskPath(key, old, new string, d *schema.ResourceData) bo
 		return true
 	}
 
-	//Ignore snapshots otherwise it will change from "c:\\vhdx\\web_server_g2_B63C9D15-F9A3-4F63-A896-FFD80BC7754C.avhdx" -> "c:\\vhdx\\web_server_g2.vhdx"
+	// Ignore snapshots otherwise it will change from "c:\\vhdx\\web_server_g2_B63C9D15-F9A3-4F63-A896-FFD80BC7754C.avhdx" -> "c:\\vhdx\\web_server_g2.vhdx"
 	oldExtension := strings.ToLower(filepath.Ext(old))
 	newExtension := strings.ToLower(filepath.Ext(new))
 	if oldExtension == ".avhdx" && newExtension == ".vhdx" {
@@ -216,7 +217,7 @@ type VmHardDiskDrive struct {
 	MinimumIops                   uint64
 	QosPolicyId                   string
 	OverrideCacheAttributes       CacheAttributes
-	//AllowUnverifiedPaths          bool no way of checking if its turned on so always turn on
+	// AllowUnverifiedPaths          bool no way of checking if its turned on so always turn on
 }
 
 type HypervVmHardDiskDriveClient interface {

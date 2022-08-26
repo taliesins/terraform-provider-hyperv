@@ -3,8 +3,9 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type createVmHardDiskDriveArgs struct {
@@ -54,7 +55,6 @@ func (c *ClientConfig) CreateVmHardDiskDrive(
 	overrideCacheAttributes api.CacheAttributes,
 
 ) (err error) {
-
 	vmHardDiskDriveJson, err := json.Marshal(api.VmHardDiskDrive{
 		VmName:                        vmName,
 		ControllerType:                controllerType,
@@ -177,7 +177,6 @@ func (c *ClientConfig) UpdateVmHardDiskDrive(
 	qosPolicyId string,
 	overrideCacheAttributes api.CacheAttributes,
 ) (err error) {
-
 	vmHardDiskDriveJson, err := json.Marshal(api.VmHardDiskDrive{
 		VmName:                        vmName,
 		ControllerType:                controllerType,

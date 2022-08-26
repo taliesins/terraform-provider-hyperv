@@ -71,9 +71,9 @@ type VhdFormat int
 
 const (
 	VhdFormat_Unknown VhdFormat = 0
-	VhdFormat_VHD     VhdFormat = 2 //extension ".Vhd"
-	VhdFormat_VHDX    VhdFormat = 3 //extension ".vhdx"
-	VhdFormat_VHDSet  VhdFormat = 4 //extension ".vhds"
+	VhdFormat_VHD     VhdFormat = 2 // extension ".Vhd"
+	VhdFormat_VHDX    VhdFormat = 3 // extension ".vhdx"
+	VhdFormat_VHDSet  VhdFormat = 4 // extension ".vhds"
 )
 
 var VhdFormat_name = map[VhdFormat]string{

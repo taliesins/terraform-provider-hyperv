@@ -3,8 +3,9 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type getVmStatusArgs struct {
@@ -164,7 +165,6 @@ func (c *ClientConfig) UpdateVmStatus(
 	pollPeriod uint32,
 	state api.VmState,
 ) (err error) {
-
 	vmStatusJson, err := json.Marshal(api.VmStatus{
 		State: state,
 	})

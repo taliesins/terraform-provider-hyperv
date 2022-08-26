@@ -3,8 +3,9 @@ package api
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"log"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 func DefaultVmProcessors() (interface{}, error) {
@@ -29,7 +30,7 @@ func DefaultVmProcessors() (interface{}, error) {
 func DiffSuppressVmProcessorMaximumCountPerNumaNode(key, old, new string, d *schema.ResourceData) bool {
 	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", key, old, new)
 	if new == "0" {
-		//We have not explicitly set a value, so allow any value as we are not tracking it
+		// We have not explicitly set a value, so allow any value as we are not tracking it
 		return true
 	}
 
@@ -39,7 +40,7 @@ func DiffSuppressVmProcessorMaximumCountPerNumaNode(key, old, new string, d *sch
 func DiffSuppressVmProcessorMaximumCountPerNumaSocket(key, old, new string, d *schema.ResourceData) bool {
 	log.Printf("[DEBUG] '[%s]' Comparing old value '[%v]' with new value '[%v]' ", key, old, new)
 	if new == "0" {
-		//We have not explicitly set a value, so allow any value as we are not tracking it
+		// We have not explicitly set a value, so allow any value as we are not tracking it
 		return true
 	}
 

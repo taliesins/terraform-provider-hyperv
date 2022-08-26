@@ -2,8 +2,9 @@ package hyperv_winrm
 
 import (
 	"context"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type getVmIntegrationServicesArgs struct {

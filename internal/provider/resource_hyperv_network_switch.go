@@ -52,7 +52,7 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 			"allow_management_os": {
 				Type:        schema.TypeBool,
 				Optional:    true,
-				Default:     true, //This is tied to the switch type used. internal=true;private=false;external=true or false
+				Default:     true, // This is tied to the switch type used. internal=true;private=false;external=true or false
 				Description: "Specifies if the HyperV host machine will have access to network switch when created. It provides this access via a virtual adaptor, so you will need to either configure static ips on the virtual adaptor or configure a dhcp on a machine connected to the network switch. This is tied to the switch type used: `internal=true`;`private=false`;`external=true or false`.",
 			},
 
@@ -373,9 +373,9 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 	switchName := d.Id()
 	notes := (d.Get("notes")).(string)
 	allowManagementOS := (d.Get("allow_management_os")).(bool)
-	//embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
+	// embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
 	iovEnabled := (d.Get("enable_iov")).(bool)
-	//packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
+	// packetDirectEnabled := (d.Get("enable_packet_direct")).(bool)
 	bandwidthReservationMode := api.ToVMSwitchBandwidthMode((d.Get("minimum_bandwidth_mode")).(string))
 	switchType := api.ToVMSwitchType((d.Get("switch_type")).(string))
 	netAdapterNames := []string{}
