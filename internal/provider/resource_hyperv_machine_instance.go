@@ -933,6 +933,11 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
+        if !d.IsNewResource() && vm.Name == "" {
+		d.SetId("")
+		return nil
+        }
+
 	if err := d.Set("name", vm.Name); err != nil {
 		return diag.FromErr(err)
 	}

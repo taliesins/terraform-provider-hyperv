@@ -180,7 +180,7 @@ type getVmArgs struct {
 
 var getVmTemplate = template.Must(template.New("GetVm").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmObject = Get-VM -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } | %{ @{
+$vmObject = Get-VM -Name '{{.Name}}*' -ErrorAction SilentlyContinue | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
 	Path=$_.Path;
 	Generation=$_.Generation;
