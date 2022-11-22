@@ -1,5 +1,8 @@
 default: testacc
 
+build:
+	go build && go install .
+
 # Run acceptance tests
 .PHONY: testacc
 testacc:
