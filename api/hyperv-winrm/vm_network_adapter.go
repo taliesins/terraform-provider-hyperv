@@ -25,6 +25,7 @@ $iovInterruptModeration = [Microsoft.HyperV.PowerShell.IovInterruptModerationVal
 $allowTeaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.AllowTeaming
 $deviceNaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DeviceNaming
 $fixSpeed10G = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.FixSpeed10G
+$macAddressSpoofing = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.MacAddressSpoofing
 
 $NewVmNetworkAdapterArgs = @{
 	VmName=$vmNetworkAdapter.VmName
@@ -52,9 +53,7 @@ if ($vmNetworkAdapter.DynamicMacAddress) {
 } elseif ($vmNetworkAdapter.StaticMacAddress) {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
-if ($vmNetworkAdapter.MacAddressSpoofing) {
-	$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
-}
+$SetVmNetworkAdapterArgs.MacAddressSpoofing=$macAddressSpoofing
 $SetVmNetworkAdapterArgs.DhcpGuard=$dhcpGuard
 $SetVmNetworkAdapterArgs.RouterGuard=$routerGuard
 $SetVmNetworkAdapterArgs.PortMirroring=$portMirroring
@@ -434,6 +433,7 @@ $iovInterruptModeration = [Microsoft.HyperV.PowerShell.IovInterruptModerationVal
 $allowTeaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.AllowTeaming
 $deviceNaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.DeviceNaming
 $fixSpeed10G = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.FixSpeed10G
+$macAddressSpoofing = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.MacAddressSpoofing
 
 $vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}]
 
@@ -457,9 +457,8 @@ if ($vmNetworkAdapter.DynamicMacAddress) {
 } elseif ($vmNetworkAdapter.StaticMacAddress) {
 	$SetVmNetworkAdapterArgs.StaticMacAddress=$vmNetworkAdapter.StaticMacAddress
 }
-if ($vmNetworkAdapter.MacAddressSpoofing) {
-	$SetVmNetworkAdapterArgs.MacAddressSpoofing=$vmNetworkAdapter.MacAddressSpoofing
-}
+
+$SetVmNetworkAdapterArgs.MacAddressSpoofing=$macAddressSpoofing
 $SetVmNetworkAdapterArgs.DhcpGuard=$dhcpGuard
 $SetVmNetworkAdapterArgs.RouterGuard=$routerGuard
 $SetVmNetworkAdapterArgs.PortMirroring=$portMirroring

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/taliesins/terraform-provider-hyperv/internal/provider"
