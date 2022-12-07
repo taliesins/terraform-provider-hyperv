@@ -749,16 +749,30 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										Type:             schema.TypeString,
 										Required:         true,
 										ValidateDiagFunc: stringKeyInMap(api.Gen2BootType_value, true),
-										Description:      "The type of boot device. Valid values to use are `NetworkAdapter`, `HardDiskDrive` and `DvdDrive`.",
+										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											if newValue == "" || oldValue == newValue {
+												return true
+											}
+											return false
+										},
+										Description: "The type of boot device. Valid values to use are `NetworkAdapter`, `HardDiskDrive` and `DvdDrive`.",
 									},
 									"network_adapter_name": {
 										Type:     schema.TypeString,
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "network_adapter_name", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+
+											if bootType == "" || !strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
+												return true
+											}
+
 											if newValue == "" || oldValue == newValue {
 												return true
 											}
+
 											return false
 										},
 										Description: "Specifies the name of ethernet adapter.",
@@ -768,6 +782,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "switch_name", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" || !strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
+												return true
+											}
+
 											if newValue == "" || oldValue == newValue {
 												return true
 											}
@@ -780,6 +800,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "mac_address", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" || !strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
+												return true
+											}
+
 											if newValue == "" || strings.EqualFold(oldValue, newValue) {
 												return true
 											}
@@ -792,9 +818,32 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-											if newValue == "" || strings.EqualFold(oldValue, newValue) {
+											bootTypeKey := strings.Replace(k, "path", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" || strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
 												return true
 											}
+
+											if newValue == "" {
+												return true
+											}
+
+											//When specifying path on new-vm it will auto append machine name on the end
+											name := d.Get("name").(string)
+											computedPath := newValue
+											if !strings.HasSuffix(computedPath, "\\") {
+												computedPath += "\\"
+											}
+											computedPath += name
+
+											if strings.EqualFold(computedPath, oldValue) {
+												return true
+											}
+
+											if strings.EqualFold(oldValue, newValue) {
+												return true
+											}
+
 											return false
 										},
 										Description: "Specifies the file path of hard disk drive or dvd drive.",
@@ -804,6 +853,12 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  -1,
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "controller_number", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" || strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
+												return true
+											}
+
 											if newValue == strconv.Itoa(-1) || newValue == "" {
 												return true
 											}
@@ -811,18 +866,18 @@ func resourceHyperVMachineInstance() *schema.Resource {
 										},
 										Description: "Specifies the number of the controller to which the hard disk drive or dvd drive.",
 									},
-									"controller_location": {
-										Type:     schema.TypeInt,
-										Optional: true,
-										Default:  -1,
-										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-											if newValue == strconv.Itoa(-1) || newValue == "" {
-												return true
-											}
-											return false
-										},
-										Description: "Specifies the number of the location on the controller at which the hard disk drive or dvd drive.",
-									},
+									"controller_location": {Type: schema.TypeInt, Optional: true, Default: -1, DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+										bootTypeKey := strings.Replace(k, "controller_location", "boot_type", 1)
+										bootType := d.Get(bootTypeKey).(string)
+										if bootType == "" || strings.EqualFold(bootType, api.Gen2BootType_NetworkAdapter.String()) {
+											return true
+										}
+
+										if newValue == strconv.Itoa(-1) || newValue == "" {
+											return true
+										}
+										return false
+									}, Description: "Specifies the number of the location on the controller at which the hard disk drive or dvd drive."},
 								},
 							},
 							Description: "The boot order of the devices that the generation 2 virtual machine should try to use for boot up.",

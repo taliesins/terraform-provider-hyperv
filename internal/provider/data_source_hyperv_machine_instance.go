@@ -728,6 +728,13 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "network_adapter_name", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+
+											if bootType == "" {
+												return true
+											}
+
 											if newValue == "" || oldValue == newValue {
 												return true
 											}
@@ -740,6 +747,12 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "switch_name", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" {
+												return true
+											}
+
 											if newValue == "" || oldValue == newValue {
 												return true
 											}
@@ -752,6 +765,12 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "mac_address", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" {
+												return true
+											}
+
 											if newValue == "" || strings.EqualFold(oldValue, newValue) {
 												return true
 											}
@@ -764,9 +783,32 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  "",
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
-											if newValue == "" || strings.EqualFold(oldValue, newValue) {
+											bootTypeKey := strings.Replace(k, "path", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" {
 												return true
 											}
+
+											if newValue == "" {
+												return true
+											}
+
+											//When specifying path on new-vm it will auto append machine name on the end
+											name := d.Get("name").(string)
+											computedPath := newValue
+											if !strings.HasSuffix(computedPath, "\\") {
+												computedPath += "\\"
+											}
+											computedPath += name
+
+											if strings.EqualFold(computedPath, oldValue) {
+												return true
+											}
+
+											if strings.EqualFold(oldValue, newValue) {
+												return true
+											}
+
 											return false
 										},
 										Description: "Specifies the file path of hard disk drive or dvd drive.",
@@ -776,6 +818,12 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  -1,
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "controller_number", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" {
+												return true
+											}
+
 											return newValue == "-1"
 										},
 										Description: "Specifies the number of the controller to which the hard disk drive or dvd drive.",
@@ -785,6 +833,12 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 										Optional: true,
 										Default:  -1,
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
+											bootTypeKey := strings.Replace(k, "controller_location", "boot_type", 1)
+											bootType := d.Get(bootTypeKey).(string)
+											if bootType == "" {
+												return true
+											}
+
 											return newValue == "-1"
 										},
 										Description: "Specifies the number of the location on the controller at which the hard disk drive or dvd drive.",
