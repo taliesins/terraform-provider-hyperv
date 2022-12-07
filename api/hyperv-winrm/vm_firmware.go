@@ -20,7 +20,7 @@ $vmFirmware = '{{.VmFirmwareJson}}' | ConvertFrom-Json
 $bootOrders = @($vmFirmware.BootOrders | %{
 	$bootOrder = $_
 	if ($bootOrder.Type -eq 'NetworkAdapter') {
-		$networkAdapter = Get-VMNetworkAdapter -VMName $vmFirmware.VmName
+		$networkAdapter = Get-VM -Name "$($vmFirmware.VmName)*" | ?{$_.Name -eq $vmFirmware.VmName } | Get-VMNetworkAdapter
 		if ($bootOrder.NetworkAdapterName) {
 			$networkAdapter = $networkAdapter | ?{$_.Name -eq $bootOrder.NetworkAdapterName}
 		}
@@ -35,7 +35,7 @@ $bootOrders = @($vmFirmware.BootOrders | %{
 
 		$networkAdapter
 	} elseif ($bootOrder.Type -eq 'HardDiskDrive') {
-		$hardDiskDrive = Get-VMHardDiskDrive -VMName $vmFirmware.VmName
+		$hardDiskDrive = Get-VM -Name "$($vmFirmware.VmName)*" | ?{$_.Name -eq $vmFirmware.VmName } | Get-VMHardDiskDrive
 
 		if ($bootOrder.Path) {
 			$hardDiskDrive = $hardDiskDrive | ?{$_.Path -ieq $bootOrder.Path}
@@ -52,7 +52,7 @@ $bootOrders = @($vmFirmware.BootOrders | %{
 		$hardDiskDrive
 
 	} elseif ($bootOrder.Type -eq 'DvdDrive') {
-		$dvdDrive = Get-VMDvdDrive -VMName $vmFirmware.VmName
+		$dvdDrive = Get-VM -Name "$($vmFirmware.VmName)*" | ?{$_.Name -eq $vmFirmware.VmName } | Get-VMDvdDrive
 
 		if ($bootOrder.Path) {
 			$dvdDrive = $dvdDrive | ?{$_.Path -ieq $bootOrder.Path}
