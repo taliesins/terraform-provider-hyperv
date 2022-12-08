@@ -14,8 +14,8 @@ HyperV Terraform Provider
 Features
 ------------
 - Remote scheduled task powershell runner does not run into issues with escaping variables or escaping between the different scripting layers.
-- Changed Winrmcp to use Powershell commands directly rather then use base64 encoded strings as we want to prevent Powershell progress leaking.
--Changed Winrmcp to return path of files on remote box as the location of $env:temp can change in Powershell depending on the session instance.
+- Changed Winrmcp to use Powershell commands directly rather than using base64 encoded strings as we want to prevent Powershell progress leaking.
+- Changed Winrmcp to return path of files on remote box as the location of $env:temp can change in Powershell depending on the session instance.
 - Runs all HyperV commands remotely i.e. so the provider can run on a linux machine and connect remotely to a windows machine running HyperV.
 - Almost all functionality of Powershell HyperV commandlets for the resources is exposed via Terraform resources.
 - Resource - Network Switch
@@ -196,12 +196,14 @@ Using the provider
 Developing the Provider
 ---------------------------
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.13+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
+If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (version 1.17+ is *required*). You'll also need to correctly setup a [GOPATH](http://golang.org/doc/code.html#GOPATH), as well as adding `$GOPATH/bin` to your `$PATH`.
 
 To compile the provider, run `make build`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
 
+You should also use the terraform [documentation](https://developer.hashicorp.com/terraform/tutorials/providers-plugin-framework/providers-plugin-framework-provider#prepare-terraform-for-local-provider-install) to setup the terraform environment correctly so that you can use your locally compiled version.
+
 ```sh
-$ make bin
+$ make build
 ...
 $ $GOPATH/bin/terraform-provider-hyperv
 ...

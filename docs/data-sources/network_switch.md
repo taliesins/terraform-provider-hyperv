@@ -36,12 +36,15 @@ datasource "hyperv_network_switch" "default" {
 - `enable_embedded_teaming` (Boolean) Specifies if the HyperV host machine will enable teaming for network switch when created. It allows NIC teaming so that you could support scenarios such as redundant links.
 - `enable_iov` (Boolean) Specifies if the HyperV host machine will enable IO virtualization for network switch when created. If your hardware supports it, it enables the virtual machine to talk directly to the NIC.
 - `enable_packet_direct` (Boolean) Specifies if the HyperV host machine will enable packet direct path for network switch when created. Increases packet throughoutput and reduces the network latency between vms on the switch.
-- `id` (String) The ID of this resource.
 - `minimum_bandwidth_mode` (String) Valid values to use are `Absolute`, `Default`, `None`, `Weight`. Specifies how minimum bandwidth is to be configured on the virtual switch. If `Absolute` is specified, minimum bandwidth is bits per second. If `Weight` is specified, minimum bandwidth is a value ranging from `1` to `100`. If `None` is specified, minimum bandwidth is disabled on the switch – that is, users cannot configure it on any network adapter connected to the switch. If `Default` is specified, the system will set the mode to Weight, if the switch is not IOV-enabled, or `None` if the switch is IOV-enabled.
 - `net_adapter_names` (List of String) Specifies the name of the network adapter to be bound to the switch.
 - `notes` (String) Specifies a note to be associated with the switch.
 - `switch_type` (String) Valid values to use are `Internal`, `Private` and `External`. Specifies the type of the switch to be created.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

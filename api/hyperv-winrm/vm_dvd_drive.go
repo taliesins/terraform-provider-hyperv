@@ -39,7 +39,6 @@ func (c *ClientConfig) CreateVmDvdDrive(
 	path string,
 	resourcePoolName string,
 ) (err error) {
-
 	vmDvdDriveJson, err := json.Marshal(api.VmDvdDrive{
 		VmName:             vmName,
 		ControllerNumber:   controllerNumber,
@@ -144,7 +143,6 @@ func (c *ClientConfig) UpdateVmDvdDrive(
 	path string,
 	resourcePoolName string,
 ) (err error) {
-
 	vmDvdDriveJson, err := json.Marshal(api.VmDvdDrive{
 		VmName:             vmName,
 		ControllerNumber:   toControllerNumber,

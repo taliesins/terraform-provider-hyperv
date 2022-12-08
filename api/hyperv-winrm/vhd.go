@@ -50,14 +50,24 @@ $sourceDisk={{.SourceDisk}}
 $vhd = '{{.VhdJson}}' | ConvertFrom-Json
 $vhdType = [Microsoft.Vhd.PowerShell.VhdType]$vhd.VhdType
 
+function Get-TarPath {
+	if (Get-Command "tar" -ErrorAction SilentlyContinue) {
+		return "tar"
+	} elseif (test-path "$env:SystemRoot\system32\tar.exe") {
+		return "$env:SystemRoot\system32\tar.exe"
+	} else {
+		return ""
+	}
+}
+
 function Get-7ZipPath {
-	if (Get-Command "7z" -ErrorAction SilentlyContinue) { 
-   		return "7z"
+	if (Get-Command "7z" -ErrorAction SilentlyContinue) {
+		return "7z"
 	} elseif (test-path "$env:ProgramFiles\7-Zip\7z.exe") {
 		return "$env:ProgramFiles\7-Zip\7z.exe"
 	} elseif (test-path "${env:ProgramFiles(x86)}\7-Zip\7z.exe") {
 		return "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
-	} else { 
+	} else {
 		return ""
 	}
 }
@@ -117,12 +127,16 @@ function Expand-Downloads {
         }
 
         get-item *.box | % {
-			$7zPath = Get-7ZipPath
-			if (-not $7zPath) {
- 				throw "7z.exe needed"
+			$tarPath = Get-TarPath
+			if (-not $tarPath) {
+				throw "tar.exe needed"
 			}
 			$tempPath = join-path $FolderPath "temp"
-			$command = """$7zPath"" x ""$($_.FullName)"" -so | ""$7zPath"" x -aoa -si -ttar -o""$tempPath"""
+
+			if (!(Test-Path $tempPath)) {
+				New-Item -ItemType Directory -Force -Path $tempPath
+			}
+			$command = """$tarPath"" -C ""$tempPath"" -x -f ""$($_.FullName)"""
 			& cmd.exe /C $command
 
 			if (Test-Path "$tempPath\Virtual Hard Disks") {
@@ -155,8 +169,14 @@ function Get-FileFromUri {
         $req.Method = "HEAD"
         $response = $req.GetResponse()
         $fUri = $response.ResponseUri
-        $filename = [System.IO.Path]::GetFileName($fUri.LocalPath);
+        $filename = [System.IO.Path]::GetFileName($fUri.LocalPath)
         $response.Close()
+
+        $origExt = [System.IO.Path]::GetExtension($Url)
+        $newExt = [System.IO.Path]::GetExtension($filename)
+        if ($newExt -ne $origExt) {
+            $filename += $origExt
+        }
 
         $destination = (Get-Item -Path ".\" -Verbose).FullName
         if ($FolderPath) { $destination = $FolderPath }
@@ -166,8 +186,8 @@ function Get-FileFromUri {
         else {
             $destination += '\' + $filename
         }
-        $webclient = New-Object System.Net.webclient
-        $webclient.downloadfile($fUri.AbsoluteUri, $destination)
+        $webclient = New-Object System.Net.WebClient
+        $webclient.DownloadFile($fUri.AbsoluteUri, $destination)
     }
 }
 
@@ -186,7 +206,7 @@ function Test-Uri {
 
 if (!(Test-Path -Path $vhd.Path)) {
     $pathDirectory = [System.IO.Path]::GetDirectoryName($vhd.Path)
-	$pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
+    $pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
 
     if (!(Test-Path $pathDirectory)) {
         New-Item -ItemType Directory -Force -Path $pathDirectory
@@ -202,7 +222,7 @@ if (!(Test-Path -Path $vhd.Path)) {
         }
 
         Remove-Item "$pathDirectory\$sourceVm" -Force -Recurse
-		Get-VHD -path $vhd.Path
+        Get-VHD -path $vhd.Path
     } elseif ($source) {
         Push-Location $pathDirectory
         

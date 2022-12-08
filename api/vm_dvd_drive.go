@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
@@ -55,7 +56,7 @@ type VmDvdDrive struct {
 	ControllerNumber   int
 	ControllerLocation int
 	Path               string
-	//AllowUnverifiedPaths bool no way of checking if its turned on so always turn on
+	// AllowUnverifiedPaths bool no way of checking if its turned on so always turn on
 	ResourcePoolName string
 }
 

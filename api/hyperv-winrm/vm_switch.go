@@ -3,8 +3,9 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"github.com/taliesins/terraform-provider-hyperv/api"
 	"text/template"
+
+	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
 type existsVMSwitchArgs struct {
@@ -108,7 +109,6 @@ func (c *ClientConfig) CreateVMSwitch(
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
 ) (err error) {
-
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
 		Name:                                name,
 		Notes:                               notes,
@@ -236,10 +236,10 @@ func (c *ClientConfig) UpdateVMSwitch(
 	name string,
 	notes string,
 	allowManagementOS bool,
-	//embeddedTeamingEnabled bool,
-	//iovEnabled bool,
-	//packetDirectEnabled bool,
-	//bandwidthReservationMode api.VMSwitchBandwidthMode,
+	// embeddedTeamingEnabled bool,
+	// iovEnabled bool,
+	// packetDirectEnabled bool,
+	// bandwidthReservationMode api.VMSwitchBandwidthMode,
 	switchType api.VMSwitchType,
 	netAdapterNames []string,
 	defaultFlowMinimumBandwidthAbsolute int64,
@@ -248,7 +248,6 @@ func (c *ClientConfig) UpdateVMSwitch(
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
 ) (err error) {
-
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
 		Name:              name,
 		Notes:             notes,

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/plugin"
 	"github.com/taliesins/terraform-provider-hyperv/internal/provider"
@@ -31,6 +32,9 @@ func main() {
 
 	flag.BoolVar(&debugMode, "debug", false, "set to true to run the provider with support for debuggers like delve")
 	flag.Parse()
+
+	// Remove duplicated timestamp from logs to make them more readable (see: https://developer.hashicorp.com/terraform/plugin/log/writing#legacy-log-troubleshooting)
+	log.SetFlags(log.Flags() &^ (log.Ldate | log.Ltime))
 
 	opts := &plugin.ServeOpts{
 		Debug: debugMode,

@@ -39,7 +39,6 @@ datasource "hyperv_machine_instance" "default" {
 - `guest_controlled_cache_types` (Boolean) Specifies if the machine instance will use guest controlled cache types.
 - `hard_disk_drives` (Block List) (see [below for nested schema](#nestedblock--hard_disk_drives))
 - `high_memory_mapped_io_space` (Number)
-- `id` (String) The ID of this resource.
 - `integration_services` (Map of Boolean) A map of all the integration services and if the integration service should be enabled/disabled. Integration services that are not specified will not be enforced.
 - `lock_on_disconnect` (String) Specifies whether virtual machine connection in basic mode locks the console after a user disconnects. Valid values to use are `On`, `Off`.
 - `low_memory_mapped_io_space` (Number)
@@ -61,6 +60,10 @@ datasource "hyperv_machine_instance" "default" {
 - `wait_for_ips_timeout` (Number) The amount of time in seconds to wait before throwing an exception when trying to get ip addresses for network cards on the virtual machine.
 - `wait_for_state_poll_period` (Number) The amount of time in seconds to wait between trying to change for the virtual machine to the desired state.
 - `wait_for_state_timeout` (Number) The amount of time in seconds to wait before throwing an exception when trying to change for the virtual machine to the desired state.
+
+### Read-Only
+
+- `id` (String) The ID of this resource.
 
 <a id="nestedblock--dvd_drives"></a>
 ### Nested Schema for `dvd_drives`

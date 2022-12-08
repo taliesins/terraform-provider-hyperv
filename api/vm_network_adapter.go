@@ -5,9 +5,10 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"strconv"
 	"strings"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
 type PortMirroring int
@@ -130,7 +131,7 @@ func (d *IovInterruptModerationValue) UnmarshalJSON(b []byte) error {
 }
 
 func DiffSuppressVmStaticMacAddress(key, old, new string, d *schema.ResourceData) bool {
-	//Static Mac Address has not been set, so we don't mind what ever value is automatically generated
+	// Static Mac Address has not been set, so we don't mind what ever value is automatically generated
 	if new == "" {
 		return true
 	}

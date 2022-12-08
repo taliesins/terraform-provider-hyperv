@@ -309,7 +309,7 @@ type Vm struct {
 	SmartPagingFilePath                 string
 	SnapshotFileLocation                string
 	StaticMemory                        bool
-	//ParentCheckpointName				string  this will allow us to set the checkpoint to use
+	// ParentCheckpointName				string  this will allow us to set the checkpoint to use
 }
 
 type HypervVmClient interface {

@@ -233,5 +233,5 @@ type appendFileTemplateOptions struct {
 	Content  string
 }
 
-//This is not a Powershell script
+// This is not a Powershell script
 var appendFileTemplate = template.Must(template.New("AppendFile").Parse(`echo {{.Content}} >> "{{.FilePath}}"`))
