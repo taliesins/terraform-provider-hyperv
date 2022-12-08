@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package provider
 
 import (
@@ -9,6 +12,11 @@ import (
 )
 
 func TestHyperVDataSourceVhd(t *testing.T) {
+	// Skip if -short flag exist
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	//tempDirectory := os.TempDir() uses short name ;<
 	tempDirectory, _ := filepath.Abs(".")
 	path, _ := filepath.Abs(filepath.Join(tempDirectory, fmt.Sprintf("testhypervdatasourcevhd_%d.vhdx", randInt())))

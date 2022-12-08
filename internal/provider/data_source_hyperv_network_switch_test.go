@@ -1,3 +1,6 @@
+//go:build integration
+// +build integration
+
 package provider
 
 import (
@@ -8,6 +11,11 @@ import (
 )
 
 func TestHyperVDataSourceNetworkSwitch(t *testing.T) {
+	// Skip if -short flag exist
+	if testing.Short() {
+		t.Skip("skipping test in short mode.")
+	}
+
 	name := fmt.Sprintf("wan_%d", randInt())
 
 	resource.UnitTest(t, resource.TestCase{
