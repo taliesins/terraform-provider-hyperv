@@ -910,12 +910,14 @@ func datasourceHyperVMachineInstanceRead(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	vmFirmwares := client.GetNoVmFirmwares(ctx)
+	var vmFirmwares []api.VmFirmware
 	if vm.Generation > 1 {
 		vmFirmwares, err = client.GetVmFirmwares(ctx, name)
 		if err != nil {
 			return diag.FromErr(err)
 		}
+	} else {
+		vmFirmwares = client.GetNoVmFirmwares(ctx)
 	}
 
 	vmProcessors, err := client.GetVmProcessors(ctx, name)
