@@ -253,7 +253,6 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 	name := d.Id()
 
 	s, err := c.GetVMSwitch(ctx, name)
-
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -198,6 +198,8 @@ func datasourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][read] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
+	d.SetId(switchName)
+
 	if err := d.Set("name", s.Name); err != nil {
 		return diag.FromErr(err)
 	}
@@ -240,8 +242,6 @@ func datasourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceDa
 	if err := d.Set("default_queue_vrss_enabled", s.DefaultQueueVrssEnabled); err != nil {
 		return diag.FromErr(err)
 	}
-
-	d.SetId(switchName)
 
 	log.Printf("[INFO][hyperv][read] read hyperv switch: %#v", d.State())
 

@@ -144,6 +144,8 @@ func datasourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta i
 		return diag.FromErr(err)
 	}
 
+	log.Printf("[INFO][hyperv][read] retrieved vhd: %+v", vhd)
+
 	if err := d.Set("path", vhd.Path); err != nil {
 		return diag.FromErr(err)
 	}
