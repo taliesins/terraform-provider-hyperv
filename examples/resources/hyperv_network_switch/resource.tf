@@ -1,3 +1,15 @@
+terraform {
+  required_providers {
+    hyperv = {
+      source = "taliesins/hyperv"
+      version = ">= 1.0.3"
+    }
+  }
+}
+
+provider "hyperv" {
+}
+
 resource "hyperv_network_switch" "default" {
   name                                    = "DMZ"
   notes                                   = ""

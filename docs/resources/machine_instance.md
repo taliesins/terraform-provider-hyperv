@@ -41,10 +41,18 @@ resource "hyperv_machine_instance" "default" {
   vm_firmware {
     enable_secure_boot              = ""
     secure_boot_template            = ""
-    secure_boot_template_id         = ""
     preferred_network_boot_protocol = ""
     console_mode                    = ""
     pause_after_boot_failure        = ""
+    boot_order                      = {
+      boot_type = "HardDiskDrive"
+      controller_number = "0"
+      controller_location = "0"
+    }
+    boot_order                      = {
+      boot_type = "NetworkAdapter"
+      network_adapter_name = "wan"
+    }
   }
 
   # Configure processor
@@ -91,7 +99,7 @@ resource "hyperv_machine_instance" "default" {
     ipsec_offload_maximum_security_association = 512
     maximum_bandwidth                          = 0
     minimum_bandwidth_absolute                 = 0
-    minimum_bandwidth_weigh                    = 0
+    minimum_bandwidth_weight                   = 0
     mandatory_feature_id                       = []
     resource_pool_name                         = ""
     test_replica_pool_name                     = ""
