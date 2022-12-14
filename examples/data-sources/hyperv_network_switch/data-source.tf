@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     hyperv = {
-      source = "taliesins/hyperv"
+      source  = "taliesins/hyperv"
       version = ">= 1.0.3"
     }
   }
@@ -32,5 +32,5 @@ data "hyperv_network_switch" "default" {
 }
 
 output "hyperv_network_switch" {
-    value = data.hyperv_network_switch.default
+  value = data.hyperv_network_switch.default
 }

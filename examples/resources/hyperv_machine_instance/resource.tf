@@ -1,7 +1,7 @@
 terraform {
   required_providers {
     hyperv = {
-      source = "taliesins/hyperv"
+      source  = "taliesins/hyperv"
       version = ">= 1.0.3"
     }
   }
@@ -53,23 +53,23 @@ resource "hyperv_machine_instance" "default" {
   smart_paging_file_path                  = "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V"
   snapshot_file_location                  = "C:\\ProgramData\\Microsoft\\Windows\\Hyper-V"
   #dynamic_memory                         = false
-  static_memory                           = true
-  state                                   = "Running"
+  static_memory = true
+  state         = "Running"
 
   # Configure firmware
   vm_firmware {
-    enable_secure_boot              = "Off"
+    enable_secure_boot = "Off"
     #secure_boot_template            = ""
     preferred_network_boot_protocol = "IPv4"
     console_mode                    = "None"
     pause_after_boot_failure        = "Off"
-    boot_order                      {
-      boot_type = "HardDiskDrive"
-      controller_number = "0"
+    boot_order {
+      boot_type           = "HardDiskDrive"
+      controller_number   = "0"
       controller_location = "0"
     }
     boot_order {
-      boot_type = "NetworkAdapter"
+      boot_type            = "NetworkAdapter"
       network_adapter_name = "wan"
     }
   }
@@ -142,9 +142,9 @@ resource "hyperv_machine_instance" "default" {
   dvd_drives {
     controller_number   = "0"
     controller_location = "1"
-    path = ""
+    path                = ""
     #path                = "c:/iso/windows-server-2016.iso"
-    resource_pool_name  = ""
+    resource_pool_name = ""
   }
 
   # Create a hard disk drive
