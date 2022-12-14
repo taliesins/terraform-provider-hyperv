@@ -2,6 +2,7 @@ package provider
 
 import (
 	"fmt"
+	"math"
 	"reflect"
 	"strings"
 
@@ -133,6 +134,31 @@ func ValueOrIntBetween(value, min, max int) schema.SchemaValidateDiagFunc {
 			})
 
 			return diags
+		}
+
+		return diags
+	}
+}
+
+func IsDivisibleBy(logicalSize int) schema.SchemaValidateDiagFunc {
+	return func(i interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+
+		v, ok := i.(int)
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("expected type of %s to be int", i),
+			})
+
+			return diags
+		}
+
+		if v%logicalSize != 0 {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("expected %d to be perfectly divisible by %d, maybe use %d instead", v, logicalSize, int(math.Ceil(float64(v)/float64(logicalSize)))*logicalSize),
+			})
 		}
 
 		return diags

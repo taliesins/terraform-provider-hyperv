@@ -87,7 +87,7 @@ type getVmHardDiskDrivesArgs struct {
 
 var getVmHardDiskDrivesTemplate = template.Must(template.New("GetVmHardDiskDrives").Parse(`
 $ErrorActionPreference = 'Stop'
-$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VmName '{{.VmName}}' | %{ @{
+$vmHardDiskDrivesObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMHardDiskDrive | %{ @{
 	ControllerType=$_.ControllerType;
 	ControllerNumber=$_.ControllerNumber;
 	ControllerLocation=$_.ControllerLocation;
@@ -131,7 +131,7 @@ $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
 $vmHardDiskDrive = '{{.VmHardDiskDriveJson}}' | ConvertFrom-Json
 
-$vmHardDiskDrivesObject = @(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
+$vmHardDiskDrivesObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMHardDiskDrive -ControllerLocation {{.ControllerLocation}} -ControllerNumber {{.ControllerNumber}} )
 
 if (!$vmHardDiskDrivesObject){
 	throw "VM hard disk drive does not exist - {{.ControllerLocation}} {{.ControllerNumber}}"
@@ -148,7 +148,13 @@ $SetVmHardDiskDriveArgs.Path=$vmHardDiskDrive.Path
 if ($vmHardDiskDrive.DiskNumber -lt 4294967295){
 	$SetVmHardDiskDriveArgs.DiskNumber=$vmHardDiskDrive.DiskNumber
 }
-$SetVmHardDiskDriveArgs.ResourcePoolName=$vmHardDiskDrive.ResourcePoolName
+if ($vmHardDiskDrivesObject.ResourcePoolName -ne $vmHardDiskDrive.ResourcePoolName) {
+	if ($vmHardDiskDrive.ResourcePoolName) {
+		$SetVmHardDiskDriveArgs.ResourcePoolName=$vmHardDiskDrive.ResourcePoolName
+	} else {
+		throw "Unable to remove resource pool $($vmHardDiskDrive.ResourcePoolName) from hard disk drive $(ConvertTo-Json -InputObject $vmHardDiskDrivesObject)"
+	}
+}
 $SetVmHardDiskDriveArgs.SupportPersistentReservations=$vmHardDiskDrive.SupportPersistentReservations
 $SetVmHardDiskDriveArgs.MaximumIops=$vmHardDiskDrive.MaximumIops
 $SetVmHardDiskDriveArgs.MinimumIops=$vmHardDiskDrive.MinimumIops
@@ -215,7 +221,7 @@ type deleteVmHardDiskDriveArgs struct {
 var deleteVmHardDiskDriveTemplate = template.Must(template.New("DeleteVmHardDiskDrive").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive -Force
+@(Get-VMHardDiskDrive -VmName '{{.VmName}}' -ControllerNumber {{.ControllerNumber}} -ControllerLocation {{.ControllerLocation}}) | Remove-VMHardDiskDrive
 `))
 
 func (c *ClientConfig) DeleteVmHardDiskDrive(ctx context.Context, vmname string, controllerNumber int32, controllerLocation int32) (err error) {

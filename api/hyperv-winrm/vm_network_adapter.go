@@ -211,7 +211,7 @@ Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
 Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
 Get-VMNetworkAdapter -VmName '{{.VmName}}' | Out-Null
 
-$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}' | %{ @{
+$vmNetworkAdaptersObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMNetworkAdapter | %{ @{
      Name=$_.Name;
      SwitchName=$_.SwitchName;
      ManagementOs=$_.IsManagementOs;
@@ -435,7 +435,7 @@ $deviceNaming = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.Device
 $fixSpeed10G = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.FixSpeed10G
 $macAddressSpoofing = [Microsoft.HyperV.PowerShell.OnOffState]$vmNetworkAdapter.MacAddressSpoofing
 
-$vmNetworkAdaptersObject = @(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}]
+$vmNetworkAdaptersObject = @(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMNetworkAdapter)[{{.Index}}]
 
 if (!$vmNetworkAdaptersObject){
 	throw "VM network adapter does not exist - {{.Index}}"
@@ -446,7 +446,18 @@ if ($vmNetworkAdapter.SwitchName) {
 	if ($vmSwitch) {
 		$minimumBandwidthMode = $vmSwitch.BandwidthReservationMode
 	}
-	$null = Get-VMNetworkAdapter -VmName '{{.VmName}}' -Name "$($vmNetworkAdapter.Name)" | Connect-VMNetworkAdapter -SwitchName "$($vmNetworkAdapter.SwitchName)"
+}
+
+if ($vmNetworkAdaptersObject.SwitchName -ne $vmNetworkAdapter.SwitchName) {
+	if ($vmNetworkAdapter.SwitchName) {
+		$null = $vmNetworkAdaptersObject | Connect-VMNetworkAdapter -SwitchName $vmNetworkAdapter.SwitchName
+	} else {
+		$null = $vmNetworkAdaptersObject | Disconnect-VMNetworkAdapter
+	}
+}
+
+if ($vmNetworkAdaptersObject.Name -ne $vmNetworkAdapter.Name) {
+	$null = $vmNetworkAdaptersObject | Rename-VMNetworkAdapter -NewName $vmNetworkAdapter.Name
 }
 
 $SetVmNetworkAdapterArgs = @{}
@@ -476,9 +487,14 @@ if ($minimumBandwidthMode -eq [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode
 	$SetVmNetworkAdapterArgs.MinimumBandwidthWeight=$vmNetworkAdapter.MinimumBandwidthWeight
 }
 $SetVmNetworkAdapterArgs.MandatoryFeatureId=$vmNetworkAdapter.MandatoryFeatureId
-if ($vmNetworkAdapter.ResourcePoolName) {
-	$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+if ($vmNetworkAdaptersObject.ResourcePoolName -ne $vmNetworkAdapter.ResourcePoolName) {
+	if ($vmNetworkAdapter.ResourcePoolName) {
+		$SetVmNetworkAdapterArgs.ResourcePoolName=$vmNetworkAdapter.ResourcePoolName
+	} else {
+		$null = $vmNetworkAdaptersObject | Disconnect-VMNetworkAdapter
+	}
 }
+
 $SetVmNetworkAdapterArgs.TestReplicaPoolName=$vmNetworkAdapter.TestReplicaPoolName
 $SetVmNetworkAdapterArgs.TestReplicaSwitchName=$vmNetworkAdapter.TestReplicaSwitchName
 $SetVmNetworkAdapterArgs.VirtualSubnetId=$vmNetworkAdapter.VirtualSubnetId
@@ -617,7 +633,7 @@ type deleteVmNetworkAdapterArgs struct {
 var deleteVmNetworkAdapterTemplate = template.Must(template.New("DeleteVmNetworkAdapter").Parse(`
 $ErrorActionPreference = 'Stop'
 
-@(Get-VMNetworkAdapter -VmName '{{.VmName}}')[{{.Index}}] | Remove-VMNetworkAdapter -Force
+@(Get-VM -Name '{{.VmName}}*' | ?{$_.Name -eq '{{.VmName}}' } | Get-VMNetworkAdapter)[{{.Index}}] | Remove-VMNetworkAdapter
 `))
 
 func (c *ClientConfig) DeleteVmNetworkAdapter(ctx context.Context, vmName string, index int) (err error) {

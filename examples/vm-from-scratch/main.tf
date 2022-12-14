@@ -71,6 +71,9 @@ resource "hyperv_machine_instance" "web_server_g2" {
 
   vm_firmware {
     pause_after_boot_failure = "Off"
+
+
+
   }
 
   vm_processor {

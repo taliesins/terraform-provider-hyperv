@@ -255,21 +255,25 @@ if (!(Test-Path -Path $vhd.Path)) {
                 $NewVhdArgs.Fixed = $true
             }
 
-            if ($vhd.Size -gt 0) {
-                $NewVhdArgs.SizeBytes = $vhd.Size
-            }
-
             if ($vhd.BlockSize -gt 0) {
                 $NewVhdArgs.BlockSizeBytes = $vhd.BlockSize
-            }
-
-            if ($vhd.LogicalSectorSize -gt 0) {
-                $NewVhdArgs.LogicalSectorSizeBytes = $vhd.LogicalSectorSize
             }
 
             if ($vhd.PhysicalSectorSize -gt 0) {
                 $NewVhdArgs.PhysicalSectorSizeBytes = $vhd.PhysicalSectorSize
             }
+
+            if ($vhd.LogicalSectorSize -gt 0) {
+                $NewVhdArgs.LogicalSectorSizeBytes = $vhd.LogicalSectorSize
+            } else {
+                $NewVhdArgs.LogicalSectorSizeBytes = 512 #this is the default size
+            }
+
+			if ($vhd.Size -gt 0) {
+                $NewVhdArgs.SizeBytes = [math]::ceiling($vhd.Size/$NewVhdArgs.LogicalSectorSizeBytes)*$NewVhdArgs.LogicalSectorSizeBytes
+            } else {
+				throw "Vhd Size must be specified for - $($vhd.Path)"
+			}
         }
 
         New-VHD @NewVhdArgs

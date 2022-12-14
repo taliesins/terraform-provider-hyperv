@@ -13,17 +13,29 @@ This Hyper-V resource allows you to manage VHDs.
 ## Example Usage
 
 ```terraform
+terraform {
+  required_providers {
+    hyperv = {
+      source  = "taliesins/hyperv"
+      version = ">= 1.0.3"
+    }
+  }
+}
+
+provider "hyperv" {
+}
+
 resource "hyperv_vhd" "web_server_vhd" {
-  path                 = "C:\\data\\VirtualMachines\\web_server\\Virtual Hard Disks\\MobyLinuxVM.vhdx"
-  source               = ""
-  source_vm            = ""
-  source_disk          = 0
-  vhd_type             = "Dynamic"
-  parent_path          = ""
-  size                 = 21474836480
-  block_size           = 0
-  logical_sector_size  = 0
-  physical_sector_size = 0
+  path = "c:\\web_server\\web_server_g2.vhdx"
+  #source               = ""
+  #source_vm            = ""
+  #source_disk          = 0
+  vhd_type = "Dynamic"
+  #parent_path          = ""
+  size = 10737418240 #10GB
+  #block_size           = 0
+  #logical_sector_size  = 0
+  #physical_sector_size = 0
 }
 ```
 
@@ -40,7 +52,7 @@ resource "hyperv_vhd" "web_server_vhd" {
 - `logical_sector_size` (Number) This field is mutually exclusive with the fields `source`, `source_vm`, `parent_path`. Specifies the logical sector size, in bytes, of the virtual hard disk to be created. Valid values to use are `0`, `512`, `4096`.
 - `parent_path` (String) This field is mutually exclusive with the fields `source`, `source_vm`, `source_disk`, `size`. Specifies the path to the parent of the differencing disk to be created (this parameter may be specified only for the creation of a differencing disk).
 - `physical_sector_size` (Number) This field is mutually exclusive with the fields	`source`, `source_vm`, `parent_path`. Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.
-- `size` (Number) This field is mutually exclusive with the field `parent_path`. The maximum size, in bytes, of the virtual hard disk to be created.
+- `size` (Number) This field is mutually exclusive with the field `parent_path`. The maximum size, in bytes, of the virtual hard disk to be created. This size must be divisible by 4096 so that it fits into logical blocks.
 - `source` (String) This field is mutually exclusive with the fields `source_vm`, `parent_path`, `source_disk`. This value can be a url or a path (including wildcards). Box, Zip and 7z files will automatically be expanded. The destination folder will be the directory portion of the path. If expanded files have a folder called `Virtual Machines`, then the `Virtual Machines` folder will be used instead of the entire archive contents.
 - `source_disk` (Number) This field is mutually exclusive with the fields `source`, `source_vm`, `parent_path`. Specifies the physical disk to be used as the source for the virtual hard disk to be created.
 - `source_vm` (String) This field is mutually exclusive with the fields `source`, `parent_path`, `source_disk`. This value is the name of the vm to copy the vhds from.

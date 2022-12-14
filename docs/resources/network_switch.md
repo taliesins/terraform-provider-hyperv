@@ -13,6 +13,18 @@ This Hyper-V resource allows you to manage virtual network switches.
 ## Example Usage
 
 ```terraform
+terraform {
+  required_providers {
+    hyperv = {
+      source  = "taliesins/hyperv"
+      version = ">= 1.0.3"
+    }
+  }
+}
+
+provider "hyperv" {
+}
+
 resource "hyperv_network_switch" "default" {
   name                                    = "DMZ"
   notes                                   = ""

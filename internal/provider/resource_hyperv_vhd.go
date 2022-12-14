@@ -126,7 +126,8 @@ func resourceHyperVVhd() *schema.Resource {
 				ConflictsWith: []string{
 					"parent_path",
 				},
-				Description: "This field is mutually exclusive with the field `parent_path`. The maximum size, in bytes, of the virtual hard disk to be created.",
+				ValidateDiagFunc: IsDivisibleBy(4096), //Technical it could also be 512
+				Description:      "This field is mutually exclusive with the field `parent_path`. The maximum size, in bytes, of the virtual hard disk to be created. This size must be divisible by 4096 so that it fits into logical blocks.",
 			},
 			"block_size": {
 				Type:     schema.TypeInt,
@@ -182,7 +183,7 @@ func resourceHyperVVhd() *schema.Resource {
 					"parent_path",
 				},
 				ValidateDiagFunc: IntInSlice([]int{0, 512, 4096}),
-				Description: "This field is mutually exclusive with the fields	`source`, `source_vm`, `parent_path`. Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.",
+				Description:      "This field is mutually exclusive with the fields	`source`, `source_vm`, `parent_path`. Specifies the physical sector size, in bytes. Valid values to use are `0`, `512`, `4096`.",
 			},
 			"exists": {
 				Type:        schema.TypeBool,
@@ -276,6 +277,8 @@ func resourceHyperVVhdRead(ctx context.Context, d *schema.ResourceData, meta int
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	log.Printf("[INFO][hyperv][read] retrieved vhd: %+v", vhd)
 
 	if err := d.Set("path", vhd.Path); err != nil {
 		return diag.FromErr(err)
