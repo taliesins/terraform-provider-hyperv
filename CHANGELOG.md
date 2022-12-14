@@ -1,3 +1,7 @@
+## [1.0.4](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.3...v1.0.4) (2022-12-14)
+
+
+
 ## [1.0.3](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.2...v1.0.3) (2021-03-20)
 
 
