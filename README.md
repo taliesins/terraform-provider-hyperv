@@ -5,7 +5,7 @@ HyperV Terraform Provider
 
 - [Website](https://github.com/taliesins/terraform-provider-hyperv)
 - [Releases](https://github.com/taliesins/terraform-provider-hyperv/releases)
-- [Documentation](https://github.com/taliesins/terraform-provider-hyperv/tree/master/website/docs)
+- [Documentation](https://registry.terraform.io/providers/taliesins/hyperv/latest/docs)
 - [Issues](https://github.com/taliesins/terraform-provider-hyperv/issues)
 
 ![Hashi Logo](https://cdn.rawgit.com/taliesins/terraform-provider-hyperv/master/website/logo-hashicorp.svg "Hashi Logo")
@@ -28,8 +28,8 @@ Features
 Requirements
 ------------
 
--	[Terraform](https://www.terraform.io/downloads.html) 0.12.x
--	[Go](https://golang.org/doc/install) 1.13 (to build the provider plugin)
+-	[Terraform](https://www.terraform.io/downloads.html) 1.29.x
+-	[Go](https://golang.org/doc/install) 1.19 (to build the provider plugin)
 -   Connectivity and credentials to a server running HyperV on Windows 10, Windows Server 2016 or newer
 
 Setting up server for Provider usage
