@@ -248,7 +248,7 @@ jobs:
           key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - name: goreleaser check
         continue-on-error: true
-        uses: goreleaser/goreleaser-action@v4.1.0
+        uses: goreleaser/goreleaser-action@v4.1.1
         with:
           args: check
       - name: Import GPG key
@@ -263,7 +263,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         run: echo ::set-output name=VERSION::${GITHUB_REF/refs\/tags\//}
       - name: goreleaser release
-        uses: goreleaser/goreleaser-action@v4.1.0
+        uses: goreleaser/goreleaser-action@v4.1.1
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           version: latest
@@ -310,7 +310,7 @@ jobs:
           echo "skipped: $SKIPPED"
 
       - name: goreleaser snapshot
-        uses: goreleaser/goreleaser-action@v4.1.0
+        uses: goreleaser/goreleaser-action@v4.1.1
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=.github/CLEANCHANGELOG.md
