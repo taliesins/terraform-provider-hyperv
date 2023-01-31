@@ -75,7 +75,7 @@ func New(version string, commit string) func() *schema.Provider {
 					Type:        schema.TypeString,
 					Optional:    true,
 					DefaultFunc: schema.EnvDefaultFunc("HYPERV_USER", DefaultUser),
-					Description: "The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USERNAME` environment variable otherwise defaults to `Administrator.",
+					Description: "The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USER` environment variable otherwise defaults to `Administrator.",
 				},
 
 				"password": {
