@@ -3,6 +3,7 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"text/template"
 
 	"github.com/taliesins/terraform-provider-hyperv/api"
@@ -177,22 +178,33 @@ func (c *ClientConfig) GetVMSwitch(ctx context.Context, name string) (result api
 }
 
 type updateVMSwitchArgs struct {
+	VmSwitchId   string
 	VmSwitchJson string
 }
 
 var updateVMSwitchTemplate = template.Must(template.New("UpdateVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
+$vmSwitchId = '{{.VmSwitchId}}'
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-$NetAdapterNames = @($vmSwitch.NetAdapterNames)
+
+if ($vmSwitch.NetAdapterNames.length -gt 0) {
+	$NetAdapterNames = [string]$vmSwitch.NetAdapterNames[0]
+}
+
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
-$switchObject = Get-VMSwitch -Name "$($vmSwitch.Name)*" | ?{$_.Name -eq $vmSwitch.Name}
+$switchObject = Get-VMSwitch -Name "$($vmSwitchId)*" | ?{$_.Name -eq $vmSwitchId}
 
 if (!$switchObject){
-	throw "Switch does not exist - $($vmSwitch.Name)"
+	throw "Switch does not exist - $($vmSwitchId)"
+}
+
+
+if ($vmSwitchId -ne $vmSwitch.Name) {
+	Rename-VMSwitch $vmSwitchId -NewName $vmSwitch.Name
 }
 
 $SetVmSwitchArgs = @{}
@@ -233,7 +245,8 @@ Set-VMSwitch @SetVmSwitchArgs
 
 func (c *ClientConfig) UpdateVMSwitch(
 	ctx context.Context,
-	name string,
+	switchId string,
+	switchName string,
 	notes string,
 	allowManagementOS bool,
 	// embeddedTeamingEnabled bool,
@@ -248,8 +261,12 @@ func (c *ClientConfig) UpdateVMSwitch(
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
 ) (err error) {
+	if len(netAdapterNames) > 1 {
+		return fmt.Errorf("[ERROR][hyperv] Can't update a switch with multiple net adapaters names (%v)", netAdapterNames)
+	}
+
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
-		Name:              name,
+		Name:              switchName,
 		Notes:             notes,
 		AllowManagementOS: allowManagementOS,
 		//EmbeddedTeamingEnabled:embeddedTeamingEnabled,
@@ -270,6 +287,7 @@ func (c *ClientConfig) UpdateVMSwitch(
 	}
 
 	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVMSwitchTemplate, updateVMSwitchArgs{
+		VmSwitchId:   switchId,
 		VmSwitchJson: string(vmSwitchJson),
 	})
 

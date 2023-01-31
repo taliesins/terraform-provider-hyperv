@@ -369,7 +369,9 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 	log.Printf("[INFO][hyperv][update] updating hyperv switch: %#v", d)
 	c := meta.(api.Client)
 
-	switchName := d.Id()
+	id := d.Id()
+	newName := d.Get("name").(string)
+
 	notes := (d.Get("notes")).(string)
 	allowManagementOS := (d.Get("allow_management_os")).(bool)
 	// embeddedTeamingEnabled := (d.Get("enable_embedded_teaming")).(bool)
@@ -438,11 +440,13 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][update] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
-	err := c.UpdateVMSwitch(ctx, switchName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
+	err := c.UpdateVMSwitch(ctx, id, newName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
 
 	if err != nil {
 		return diag.FromErr(err)
 	}
+
+	d.SetId(newName)
 
 	log.Printf("[INFO][hyperv][update] updated hyperv switch: %#v", d)
 
