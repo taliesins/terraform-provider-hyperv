@@ -99,7 +99,7 @@ function Expand-Downloads {
 			}
 
             if (Test-Path $($vhdPath.FullName)) {
-        		Move-Item $($vhdPath.FullName)\*.* $FolderPath
+        		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
 			}
@@ -117,8 +117,8 @@ function Expand-Downloads {
 			$command = """$7zPath"" x ""$($_.FullName)"" -o""$tempPath""" 
 			& cmd.exe /C $command
 
-			if (Test-Path $($vhdPath.FullName)) {
-        		Move-Item $"($vhdPath.FullName)\*.*" $FolderPath
+            if (Test-Path $($vhdPath.FullName)) {
+        		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
 			}
@@ -140,7 +140,7 @@ function Expand-Downloads {
 			$command = """$tarPath"" -C ""$tempPath"" -x -f ""$($_.FullName)"""
 			& cmd.exe /C $command
 
-			if (Test-Path $($vhdPath.FullName)) {
+            if (Test-Path $($vhdPath.FullName)) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
