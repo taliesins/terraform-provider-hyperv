@@ -81,6 +81,7 @@ function Expand-Downloads {
     )
     process {
 		Push-Location $FolderPath
+		$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
         get-item *.zip | % {
 			$tempPath = join-path $FolderPath "temp"
@@ -97,8 +98,8 @@ function Expand-Downloads {
             	[System.IO.Compression.ZipFile]::ExtractToDirectory($_.FullName, $tempPath)
 			}
 
-            if (Test-Path "$tempPath\Virtual Hard Disks") {
-        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+            if (Test-Path $($vhdPath.FullName)) {
+        		Move-Item $($vhdPath.FullName)\*.* $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
 			}
@@ -116,8 +117,8 @@ function Expand-Downloads {
 			$command = """$7zPath"" x ""$($_.FullName)"" -o""$tempPath""" 
 			& cmd.exe /C $command
 
-			if (Test-Path "$tempPath\Virtual Hard Disks") {
-        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+			if (Test-Path $($vhdPath.FullName)) {
+        		Move-Item $"($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
 			}
@@ -139,8 +140,8 @@ function Expand-Downloads {
 			$command = """$tarPath"" -C ""$tempPath"" -x -f ""$($_.FullName)"""
 			& cmd.exe /C $command
 
-			if (Test-Path "$tempPath\Virtual Hard Disks") {
-        		Move-Item "$tempPath\Virtual Hard Disks\*.*" $FolderPath
+			if (Test-Path $($vhdPath.FullName)) {
+        		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
 			}
