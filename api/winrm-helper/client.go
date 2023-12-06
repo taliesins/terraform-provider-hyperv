@@ -99,3 +99,69 @@ func (c *ClientConfig) RunScriptWithResult(ctx context.Context, script *template
 
 	return nil
 }
+
+func (c *ClientConfig) UploadFile(ctx context.Context, filePath string) (remoteRootPath string, err error) {
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
+
+	if err != nil {
+		return "", err
+	}
+
+	remoteRootPath, err = powershell.UploadFile(winrmClient.(*winrm.Client), filePath)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return "", err
+	}
+
+	if err2 != nil {
+		return "", err2
+	}
+
+	return remoteRootPath, nil
+}
+
+func (c *ClientConfig) UploadDirectory(ctx context.Context, rootPath string, excludeList []string) (remoteRootPath string, remoteAbsolutePaths []string, err error) {
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
+
+	if err != nil {
+		return "", []string{}, err
+	}
+
+	remoteRootPath, remoteAbsolutePaths, err = powershell.UploadDirectory(winrmClient.(*winrm.Client), rootPath, excludeList)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return "", []string{}, err
+	}
+
+	if err2 != nil {
+		return "", []string{}, err2
+	}
+
+	return remoteRootPath, remoteAbsolutePaths, nil
+}
+
+func (c *ClientConfig) DeleteFileOrDirectory(ctx context.Context, filePath string) (err error) {
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
+
+	if err != nil {
+		return err
+	}
+
+	err = powershell.DeleteFileOrDirectory(winrmClient.(*winrm.Client), filePath)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return err
+	}
+
+	if err2 != nil {
+		return err2
+	}
+
+	return nil
+}

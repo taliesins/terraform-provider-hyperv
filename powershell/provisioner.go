@@ -6,9 +6,10 @@ import (
 	"encoding/base64"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"log"
 	"os"
+	"path/filepath"
+	"regexp"
 	"strings"
 
 	"github.com/masterzen/winrm"
@@ -76,7 +77,7 @@ func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (r
 	if os.Getenv("WINRMCP_DEBUG") != "" {
 		log.Printf("[DEBUG] Removing temporary file %s", tempPath)
 	}
-	err = cleanupContent(client, tempPath)
+	err = DeleteFileOrDirectory(client, tempPath)
 	if err != nil {
 		return "", fmt.Errorf("error removing temporary file %s: %v", tempPath, err)
 	}
@@ -234,7 +235,7 @@ func ResolvePath(client *winrm.Client, filePath string) (string, error) {
 	return stdOutPut, nil
 }
 
-func cleanupContent(client *winrm.Client, filePath string) error {
+func DeleteFileOrDirectory(client *winrm.Client, filePath string) error {
 	shell, err := client.CreateShell()
 	if err != nil {
 		return err
@@ -374,7 +375,7 @@ func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int,
 }
 
 func uploadScript(client *winrm.Client, fileName string, command string) (remoteAbsolutePath string, err error) {
-	tmpFile, err := ioutil.TempFile(os.TempDir(), fileName)
+	tmpFile, err := os.CreateTemp(os.TempDir(), fileName)
 	writer := bufio.NewWriter(tmpFile)
 	if _, err := writer.WriteString(command); err != nil {
 		return "", fmt.Errorf("error preparing shell script: %s", err)
@@ -516,10 +517,96 @@ func RunPowershell(client *winrm.Client, elevatedUser string, elevatedPassword s
 		return 0, "", "", fmt.Errorf("run command operation returned \nstderr:\n%s\nstdOut:\n%s", errorOutPut, stdOutPut)
 	}
 
-	err = cleanupContent(client, path)
+	err = DeleteFileOrDirectory(client, path)
 	if err != nil {
 		return 0, "", "", fmt.Errorf("error removing temporary file %s: %v", path, err)
 	}
 
 	return commandExitCode, stdOutPut, errorOutPut, nil
+}
+
+func UploadFile(client *winrm.Client, filePath string) (remoteRootPath string, err error) {
+	remoteRootPath = filepath.Join(`$env:TEMP`, filepath.Base(filePath))
+	remotePath := filepath.Join(remoteRootPath, filePath)
+
+	f, err := os.Open(filePath)
+	if err != nil {
+		return "", fmt.Errorf("error opening file: %s", err)
+	}
+
+	remotePath, err = doCopy(client, 15, f, winPath(remotePath))
+
+	err2 := f.Close()
+
+	if err != nil {
+		return "", err
+	}
+
+	if err2 != nil {
+		return "", err2
+	}
+
+	return remotePath, nil
+}
+
+func UploadDirectory(client *winrm.Client, rootPath string, excludeList []string) (remoteRootPath string, remoteAbsolutePaths []string, err error) {
+	collectFiles := func(rootPath string, excludeList []string) (fileList []string, err error) {
+		err = filepath.Walk(rootPath, func(path string, info os.FileInfo, err error) error {
+			if regexp.MustCompile(strings.Join(excludeList, "|")).Match([]byte(path)) {
+				return nil
+			}
+
+			if info.IsDir() {
+				return nil
+			}
+
+			fileList = append(fileList, path)
+			return nil
+		})
+		if err != nil {
+			log.Fatalf("walk error [%v]\n", err)
+			return nil, err
+		}
+		return fileList, nil
+	}
+
+	targetFiles, err := collectFiles(rootPath, excludeList)
+	if err != nil {
+		return "", []string{}, err
+	}
+
+	remoteRootPath = filepath.Join(`$env:TEMP`, filepath.Base(rootPath))
+	remotePaths := []string{}
+
+	for _, targetFile := range targetFiles {
+		fmt.Printf("%v", targetFile)
+
+		filePath, err := filepath.Rel(rootPath, targetFile)
+		if err != nil {
+			return "", []string{}, err
+		}
+
+		remotePath := filepath.Join(remoteRootPath, filePath)
+
+		f, err := os.Open(targetFile)
+		if err != nil {
+			return "", []string{}, fmt.Errorf("error opening file: %s", err)
+		}
+
+		remotePath, err = doCopy(client, 15, f, winPath(remotePath))
+
+		err2 := f.Close()
+
+		if err != nil {
+			return "", []string{}, err
+		}
+
+		if err2 != nil {
+			return "", []string{}, err2
+		}
+
+		remotePaths = append(remotePaths, remotePath)
+	}
+
+	return remoteRootPath, remotePaths, nil
 }

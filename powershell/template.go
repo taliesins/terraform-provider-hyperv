@@ -226,7 +226,7 @@ type deleteFileTemplateOptions struct {
 	FilePath string
 }
 
-var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};if (Test-Path "{{.FilePath}}") {Remove-Item "{{.FilePath}}" -ErrorAction SilentlyContinue;};exit $LastExitCode;`))
+var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};if (Test-Path "{{.FilePath}}") {Remove-Item "{{.FilePath}}" -Force -Recurse -ErrorAction SilentlyContinue;};exit $LastExitCode;`))
 
 type appendFileTemplateOptions struct {
 	FilePath string
