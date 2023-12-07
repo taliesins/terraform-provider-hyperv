@@ -59,6 +59,8 @@ linters-settings:
       main:
         files:
           - $all
+        allow: []
+        deny: []
 run:
   modules-download-mode: mod
   timeout: 10m
