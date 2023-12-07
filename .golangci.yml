@@ -54,7 +54,11 @@ linters:
 linters-settings:
   errcheck:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
-
+  depguard:
+    rules:
+      main:
+        files:
+          - $all
 run:
   modules-download-mode: mod
   timeout: 10m
