@@ -34,7 +34,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 						return true
 					}
 
-					//When specifying path on new-vm it will auto append machine name on the end
+					// When specifying path on new-vm it will auto append machine name on the end
 					name := d.Get("name").(string)
 					computedPath := newValue
 					if !strings.HasSuffix(computedPath, "\\") {
@@ -793,7 +793,7 @@ func dataSourceHyperVMachineInstance() *schema.Resource {
 												return true
 											}
 
-											//When specifying path on new-vm it will auto append machine name on the end
+											// When specifying path on new-vm it will auto append machine name on the end
 											name := d.Get("name").(string)
 											computedPath := newValue
 											if !strings.HasSuffix(computedPath, "\\") {

@@ -28,7 +28,7 @@ linters:
     #- funlen
     #- gochecknoinits #needed for document generation
     - goconst
-    #- gocritic
+    - gocritic
     #- gocyclo
     - gofmt
     - goimports
@@ -56,11 +56,13 @@ linters-settings:
     ignore: github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema:ForceNew|Set,fmt:.*,io:Close
   depguard:
     rules:
-      main:
-        files:
-          - $all
-        allow: []
-        deny: []
+      logger:
+        deny:
+          # logging is allowed only by logutils.Log,
+          # logrus is allowed to use only in logutils package.
+          - pkg: "github.com/sirupsen/logrus"
+            desc: logging is allowed only by logutils.Log
+
 run:
   modules-download-mode: mod
   timeout: 10m

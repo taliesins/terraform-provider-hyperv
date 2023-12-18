@@ -54,19 +54,15 @@ func (c *Config) Client() (comm api.Client, err error) {
 		"  Password: %t\n"+
 		"  HTTPS: %t\n"+
 		"  Insecure: %t\n"+
-
 		"  NTLM: %t\n"+
-
 		"  KrbRealm: %s\n"+
 		"  KrbSpn: %s\n"+
 		"  KrbConfig: %s\n"+
 		"  KrbCCache: %s\n"+
-
 		"  TLSServerName: %s\n"+
 		"  CACert: %t\n"+
 		"  Cert: %t\n"+
 		"  Key: %t\n"+
-
 		"  ScriptPath: %s\n"+
 		"  Timeout: %s",
 		c.Host,
@@ -126,10 +122,8 @@ func GetWinrmClient(config *Config) (winrmClient *winrm.Client, err error) {
 				KrbCCache: config.KrbCCache,
 			}
 		}
-	} else {
-		if config.NTLM {
-			params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
-		}
+	} else if config.NTLM {
+		params.TransportDecorator = func() winrm.Transporter { return &winrm.ClientNTLM{} }
 	}
 
 	if endpoint.Timeout.Seconds() > 0 {

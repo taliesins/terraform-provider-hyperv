@@ -172,7 +172,7 @@ func (c *ClientConfig) CreateOrUpdateVmFirmwares(ctx context.Context, vmName str
 		return nil
 	}
 	if len(vmFirmwares) > 1 {
-		return fmt.Errorf("Only 1 vm firmware setting allowed per a vm")
+		return fmt.Errorf("only 1 vm firmware setting allowed per a vm")
 	}
 
 	vmFirmware := vmFirmwares[0]
