@@ -15,14 +15,15 @@ jobs:
 
       - name: Create Changelog
         id: release_number_and_changelog
-        uses: taliesins/conventional-changelog-action@releases/v3
+        uses: TriPSs/conventional-changelog-action@releases/v4
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
           skip-on-empty: 'false'
           skip-commit: 'true'
           skip-tag: 'true'
-          dry-run: 'true'
+          #dry-run: 'true'
+          git-push: 'false'
           tag-prefix: 'v'
           output-file: 'false'
 
@@ -33,14 +34,14 @@ jobs:
           FILE_DATA: ${{ steps.release_number_and_changelog.outputs.clean_changelog }}
 
       - name: Create Changelog and commit
-        uses: taliesins/conventional-changelog-action@releases/v3
+        uses: TriPSs/conventional-changelog-action@releases/v4
         with:
           github-token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
           skip-version-file: 'true'
           skip-on-empty: 'false'
           skip-commit: 'false'
           skip-tag: 'false'
-          dry-run: 'false'
+          #dry-run: 'false'
           force-push: 'true'
           tag-prefix: 'v'
           output-file: 'CHANGELOG.md'
