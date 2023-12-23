@@ -3,71 +3,51 @@
       "master",
       {
          "name": "develop",
-         "prerelease": true
+         "prerelease": "true"
+      },
+      {
+         "name": "update_dependencies_2",
+         "prerelease": "true"
       }
    ],
-   "ci": true,
+   "ci": false,
    "debug": true,
-   "dryRun": true,
+   "dryRun": false,
    "plugins": [
       [
-         "@semantic-release/commit-analyzer",
-         {
-            "preset": "angular",
-            "releaseRules": [
-               { "tag": "Breaking", "release": "major" },
-               { "tag": "Build", "release": "minor" },
-               { "tag": "Chore", "release": "minor" },
-               { "tag": "Fix", "release": "patch" },
-               { "tag": "New", "release": "minor" },
-               { "tag": "Update", "release": "minor" },
-               { "tag": "Upgrade", "release": "minor" }
-            ],
-            "parserOpts": {
-               "noteKeywords": [
-                  "BREAKING CHANGE",
-                  "BREAKING CHANGES",
-                  "BREAKING"
-               ]
-            }
-         }
+         "@semantic-release/commit-analyzer"
       ],
       [
-         "@semantic-release/release-notes-generator",
-         {
-            "preset": "angular",
-            "releaseRules": [
-               { "tag": "Breaking", "release": "major" },
-               { "tag": "Build", "release": "minor" },
-               { "tag": "Chore", "release": "minor" },
-               { "tag": "Fix", "release": "patch" },
-               { "tag": "New", "release": "minor" },
-               { "tag": "Update", "release": "minor" },
-               { "tag": "Upgrade", "release": "minor" }
-            ],
-            "parserOpts": {
-               "noteKeywords": [
-                  "BREAKING CHANGE",
-                  "BREAKING CHANGES",
-                  "BREAKING"
-               ]
-            },
-            "writerOpts": {
-               "commitsSort": [
-                  "subject",
-                  "scope"
-               ]
-            }
-         }
+         "@semantic-release/release-notes-generator"
       ],
       [
          "@semantic-release/changelog",
          {
-            "changelogFile": "CHANGELOG.md",
+            "changelogFile": "CHANGELOG2.md",
             "changelogTitle": "# HyperV Terraform Provider Changelog"
+         }
+      ],
+      [
+         "@semantic-release/git",
+         {
+            "assets": [
+               "CHANGELOG.md"
+            ],
+            "message": "chore(release): ${nextRelease.version} [skip ci]\n\n${nextRelease.notes}"
+         }
+      ],
+      [
+         "@semantic-release/github",
+         {
+            "assets": [
+               {
+                  "path": "release/**"
+               }
+            ]
          }
       ]
    ],
+   "preset": "conventionalcommits",
    "repositoryUrl": "https://github.com/taliesins/terraform-provider-hyperv",
    "tagFormat": "v${version}"
 }
