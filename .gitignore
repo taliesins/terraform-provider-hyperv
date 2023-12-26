@@ -35,3 +35,9 @@ website/vendor
 *.winfile eol=crlf
 /vendor
 /act
+/node_modules
+/package-lock.json
+/package.json
+/.vs
+/.idea
+/.terraform
