@@ -312,7 +312,7 @@ jobs:
       - name: generate change log for prerelease
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         run: |
-          git-chglog --next-tag "v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"
+          git-chglog --next-tag "v${{ steps.get_version.outputs.PRERELEASE_VERSION }}" > CHANGELOG.md
       - name: goreleaser snapshot
         uses: goreleaser/goreleaser-action@v5
         if: "!(startsWith(github.ref, 'refs/tags/v'))"

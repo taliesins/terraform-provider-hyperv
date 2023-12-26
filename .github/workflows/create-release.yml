@@ -40,7 +40,7 @@ jobs:
           echo "release version: ${release_version}"
       - name: generate change log for release
         run: |
-          git-chglog --next-tag "v${{ steps.get_version.outputs.RELEASE_VERSION }}"
+          git-chglog --next-tag "v${{ steps.get_version.outputs.RELEASE_VERSION }}" > CHANGELOG.md
       - name: Add updated changelog
         uses: EndBug/add-and-commit@v9
         with:
