@@ -34,9 +34,9 @@ jobs:
           prerelease_version="$(svu prerelease --tag-mode all-branches --strip-prefix --pre-release prerelease)"
           release_version="$(svu next --tag-mode all-branches --strip-prefix)"
           
-          echo ::set-output name=CURRENT_VERSION::${current_version}
-          echo ::set-output name=PRERELEASE_VERSION::${prerelease_version}
-          echo ::set-output name=RELEASE_VERSION::${release_version}
+          echo "CURRENT_VERSION=${current_version}" >> $GITHUB_OUTPUT
+          echo "PRERELEASE_VERSION=${prerelease_version}" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=${release_version}" >> $GITHUB_OUTPUT
           
           echo "current version: ${current_version}"
           echo "prerelease version: ${prerelease_version}"
