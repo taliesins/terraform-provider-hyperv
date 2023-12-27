@@ -349,7 +349,7 @@ jobs:
         with:
           name: ${{steps.naming.outputs.ARTIFACT}}
           path: dist/*.zip
-
+          
       - name: Add updated changelog, and create new branch
         uses: EndBug/add-and-commit@v9
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
