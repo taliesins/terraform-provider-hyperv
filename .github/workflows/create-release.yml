@@ -16,10 +16,10 @@ jobs:
           # Fetches entire history, so we can analyze commits since last tag
           fetch-depth: 0
           persist-credentials: false
-      - uses: actions/setup-git-chglog@v1
+      - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
-      - uses: obfu5c8/action-svu
+      - uses: obfu5c8/action-svu@v1
         id: install_svu
         with:
           type: none
