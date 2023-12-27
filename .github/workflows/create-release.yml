@@ -19,6 +19,7 @@ jobs:
           fetch-tags: true
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
