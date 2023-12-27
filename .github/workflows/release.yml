@@ -51,7 +51,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Cache cache-go-pkg-mod
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       continue-on-error: true
       id: cache-go-pkg-mod
       timeout-minutes: 2
@@ -59,7 +59,7 @@ jobs:
           path: ~/go/pkg/mod
           key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
     - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
     - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
@@ -73,7 +73,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Cache cache-terraform-plugin-dir
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       continue-on-error: true
       id: cache-terraform-plugin-dir
       timeout-minutes: 2
@@ -81,7 +81,7 @@ jobs:
         path: terraform-plugin-dir
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      uses: actions/setup-go@v4
+      uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
@@ -89,12 +89,12 @@ jobs:
       run: |
         echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       with:
         path: ${{ env.GOCACHE }}
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       with:
         path: ~/go/pkg/mod
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
@@ -109,7 +109,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Cache cache-terraform-providers-schema
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       continue-on-error: true
       id: cache-terraform-providers-schema
       timeout-minutes: 2
@@ -117,7 +117,7 @@ jobs:
         path: terraform-providers-schema
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
-      uses: actions/cache@v3.3.1
+      uses: actions/cache@v3.3.2
       timeout-minutes: 2
       with:
         path: terraform-plugin-dir
@@ -145,19 +145,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-go@v4
+    - uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: go env
       run: |
         echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
@@ -175,19 +175,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-go@v4
+    - uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: go env
       run: |
         echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
@@ -200,19 +200,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/setup-go@v4
+    - uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
     - name: go env
       run: |
         echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
         path: ${{ env.GOCACHE }}
         key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.1
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       timeout-minutes: 2
       with:
@@ -281,10 +281,10 @@ jobs:
           echo "current version: ${current_version}"
           echo "prerelease version: ${prerelease_version}"
           echo "release version: ${release_version}"
-      - uses: actions/setup-go@v4
+      - uses: actions/setup-go@v5
         with:
           go-version: ${{ env.GO_VERSION }}
-      - uses: actions/cache@v3.3.1
+      - uses: actions/cache@v3.3.2
         continue-on-error: true
         timeout-minutes: 2
         with:
@@ -297,7 +297,7 @@ jobs:
           args: check
       - name: Import GPG key
         id: import_gpg
-        uses: crazy-max/ghaction-import-gpg@v6.0.0
+        uses: crazy-max/ghaction-import-gpg@v6.1.0
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
@@ -342,7 +342,7 @@ jobs:
           ARTIFACT="${ARTIFACT}-$(date -u +'%Y-%m-%dT%H-%M')"
           echo "ARTIFACT=${ARTIFACT}" >> $GITHUB_OUTPUT
       - name: upload snapshot artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           name: ${{steps.naming.outputs.ARTIFACT}}
