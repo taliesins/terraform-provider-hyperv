@@ -19,7 +19,7 @@ jobs:
       - uses: actions/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
-      - uses: obfu5c8/action-svu
+      - uses: obfu5c8/action-svu@v1
         id: install_svu
         with:
           type: none
