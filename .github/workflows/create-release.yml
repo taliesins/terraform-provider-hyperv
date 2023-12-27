@@ -11,11 +11,11 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@master
+      - uses: actions/checkout@v4
         with:
           # Fetches entire history, so we can analyze commits since last tag
           fetch-depth: 0
-          persist-credentials: false
+          persist-credentials: true
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
