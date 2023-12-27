@@ -255,6 +255,10 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          persist-credentials: true
+          fetch-tags: true
+          repository: ${{ github.event.pull_request.head.repo.full_name }}
+          ref: ${{ github.event.pull_request.head.ref }}
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
@@ -269,10 +273,10 @@ jobs:
           current_version="$(svu current --tag-mode current-branch --strip-prefix)"
           prerelease_version="$(svu prerelease --tag-mode all-branches --strip-prefix --pre-release prerelease)"
           release_version="$(svu next --tag-mode all-branches --strip-prefix)"
-          
-          echo ::set-output name=CURRENT_VERSION::${current_version}
-          echo ::set-output name=PRERELEASE_VERSION::${prerelease_version}
-          echo ::set-output name=RELEASE_VERSION::${release_version}
+
+          echo "CURRENT_VERSION=${current_version}" >> $GITHUB_OUTPUT
+          echo "PRERELEASE_VERSION=${prerelease_version}" >> $GITHUB_OUTPUT
+          echo "RELEASE_VERSION=${release_version}" >> $GITHUB_OUTPUT
           
           echo "current version: ${current_version}"
           echo "prerelease version: ${prerelease_version}"
@@ -298,6 +302,7 @@ jobs:
         with:
           gpg_private_key: ${{ secrets.GPG_PRIVATE_KEY }}
           #passphrase: ${{ secrets.PASSPHRASE }}  
+
       - name: goreleaser release
         uses: goreleaser/goreleaser-action@v5
         if: startsWith(github.ref, 'refs/tags/v')
@@ -309,6 +314,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           GORELEASER_CURRENT_TAG: ${{ steps.get_version.outputs.RELEASE_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ steps.get_version.outputs.CURRENT_VERSION }}
+          
       - name: generate change log for prerelease
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         run: |
@@ -334,13 +340,16 @@ jobs:
           *)
             ARTIFACT="${GITHUB_REF}";;
           esac
-          echo "::set-output name=ARTIFACT::$ARTIFACT-$(date -u +'%Y-%m-%dT%H-%M')"
+
+          ARTIFACT="${ARTIFACT}-$(date -u +'%Y-%m-%dT%H-%M')"
+          echo "ARTIFACT=${ARTIFACT}" >> $GITHUB_OUTPUT
       - name: upload snapshot artifact
         uses: actions/upload-artifact@v4
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           name: ${{steps.naming.outputs.ARTIFACT}}
           path: dist/*.zip
+          
       - name: Add updated changelog, and create new branch
         uses: EndBug/add-and-commit@v9
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
@@ -348,4 +357,3 @@ jobs:
           default_author: github_actions
           message: "chore(release): v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"
           add: "CHANGELOG.md"
-          new_branch: "v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"

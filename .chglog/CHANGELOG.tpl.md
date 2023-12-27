@@ -1,11 +1,12 @@
+{{ $repositoryURL := .Info.RepositoryURL }}
 {{ if .Versions -}}
 {{ if .Unreleased.CommitGroups }}
 <a name="unreleased"></a>
-## [Unreleased]({{ .Info.RepositoryURL }}/compare/{{ $latest := index .Versions 0 }}{{ $latest.Tag.Name }}...HEAD)
+## [Unreleased]({{ $repositoryURL }}/compare/{{ $latest := index .Versions 0 }}{{ $latest.Tag.Name }}...HEAD)
 {{ range .Unreleased.CommitGroups -}}
 ### {{ .Title }}
 {{ range .Commits -}}
-- {{ if .Scope }}**{{ .Scope }}:** {{ end }}{{ .Subject }}
+- {{ if .Scope }}**{{ .Scope }}:** {{ end }}[{{ .Hash.Short }}]({{ $repositoryURL }}/commit/{{ .Hash.Long }}) {{ .Subject }}
 {{ end }}
 {{ end -}}
 {{ range .Unreleased.NoteGroups -}}
@@ -17,11 +18,11 @@
 {{ end -}}
 {{ range .Versions }}
 <a name="{{ .Tag.Name }}"></a>
-## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $.Info.RepositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}{{ .Tag.Name }}{{ end }} ({{ datetime "2006-01-02" .Tag.Date }})
+## {{ if .Tag.Previous }}[{{ .Tag.Name }}]({{ $repositoryURL }}/compare/{{ .Tag.Previous.Name }}...{{ .Tag.Name }}){{ else }}{{ .Tag.Name }}{{ end }} ({{ datetime "2006-01-02" .Tag.Date }})
 {{ range .CommitGroups -}}
 ### {{ .Title }}
 {{ range .Commits -}}
-- {{ if .Scope }}**{{ .Scope }}:** {{ end }}{{ .Subject }}
+- {{ if .Scope }}**{{ .Scope }}:** {{ end }}[{{ .Hash.Short }}]({{ $repositoryURL }}/commit/{{ .Hash.Long }}) {{ .Subject }}
 {{ end }}
 {{ end -}}
 {{ range .NoteGroups -}}
