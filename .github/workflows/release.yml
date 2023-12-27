@@ -256,6 +256,7 @@ jobs:
         with:
           fetch-depth: 0
           persist-credentials: true
+          fetch-tags: true
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
