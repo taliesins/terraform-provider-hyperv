@@ -351,3 +351,4 @@ jobs:
           message: "chore(release): v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"
           add: "CHANGELOG.md"
           new_branch: "v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"
+          pull: '--rebase'
