@@ -259,6 +259,7 @@ jobs:
           fetch-tags: true
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
+          token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
@@ -308,7 +309,7 @@ jobs:
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           version: latest
-          args: release --rm-dist --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=CHANGELOG.md
+          args: release --clean --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=CHANGELOG.md
         env:
           GPG_FINGERPRINT: ${{ steps.import_gpg.outputs.fingerprint }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -323,7 +324,7 @@ jobs:
         uses: goreleaser/goreleaser-action@v5
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
-          args: release --rm-dist --skip-sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=CHANGELOG.md
+          args: release --clean --skip=sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=CHANGELOG.md
         env:
           GORELEASER_CURRENT_TAG: ${{ steps.get_version.outputs.RELEASE_VERSION }}
           GORELEASER_PREVIOUS_TAG: ${{ steps.get_version.outputs.CURRENT_VERSION }}
@@ -350,9 +351,9 @@ jobs:
           name: ${{steps.naming.outputs.ARTIFACT}}
           path: dist/*.zip
           
-      - name: Add updated changelog, and create new branch
+      - name: Add updated changelog
         uses: EndBug/add-and-commit@v9
-        if: "!(startsWith(github.ref, 'refs/tags/v'))"
+        if: "!(startsWith(github.ref, 'refs/heads/master'))"
         with:
           default_author: github_actions
           message: "chore(release): v${{ steps.get_version.outputs.PRERELEASE_VERSION }}"
