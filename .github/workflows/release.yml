@@ -320,7 +320,7 @@ jobs:
           SEMGREP_APP_TOKEN: ${{ secrets.SEMGREP_APP_TOKEN }}
 
   goreleaser:
-    needs: [go_mod_download]
+    needs: [go_build]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
