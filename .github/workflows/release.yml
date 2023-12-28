@@ -50,14 +50,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - name: Cache cache-go-pkg-mod
-      uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.2
       continue-on-error: true
       id: cache-go-pkg-mod
-      timeout-minutes: 2
+      timeout-minutes: 3
       with:
-          path: ~/go/pkg/mod
-          key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+        path: |
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-go-pkg-mod
     - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
       uses: actions/setup-go@v5
       with:
@@ -72,33 +76,49 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/cache@v3.3.2
+      continue-on-error: true
+      id: cache-go-pkg-mod
+      timeout-minutes: 3
+      with:
+        path: |
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-go-pkg-mod
+    - uses: actions/cache@v3.3.2
+      continue-on-error: true
+      id: cache-go-build
+      timeout-minutes: 3
+      with:
+        path: |
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-go-build
     - name: Cache cache-terraform-plugin-dir
       uses: actions/cache@v3.3.2
       continue-on-error: true
       id: cache-terraform-plugin-dir
       timeout-minutes: 2
       with:
-        path: terraform-plugin-dir
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+        path: |
+          terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure' || steps.cache-go-build.outputs.cache-hit != 'true' || steps.cache-go-build.outcome == 'failure' || steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      name: go env
-      run: |
-        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      uses: actions/cache@v3.3.2
-      with:
-        path: ${{ env.GOCACHE }}
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
-      uses: actions/cache@v3.3.2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - if: steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      name: go mod download
+      run: go mod download
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure' || steps.cache-go-build.outputs.cache-hit != 'true' || steps.cache-go-build.outcome == 'failure' || steps.cache-terraform-plugin-dir.outputs.cache-hit != 'true' || steps.cache-terraform-plugin-dir.outcome == 'failure'
       name: go build
       run: go build -o terraform-plugin-dir/registry.terraform.io/hashicorp/hyperv/99.99.99/linux_amd64/terraform-provider-hyperv_v99.99.99
 
@@ -114,14 +134,23 @@ jobs:
       id: cache-terraform-providers-schema
       timeout-minutes: 2
       with:
-        path: terraform-providers-schema
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-providers-schema-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
+        path: |
+          terraform-providers-schema
+        key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+    - name: Cache cache-terraform-plugin-dir
       uses: actions/cache@v3.3.2
+      continue-on-error: true
+      id: cache-terraform-plugin-dir
       timeout-minutes: 2
       with:
-        path: terraform-plugin-dir
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+        path: |
+          terraform-plugin-dir
+        key: ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+        restore-keys: |
+          ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          ${{ runner.os }}-terraform-plugin-dir-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-terraform-plugin-dir-
+  
     - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
       uses: hashicorp/setup-terraform@v3.0.0
       with:
@@ -145,24 +174,38 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+    - uses: actions/cache@v3.3.2
+      continue-on-error: true
+      id: cache-go-pkg-mod
+      timeout-minutes: 3
+      with:
+        path: |
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-go-pkg-mod
+    - uses: actions/cache@v3.3.2
+      continue-on-error: true
+      id: cache-go-build
+      timeout-minutes: 3
+      with:
+        path: |
+          ~/.cache/go-build
+        key: ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+        restore-keys: |
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
+          ${{ runner.os }}-go-build
     - uses: actions/setup-go@v5
       with:
         go-version: ${{ env.GO_VERSION }}
-    - name: go env
-      run: |
-        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ${{ env.GOCACHE }}
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
+    - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+      name: go mod download
+      run: go mod download
+
     - run: go generate ./...
     - name: Check for Git Differences
       run: |
@@ -174,53 +217,81 @@ jobs:
     needs: [go_build]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - name: go env
-      run: |
-        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ${{ env.GOCACHE }}
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go test ./... -timeout=${{ env.TEST_TIME_OUT }}
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-pkg-mod
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-pkg-mod
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-build
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+        name: go mod download
+        run: go mod download
+
+      - run: go test ./... -timeout=${{ env.TEST_TIME_OUT }}
 
   golangci-lint:
     needs: [go_build]
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - uses: actions/setup-go@v5
-      with:
-        go-version: ${{ env.GO_VERSION }}
-    - name: go env
-      run: |
-        echo "GOCACHE=$(go env GOCACHE)" >> $GITHUB_ENV
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ${{ env.GOCACHE }}
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-GOCACHE-${{ hashFiles('go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
-    - uses: actions/cache@v3.3.2
-      continue-on-error: true
-      timeout-minutes: 2
-      with:
-        path: ~/go/pkg/mod
-        key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
-    - run: go get -d github.com/golangci/golangci-lint/cmd/golangci-lint
-    - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
-    - run: golangci-lint run
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-pkg-mod
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-pkg-mod
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-build
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+        name: go mod download
+        run: go mod download
+        
+      - run: go get -d github.com/golangci/golangci-lint/cmd/golangci-lint
+      - run: go install github.com/golangci/golangci-lint/cmd/golangci-lint
+      - run: golangci-lint run
 
   semgrep:
     # User definable name of this GitHub Actions job.
@@ -260,6 +331,38 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-pkg-mod
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-pkg-mod
+      - uses: actions/cache@v3.3.2
+        continue-on-error: true
+        id: cache-go-build
+        timeout-minutes: 3
+        with:
+          path: |
+            ~/.cache/go-build
+          key: ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+          restore-keys: |
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
+            ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
+            ${{ runner.os }}-go-build
+      - uses: actions/setup-go@v5
+        with:
+          go-version: ${{ env.GO_VERSION }}
+      - if: steps.cache-go-pkg-mod.outputs.cache-hit != 'true' || steps.cache-go-pkg-mod.outcome == 'failure'
+        name: go mod download
+        run: go mod download
+
       - uses: Bpazy/setup-git-chglog@v1
         with:
           git-chglog-version: ${{ env.GIT_CHGLOG_VERSION}}
@@ -282,15 +385,6 @@ jobs:
           echo "current version: ${current_version}"
           echo "prerelease version: ${prerelease_version}"
           echo "release version: ${release_version}"
-      - uses: actions/setup-go@v5
-        with:
-          go-version: ${{ env.GO_VERSION }}
-      - uses: actions/cache@v3.3.2
-        continue-on-error: true
-        timeout-minutes: 2
-        with:
-          path: ~/go/pkg/mod
-          key: ${{ hashFiles('.github/workflows/release.yml') }}-${{ runner.os }}-go-pkg-mod-${{ hashFiles('go.sum') }}
       - name: goreleaser check
         continue-on-error: true
         uses: goreleaser/goreleaser-action@v5
