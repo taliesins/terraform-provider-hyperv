@@ -24,7 +24,7 @@
 - [5c1fd8b](https://github.com/taliesins/terraform-provider-hyperv/commit/5c1fd8bc40b7124718322fc1f6cbc8ee686a1462) fix build
 
 ### Fix
-- **ci:** [9553b73](https://github.com/taliesins/terraform-provider-hyperv/commit/9553b7344b9e5ef0c49ab2ba0610526ab54436c9) Upgrade CI/CD pipeline for semver and changelog - Configure a new template for changelog - Update dependencies - Use partial cache functionality to speed up builds
+- **ci:** [a1c005a](https://github.com/taliesins/terraform-provider-hyperv/commit/a1c005af6500bb42040043d044a34fb92152d9ca) Upgrade CI/CD pipeline for semver and changelog - Configure a new template for changelog - Update dependencies - Use partial cache functionality to speed up builds
 
 <a name="v1.0.4"></a>
 ## [v1.0.4](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.3...v1.0.4) (2022-12-14)
