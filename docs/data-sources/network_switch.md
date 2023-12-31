@@ -85,5 +85,3 @@ output "hyperv_network_switch" {
 Optional:
 
 - `read` (String)
-
-
