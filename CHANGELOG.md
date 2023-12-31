@@ -1,4 +1,7 @@
 
+<a name="v1.1.0-prerelease.0"></a>
+## [v1.1.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.1.0-prerelease.0) (2023-12-31)
+
 <a name="v1.1.0"></a>
 ## [v1.1.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.4...v1.1.0) (2023-12-31)
 
@@ -6,19 +9,19 @@
 - [7ab008e](https://github.com/taliesins/terraform-provider-hyperv/commit/7ab008e24cac705707c648e11002378d34ad3f29) add semantic release
 
 ### Chore
-- **deps:** [7ef6010](https://github.com/taliesins/terraform-provider-hyperv/commit/7ef6010f7cdcfdd9bb93c464fcfacf34716f2e19) bump google.golang.org/grpc from 1.51.0 to 1.56.3
-- **deps:** [22694a3](https://github.com/taliesins/terraform-provider-hyperv/commit/22694a3e439f80f72b2aa29a524aa74d3fd8c23c) bump amannn/action-semantic-pull-request
+- **deps:** [e0d2b06](https://github.com/taliesins/terraform-provider-hyperv/commit/e0d2b065ebf59d7f314ec4ba6dcb72422b974a14) bump crazy-max/ghaction-import-gpg from 5.2.0 to 6.0.0
+- **deps:** [e8045f2](https://github.com/taliesins/terraform-provider-hyperv/commit/e8045f2914f902dfddd8cbb0abc7d3f052d9dc1d) bump golang.org/x/net from 0.7.0 to 0.17.0
+- **deps:** [46860cc](https://github.com/taliesins/terraform-provider-hyperv/commit/46860cc721e49e4b83634e91c3c90978bbd470da) bump actions/checkout from 3 to 4
 - **deps:** [777fdf6](https://github.com/taliesins/terraform-provider-hyperv/commit/777fdf60ec9c84d382aa02e4c345cfd1f2d8cc6a) bump golang.org/x/crypto from 0.14.0 to 0.17.0
 - **deps:** [65ba5b7](https://github.com/taliesins/terraform-provider-hyperv/commit/65ba5b79f21a1cb10c6b313a0c3d23d05a4d86e7) bump amannn/action-semantic-pull-request
 - **deps:** [e5a1ab9](https://github.com/taliesins/terraform-provider-hyperv/commit/e5a1ab9256f1782a9fa9f1e03bfcd43ed7d00aec) bump hashicorp/setup-terraform from 2.0.3 to 3.0.0
-- **deps:** [e0d2b06](https://github.com/taliesins/terraform-provider-hyperv/commit/e0d2b065ebf59d7f314ec4ba6dcb72422b974a14) bump crazy-max/ghaction-import-gpg from 5.2.0 to 6.0.0
-- **deps:** [46860cc](https://github.com/taliesins/terraform-provider-hyperv/commit/46860cc721e49e4b83634e91c3c90978bbd470da) bump actions/checkout from 3 to 4
 - **deps:** [68d0fc2](https://github.com/taliesins/terraform-provider-hyperv/commit/68d0fc25ffb168f661110731fb58ee204189197d) bump actions/cache from 3.0.11 to 3.2.1
-- **deps:** [72e5111](https://github.com/taliesins/terraform-provider-hyperv/commit/72e51115e6f837449cd6422b41433b616dec8935) bump actions/cache from 3.2.1 to 3.3.1
-- **deps:** [395f0a4](https://github.com/taliesins/terraform-provider-hyperv/commit/395f0a432aca0cdf75d898b8058cb390c6e340b7) bump actions/setup-go from 3 to 4
-- **deps:** [e8045f2](https://github.com/taliesins/terraform-provider-hyperv/commit/e8045f2914f902dfddd8cbb0abc7d3f052d9dc1d) bump golang.org/x/net from 0.7.0 to 0.17.0
-- **deps:** [b353437](https://github.com/taliesins/terraform-provider-hyperv/commit/b3534370fbb78cac28627b01fe0f4a8b0a20f016) bump golang.org/x/net from 0.4.0 to 0.7.0
+- **deps:** [7ef6010](https://github.com/taliesins/terraform-provider-hyperv/commit/7ef6010f7cdcfdd9bb93c464fcfacf34716f2e19) bump google.golang.org/grpc from 1.51.0 to 1.56.3
 - **deps:** [59e00c2](https://github.com/taliesins/terraform-provider-hyperv/commit/59e00c28bb8bea65ec6b9ba82687308984272992) bump goreleaser/goreleaser-action from 4.1.0 to 4.2.0
+- **deps:** [22694a3](https://github.com/taliesins/terraform-provider-hyperv/commit/22694a3e439f80f72b2aa29a524aa74d3fd8c23c) bump amannn/action-semantic-pull-request
+- **deps:** [395f0a4](https://github.com/taliesins/terraform-provider-hyperv/commit/395f0a432aca0cdf75d898b8058cb390c6e340b7) bump actions/setup-go from 3 to 4
+- **deps:** [72e5111](https://github.com/taliesins/terraform-provider-hyperv/commit/72e51115e6f837449cd6422b41433b616dec8935) bump actions/cache from 3.2.1 to 3.3.1
+- **deps:** [b353437](https://github.com/taliesins/terraform-provider-hyperv/commit/b3534370fbb78cac28627b01fe0f4a8b0a20f016) bump golang.org/x/net from 0.4.0 to 0.7.0
 
 ### Feat
 - [5c1fd8b](https://github.com/taliesins/terraform-provider-hyperv/commit/5c1fd8bc40b7124718322fc1f6cbc8ee686a1462) fix build
