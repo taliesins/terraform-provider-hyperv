@@ -1,6 +1,6 @@
 
 <a name="v1.1.0-prerelease.0"></a>
-## [v1.1.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.1.0-prerelease.0) (2023-12-31)
+## [v1.1.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.1.0-prerelease.0) (2024-01-01)
 
 <a name="v1.1.0"></a>
 ## [v1.1.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.4...v1.1.0) (2023-12-31)
