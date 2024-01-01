@@ -30,7 +30,7 @@ func winPath(path string) string {
 		path = fmt.Sprintf("'%s'", strings.Trim(path, "'\""))
 	}
 
-	return strings.Replace(path, "/", "\\", -1)
+	return strings.ReplaceAll(path, "/", "\\")
 }
 
 func doCopy(client *winrm.Client, maxChunks int, in io.Reader, toPath string) (remoteAbsolutePath string, err error) {
@@ -376,6 +376,9 @@ func shellExecute(shell *winrm.Shell, command string, arguments ...string) (int,
 
 func uploadScript(client *winrm.Client, fileName string, command string) (remoteAbsolutePath string, err error) {
 	tmpFile, err := os.CreateTemp(os.TempDir(), fileName)
+	if err != nil {
+		return "", fmt.Errorf("error creating temp file: %s", err)
+	}
 	writer := bufio.NewWriter(tmpFile)
 	if _, err := writer.WriteString(command); err != nil {
 		return "", fmt.Errorf("error preparing shell script: %s", err)

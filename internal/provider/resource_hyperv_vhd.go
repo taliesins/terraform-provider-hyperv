@@ -126,7 +126,7 @@ func resourceHyperVVhd() *schema.Resource {
 				ConflictsWith: []string{
 					"parent_path",
 				},
-				ValidateDiagFunc: IsDivisibleBy(4096), //Technical it could also be 512
+				ValidateDiagFunc: IsDivisibleBy(4096), // Technical it could also be 512
 				Description:      "This field is mutually exclusive with the field `parent_path`. The maximum size, in bytes, of the virtual hard disk to be created. This size must be divisible by 4096 so that it fits into logical blocks.",
 			},
 			"block_size": {
@@ -232,7 +232,7 @@ func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta i
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", path, "hyperv_vhd", "hyperv_vhd", path))
+			return diag.FromErr(fmt.Errorf("a resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", path, "hyperv_vhd", "hyperv_vhd", path))
 		}
 	}
 

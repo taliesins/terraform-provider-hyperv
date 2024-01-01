@@ -131,7 +131,7 @@ func (c *ClientConfig) CreateOrUpdateVmProcessors(ctx context.Context, vmName st
 		return nil
 	}
 	if len(vmProcessors) > 1 {
-		return fmt.Errorf("Only 1 vm processor setting allowed per a vm")
+		return fmt.Errorf("only 1 vm processor setting allowed per a vm")
 	}
 
 	vmProcessor := vmProcessors[0]

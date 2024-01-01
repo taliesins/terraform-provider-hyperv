@@ -78,5 +78,3 @@ output "hyperv_vhd" {
 Optional:
 
 - `read` (String)
-
-

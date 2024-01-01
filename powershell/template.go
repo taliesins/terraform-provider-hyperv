@@ -11,10 +11,10 @@ type executePowershellFromCommandLineTemplateOptions struct {
 
 var executePowershellFromCommandLineTemplate = template.Must(template.New("ExecuteCommandFromCommandLine").Funcs(template.FuncMap{
 	"escapeDoubleQuotes": func(textToEscape string) string {
-		textToEscape = strings.Replace(textToEscape, "\n", "", -1)
-		textToEscape = strings.Replace(textToEscape, "\r", "", -1)
-		textToEscape = strings.Replace(textToEscape, "\t", "", -1)
-		textToEscape = strings.Replace(textToEscape, `"`, `\"`, -1)
+		textToEscape = strings.ReplaceAll(textToEscape, "\n", "")
+		textToEscape = strings.ReplaceAll(textToEscape, "\r", "")
+		textToEscape = strings.ReplaceAll(textToEscape, "\t", "")
+		textToEscape = strings.ReplaceAll(textToEscape, `"`, `\"`)
 		return textToEscape
 	},
 }).Parse(`powershell -NoProfile -ExecutionPolicy Bypass "{{escapeDoubleQuotes .Powershell}}"`))
@@ -38,7 +38,7 @@ type elevatedCommandTemplateOptions struct {
 
 var elevatedCommandTemplate = template.Must(template.New("ElevatedCommand").Funcs(template.FuncMap{
 	"escapeSingleQuotes": func(textToEscape string) string {
-		return strings.Replace(textToEscape, `'`, `''`, -1)
+		return strings.ReplaceAll(textToEscape, `'`, `''`)
 	},
 }).Parse(`
 function GetTempFile($fileName) {

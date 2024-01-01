@@ -64,4 +64,4 @@ resource "hyperv_machine_instance" "webserver" {
 - `timeout` (String) The timeout to wait for the connection to become available for HyperV api calls. Should be provided as a string like 30s or 5m. Can also be sourced from the `HYPERV_TIMEOUT` environment variable otherwise defaults to `30s`.
 - `tls_server_name` (String) The TLS server name for the host used for HyperV api calls. It can also be sourced from the `HYPERV_TLS_SERVER_NAME` environment variable otherwise defaults to empty string.
 - `use_ntlm` (Boolean) Use NTLM for authentication for HyperV api calls. Can also be set via setting the `HYPERV_USE_NTLM` environment variable to `true` otherwise defaults to `true`.
-- `user` (String) The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USERNAME` environment variable otherwise defaults to `Administrator.
+- `user` (String) The username to use when HyperV api calls are made. Generally this is Administrator. It can also be sourced from the `HYPERV_USER` environment variable otherwise defaults to `Administrator.

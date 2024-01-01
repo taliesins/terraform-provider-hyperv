@@ -828,7 +828,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 												return true
 											}
 
-											//When specifying path on new-vm it will auto append machine name on the end
+											// When specifying path on new-vm it will auto append machine name on the end
 											name := d.Get("name").(string)
 											computedPath := newValue
 											if !strings.HasSuffix(computedPath, "\\") {
@@ -948,7 +948,7 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", name, "hyperv_machine_instance", "hyperv_machine_instance", name))
+			return diag.FromErr(fmt.Errorf("a resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", name, "hyperv_machine_instance", "hyperv_machine_instance", name))
 		}
 	}
 

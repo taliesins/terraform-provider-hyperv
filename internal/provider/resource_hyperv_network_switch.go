@@ -162,7 +162,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		}
 
 		if existing.Exists {
-			return diag.FromErr(fmt.Errorf("A resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", switchName, "hyperv_network_switch", "hyperv_network_switch", switchName))
+			return diag.FromErr(fmt.Errorf("a resource with the ID %q already exists - to be managed via Terraform this resource needs to be imported into the State. Please see the resource documentation for %q for more information.\n terraform import %s.<resource name> %s", switchName, "hyperv_network_switch", "hyperv_network_switch", switchName))
 		}
 	}
 
@@ -185,7 +185,8 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 	defaultQueueVmmqQueuePairs := int32((d.Get("default_queue_vmmq_queue_pairs")).(int))
 	defaultQueueVrssEnabled := (d.Get("default_queue_vrss_enabled")).(bool)
 
-	if switchType == api.VMSwitchType_Private {
+	switch switchType {
+	case api.VMSwitchType_Private:
 		if allowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set AllowManagementOS to true if switch type is private")
 		}
@@ -193,7 +194,7 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		if len(netAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set NetAdapterNames when switch type is private")
 		}
-	} else if switchType == api.VMSwitchType_Internal {
+	case api.VMSwitchType_Internal:
 		if !allowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set AllowManagementOS to false if switch type is internal")
 		}
@@ -201,27 +202,28 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		if len(netAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set NetAdapterNames when switch type is internal")
 		}
-	} else if switchType == api.VMSwitchType_External {
+	case api.VMSwitchType_External:
 		if len(netAdapterNames) < 1 {
 			return diag.Errorf("[ERROR][hyperv][create] Must specify NetAdapterNames if switch type is external")
 		}
 	}
 
-	if bandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute {
+	switch {
+	case bandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute:
 		if defaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set DefaultFlowMinimumBandwidthWeight if bandwidth reservation mode is absolute")
 		}
 		if defaultFlowMinimumBandwidthAbsolute < 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Bandwidth absolute must be 0 or greater")
 		}
-	} else if bandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (bandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!iovEnabled)) {
+	case bandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (bandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!iovEnabled)):
 		if defaultFlowMinimumBandwidthAbsolute != 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set DefaultFlowMinimumBandwidthAbsolute if bandwidth reservation mode is weight")
 		}
 		if defaultFlowMinimumBandwidthWeight < 1 || defaultFlowMinimumBandwidthWeight > 100 {
 			return diag.Errorf("[ERROR][hyperv][create] Bandwidth weight must be between 1 and 100")
 		}
-	} else {
+	default:
 		if defaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][create] Unable to set DefaultFlowMinimumBandwidthWeight if bandwidth reservation mode is none")
 		}
@@ -268,7 +270,8 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	if s.SwitchType == api.VMSwitchType_Private {
+	switch s.SwitchType {
+	case api.VMSwitchType_Private:
 		if s.AllowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][read] Unable to set AllowManagementOS to true if switch type is private")
 		}
@@ -276,7 +279,7 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 		if len(s.NetAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][read] Unable to set NetAdapterNames when switch type is private")
 		}
-	} else if s.SwitchType == api.VMSwitchType_Internal {
+	case api.VMSwitchType_Internal:
 		if !s.AllowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][read] Unable to set AllowManagementOS to false if switch type is internal")
 		}
@@ -284,27 +287,28 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 		if len(s.NetAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][read] Unable to set NetAdapterNames when switch type is internal")
 		}
-	} else if s.SwitchType == api.VMSwitchType_External {
+	case api.VMSwitchType_External:
 		if len(s.NetAdapterNames) < 1 {
 			return diag.Errorf("[ERROR][hyperv][read] Must specify NetAdapterNames if switch type is external")
 		}
 	}
 
-	if s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute {
+	switch {
+	case s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute:
 		if s.DefaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][read] DefaultFlowMinimumBandwidthWeight should be 0 if bandwidth reservation mode is absolute")
 		}
 		if s.DefaultFlowMinimumBandwidthAbsolute < 0 {
 			return diag.Errorf("[ERROR][hyperv][read] Bandwidth absolute must be 0 or greater")
 		}
-	} else if s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!s.IovEnabled)) {
+	case s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (s.BandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!s.IovEnabled)):
 		if s.DefaultFlowMinimumBandwidthAbsolute != 0 {
 			return diag.Errorf("[ERROR][hyperv][read] DefaultFlowMinimumBandwidthAbsolute should be 0 if bandwidth reservation mode is weight")
 		}
 		if s.DefaultFlowMinimumBandwidthWeight < 1 || s.DefaultFlowMinimumBandwidthWeight > 100 {
 			return diag.Errorf("[ERROR][hyperv][read] Bandwidth weight must be between 1 and 100")
 		}
-	} else {
+	default:
 		if s.DefaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][read] DefaultFlowMinimumBandwidthWeight should be 0 if bandwidth reservation mode is none")
 		}
@@ -389,7 +393,8 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 	defaultQueueVmmqQueuePairs := int32((d.Get("default_queue_vmmq_queue_pairs")).(int))
 	defaultQueueVrssEnabled := (d.Get("default_queue_vrss_enabled")).(bool)
 
-	if switchType == api.VMSwitchType_Private {
+	switch switchType {
+	case api.VMSwitchType_Private:
 		if allowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set AllowManagementOS to true if switch type is private")
 		}
@@ -397,7 +402,7 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 		if len(netAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set NetAdapterNames when switch type is private")
 		}
-	} else if switchType == api.VMSwitchType_Internal {
+	case api.VMSwitchType_Internal:
 		if !allowManagementOS {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set AllowManagementOS to false if switch type is internal")
 		}
@@ -405,27 +410,28 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 		if len(netAdapterNames) > 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set NetAdapterNames when switch type is internal")
 		}
-	} else if switchType == api.VMSwitchType_External {
+	case api.VMSwitchType_External:
 		if len(netAdapterNames) < 1 {
 			return diag.Errorf("[ERROR][hyperv][update] Must specify NetAdapterNames if switch type is external")
 		}
 	}
 
-	if bandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute {
+	switch {
+	case bandwidthReservationMode == api.VMSwitchBandwidthMode_Absolute:
 		if defaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set DefaultFlowMinimumBandwidthWeight if bandwidth reservation mode is absolute")
 		}
 		if defaultFlowMinimumBandwidthAbsolute < 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Bandwidth absolute must be 0 or greater")
 		}
-	} else if bandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (bandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!iovEnabled)) {
+	case bandwidthReservationMode == api.VMSwitchBandwidthMode_Weight || (bandwidthReservationMode == api.VMSwitchBandwidthMode_Default && (!iovEnabled)):
 		if defaultFlowMinimumBandwidthAbsolute != 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set DefaultFlowMinimumBandwidthAbsolute if bandwidth reservation mode is weight")
 		}
 		if defaultFlowMinimumBandwidthWeight < 1 || defaultFlowMinimumBandwidthWeight > 100 {
 			return diag.Errorf("[ERROR][hyperv][update] Bandwidth weight must be between 1 and 100")
 		}
-	} else {
+	default:
 		if defaultFlowMinimumBandwidthWeight != 0 {
 			return diag.Errorf("[ERROR][hyperv][update] Unable to set DefaultFlowMinimumBandwidthWeight if bandwidth reservation mode is none")
 		}
