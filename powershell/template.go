@@ -220,13 +220,25 @@ type resolvePathTemplateOptions struct {
 	FilePath string
 }
 
-var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};[System.IO.Path]::GetFullPath("{{.FilePath}}");exit $LastExitCode;`))
+var resolvePathTemplate = template.Must(template.New("ResolvePath").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};[System.IO.Path]::GetFullPath($ExecutionContext.InvokeCommand.ExpandString("{{.FilePath}}"));exit $LastExitCode;`))
+
+type fileExistsTemplateOptions struct {
+	FilePath string
+}
+
+var fileExistsTemplate = template.Must(template.New("FileExists").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};$exists = Test-Path -Path $ExecutionContext.InvokeCommand.ExpandString("{{.FilePath}}") -PathType Leaf;$exists;exit $LastExitCode;`))
+
+type directoryExistsTemplateOptions struct {
+	DirectoryPath string
+}
+
+var directoryExistsTemplate = template.Must(template.New("DirectoryExists").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};$exists = Test-Path -Path $ExecutionContext.InvokeCommand.ExpandString("{{.FilePath}}") -PathType Container;$exists;exit $LastExitCode;`))
 
 type deleteFileTemplateOptions struct {
 	FilePath string
 }
 
-var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};if (Test-Path "{{.FilePath}}") {Remove-Item "{{.FilePath}}" -Force -Recurse -ErrorAction SilentlyContinue;};exit $LastExitCode;`))
+var deleteFileTemplate = template.Must(template.New("DeleteFile").Parse(`if (Test-Path variable:global:ProgressPreference){$ProgressPreference='SilentlyContinue';};if (Test-Path -Path $ExecutionContext.InvokeCommand.ExpandString("{{.FilePath}}")) {Remove-Item -Path $ExecutionContext.InvokeCommand.ExpandString("{{.FilePath}}") -Force -Recurse -ErrorAction SilentlyContinue;};exit $LastExitCode;`))
 
 type appendFileTemplateOptions struct {
 	FilePath string

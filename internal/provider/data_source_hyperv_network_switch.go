@@ -65,7 +65,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.VMSwitchBandwidthMode_name[api.VMSwitchBandwidthMode_None],
-				ValidateDiagFunc: stringKeyInMap(api.VMSwitchBandwidthMode_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.VMSwitchBandwidthMode_value, true),
 				ForceNew:         true,
 				Description:      "Valid values to use are `Absolute`, `Default`, `None`, `Weight`. Specifies how minimum bandwidth is to be configured on the virtual switch. If `Absolute` is specified, minimum bandwidth is bits per second. If `Weight` is specified, minimum bandwidth is a value ranging from `1` to `100`. If `None` is specified, minimum bandwidth is disabled on the switch – that is, users cannot configure it on any network adapter connected to the switch. If `Default` is specified, the system will set the mode to Weight, if the switch is not IOV-enabled, or `None` if the switch is IOV-enabled.",
 			},
@@ -74,7 +74,7 @@ func dataSourceHyperVNetworkSwitch() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.VMSwitchType_name[api.VMSwitchType_Internal],
-				ValidateDiagFunc: stringKeyInMap(api.VMSwitchType_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.VMSwitchType_value, true),
 				Description:      "Valid values to use are `Internal`, `Private` and `External`. Specifies the type of the switch to be created. ",
 			},
 

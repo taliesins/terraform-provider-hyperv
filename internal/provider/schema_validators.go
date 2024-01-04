@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"math"
 	"reflect"
+	"regexp"
 	"strings"
 
 	"github.com/hashicorp/go-cty/cty"
@@ -11,7 +12,57 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 )
 
-func stringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateDiagFunc {
+/*
+The string is limited to 15 characters.
+
+For ISO 9660 discs, the volume name can use the following characters:
+
+"A" through "Z"
+"0" through "9"
+"_" (underscore)
+
+For Joliet and UDF discs, the volume name can use the following characters:
+
+"a" through "z"
+"A" through "Z"
+"0" through "9"
+"." (period)
+"_" (underscore)
+*/
+func AllowedIsoVolumeName() schema.SchemaValidateDiagFunc {
+	return func(v interface{}, path cty.Path) diag.Diagnostics {
+		var diags diag.Diagnostics
+		validIso9660VolumeNameRegex := regexp.MustCompile(`^[A-Z0-9_]*$`)
+		//validJolietAndUdfVolumeNameRegex := regexp.MustCompile(`^[a-zA-Z0-9_\.]*$`)
+
+		value, ok := v.(string)
+		if !ok {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("expected type of %s to be string", v),
+			})
+
+			return diags
+		}
+
+		if len(value) > 15 {
+			diags = append(diags, diag.Diagnostic{
+				Severity: diag.Error,
+				Summary:  fmt.Sprintf("expected length of %s to be 15 characters or less", v),
+			})
+
+			return diags
+		}
+
+		if !validIso9660VolumeNameRegex.MatchString(value) {
+			diags = append(diags, diag.Errorf("%q must only use characters `A`-`Z`, `0`-`9` or `_`", value)...)
+		}
+
+		return diags
+	}
+}
+
+func StringKeyInMap(valid interface{}, ignoreCase bool) schema.SchemaValidateDiagFunc {
 	return func(i interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 

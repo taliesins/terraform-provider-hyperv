@@ -100,14 +100,16 @@ func (c *ClientConfig) RunScriptWithResult(ctx context.Context, script *template
 	return nil
 }
 
-func (c *ClientConfig) UploadFile(ctx context.Context, filePath string) (remoteRootPath string, err error) {
+func (c *ClientConfig) UploadFile(ctx context.Context, filePath string, remoteFilePath string) (string, error) {
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
 		return "", err
 	}
 
-	remoteRootPath, err = powershell.UploadFile(winrmClient.(*winrm.Client), filePath)
+	log.Printf("[DEBUG] upload file %#v", filePath)
+
+	remoteFilePath, err = powershell.UploadFile(winrmClient.(*winrm.Client), filePath, remoteFilePath)
 
 	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
 
@@ -119,17 +121,21 @@ func (c *ClientConfig) UploadFile(ctx context.Context, filePath string) (remoteR
 		return "", err2
 	}
 
-	return remoteRootPath, nil
+	log.Printf("[DEBUG] uploaded file %#v to %#v", filePath, remoteFilePath)
+
+	return remoteFilePath, nil
 }
 
-func (c *ClientConfig) UploadDirectory(ctx context.Context, rootPath string, excludeList []string) (remoteRootPath string, remoteAbsolutePaths []string, err error) {
+func (c *ClientConfig) UploadDirectory(ctx context.Context, rootPath string, excludeList []string) (remoteRootPath string, remoteAbsoluteFilePaths []string, err error) {
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
 		return "", []string{}, err
 	}
 
-	remoteRootPath, remoteAbsolutePaths, err = powershell.UploadDirectory(winrmClient.(*winrm.Client), rootPath, excludeList)
+	log.Printf("[DEBUG] upload directory %#v", rootPath)
+
+	remoteRootPath, remoteAbsoluteFilePaths, err = powershell.UploadDirectory(winrmClient.(*winrm.Client), rootPath, excludeList)
 
 	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
 
@@ -141,17 +147,81 @@ func (c *ClientConfig) UploadDirectory(ctx context.Context, rootPath string, exc
 		return "", []string{}, err2
 	}
 
-	return remoteRootPath, remoteAbsolutePaths, nil
+	log.Printf("[DEBUG] uploaded directory %#v to %#v. The following files where uploaded %#v", rootPath, remoteRootPath, remoteAbsoluteFilePaths)
+
+	return remoteRootPath, remoteAbsoluteFilePaths, nil
 }
 
-func (c *ClientConfig) DeleteFileOrDirectory(ctx context.Context, filePath string) (err error) {
+func (c *ClientConfig) FileExists(ctx context.Context, remoteFilePath string) (exists bool, err error) {
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	log.Printf("[DEBUG] check file exists %#v", remoteFilePath)
+
+	result, err := powershell.FileExists(winrmClient.(*winrm.Client), remoteFilePath)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return false, err
+	}
+
+	if err2 != nil {
+		return false, err2
+	}
+
+	if result {
+		log.Printf("[DEBUG] file exists %#v", remoteFilePath)
+	} else {
+		log.Printf("[DEBUG] file does not exists %#v", remoteFilePath)
+	}
+
+	return result, nil
+}
+
+func (c *ClientConfig) DirectoryExists(ctx context.Context, remoteDirectoryPath string) (exists bool, err error) {
+	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
+
+	if err != nil {
+		return false, err
+	}
+
+	log.Printf("[DEBUG] check directory exists %#v", remoteDirectoryPath)
+
+	result, err := powershell.DirectoryExists(winrmClient.(*winrm.Client), remoteDirectoryPath)
+
+	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
+
+	if err != nil {
+		return false, err
+	}
+
+	if err2 != nil {
+		return false, err2
+	}
+
+	if result {
+		log.Printf("[DEBUG] directory exists %#v", remoteDirectoryPath)
+	} else {
+		log.Printf("[DEBUG] directory does not exists %#v", remoteDirectoryPath)
+	}
+
+	return result, nil
+}
+
+func (c *ClientConfig) DeleteFileOrDirectory(ctx context.Context, remotePath string) (err error) {
 	winrmClient, err := c.WinRmClientPool.BorrowObject(ctx)
 
 	if err != nil {
 		return err
 	}
 
-	err = powershell.DeleteFileOrDirectory(winrmClient.(*winrm.Client), filePath)
+	log.Printf("[DEBUG] delete file or directory %#v", remotePath)
+
+	err = powershell.DeleteFileOrDirectory(winrmClient.(*winrm.Client), remotePath)
 
 	err2 := c.WinRmClientPool.ReturnObject(ctx, winrmClient)
 
@@ -162,6 +232,8 @@ func (c *ClientConfig) DeleteFileOrDirectory(ctx context.Context, filePath strin
 	if err2 != nil {
 		return err2
 	}
+
+	log.Printf("[DEBUG] file or directory deleted %#v", remotePath)
 
 	return nil
 }
