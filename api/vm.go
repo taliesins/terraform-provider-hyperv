@@ -298,9 +298,9 @@ type Vm struct {
 	CheckpointType                      CheckpointType
 	DynamicMemory                       bool
 	GuestControlledCacheTypes           bool
-	HighMemoryMappedIoSpace             int64
+	HighMemoryMappedIoSpace             uint64
 	LockOnDisconnect                    OnOffState
-	LowMemoryMappedIoSpace              int32
+	LowMemoryMappedIoSpace              uint32
 	MemoryMaximumBytes                  int64
 	MemoryMinimumBytes                  int64
 	MemoryStartupBytes                  int64
@@ -327,9 +327,9 @@ type HypervVmClient interface {
 		checkpointType CheckpointType,
 		dynamicMemory bool,
 		guestControlledCacheTypes bool,
-		highMemoryMappedIoSpace int64,
+		highMemoryMappedIoSpace uint64,
 		lockOnDisconnect OnOffState,
-		lowMemoryMappedIoSpace int32,
+		lowMemoryMappedIoSpace uint32,
 		memoryMaximumBytes int64,
 		memoryMinimumBytes int64,
 		memoryStartupBytes int64,
@@ -355,9 +355,9 @@ type HypervVmClient interface {
 		checkpointType CheckpointType,
 		dynamicMemory bool,
 		guestControlledCacheTypes bool,
-		highMemoryMappedIoSpace int64,
+		highMemoryMappedIoSpace uint64,
 		lockOnDisconnect OnOffState,
-		lowMemoryMappedIoSpace int32,
+		lowMemoryMappedIoSpace uint32,
 		memoryMaximumBytes int64,
 		memoryMinimumBytes int64,
 		memoryStartupBytes int64,
