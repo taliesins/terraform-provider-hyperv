@@ -17,12 +17,12 @@ data "archive_file" "bootstrap" {
 }
 
 resource "hyperv_iso_image" "bootstrap" {
-    volume_name = "BOOTSTRAP"
-    source_zip_file_path = data.archive_file.bootstrap.output_path
-    source_zip_file_path_hash = data.archive_file.bootstrap.output_sha
-    destination_iso_file_path = "c:\\web_server\\bootstrap.iso"
-    iso_media_type = "dvdplusrw_duallayer"
-    iso_file_system_type = "unknown"
+  volume_name               = "BOOTSTRAP"
+  source_zip_file_path      = data.archive_file.bootstrap.output_path
+  source_zip_file_path_hash = data.archive_file.bootstrap.output_sha
+  destination_iso_file_path = "c:\\web_server\\bootstrap.iso"
+  iso_media_type            = "dvdplusrw_duallayer"
+  iso_file_system_type      = "unknown"
 }
 
 resource "hyperv_network_switch" "dmz_network_switch" {
@@ -158,7 +158,7 @@ resource "hyperv_machine_instance" "default" {
     controller_number   = "0"
     controller_location = "1"
     //path = ""
-    path                = hyperv_iso_image.bootstrap.destination_file_path
+    path               = hyperv_iso_image.bootstrap.destination_file_path
     resource_pool_name = ""
   }
 
