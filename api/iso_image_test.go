@@ -7,15 +7,21 @@ import (
 
 func TestSerializeIsoImage(t *testing.T) {
 	isoImageJson, err := json.Marshal(IsoImage{
-		VolumeName:          "test",
-		FileSystem:          IsoFileSystemType_ISO9660_or_Joliet,
-		Media:               IsoMediaType_DVDPLUSRW_DUALLAYER,
-		DestinationFilePath: "bootstrap.iso",
-		SourceBootFilePath:  "image.",
-		SourceDirectoryPath: "bootstrap",
-		ExcludeList: []string{
-			"do_not_include.json",
-		},
+		SourceIsoFilePath:              "",
+		SourceIsoFilePathHash:          "",
+		SourceBootFilePath:             "boot.img",
+		SourceBootFilePathHash:         "654321",
+		SourceZipFilePath:              "bootstrap.zip",
+		SourceZipFilePathHash:          "123456",
+		DestinationIsoFilePath:         "bootstrap.iso",
+		DestinationZipFilePath:         "",
+		DestinationBootFilePath:        "",
+		FileSystem:                     IsoFileSystemType_ISO9660_or_Joliet,
+		Media:                          IsoMediaType_DVDPLUSRW_DUALLAYER,
+		VolumeName:                     "test",
+		ResolveDestinationIsoFilePath:  "$env:temp\\bootstrap.iso",
+		ResolveDestinationZipFilePath:  "$env:temp\\bootstrap.zip",
+		ResolveDestinationBootFilePath: "$env:temp\\boot.img",
 	})
 
 	if err != nil {
@@ -32,15 +38,21 @@ func TestSerializeIsoImage(t *testing.T) {
 func TestDeserializeIsoImage(t *testing.T) {
 	var isoImageJson = `
 {
-	"SourceDirectoryPath":"bootstrap",
-	"SourceBootFilePath":"image.",
-	"DestinationFilePath":"bootstrap.iso",
-	"ExcludeList":[
-		"do_not_include.json"
-	],
+	"SourceIsoFilePath":"",
+	"SourceIsoFilePathHash":"",
+	"SourceZipFilePath":"bootstrap.zip",
+	"SourceZipFilePathHash":"123456",
+	"SourceBootFilePath":"boot.img",
+	"SourceBootFilePathHash":"654321",
+	"DestinationIsoFilePath":"bootstrap.iso",
+	"DestinationZipFilePath":"",
+	"DestinationBootFilePath":"",
 	"Media":13,
 	"FileSystem":3,
-	"VolumeName":"test"
+	"VolumeName":"test",
+	"ResolveDestinationIsoFilePath":"$env:temp\\bootstrap.iso",
+	"ResolveDestinationZipFilePath":"$env:temp\\bootstrap.zip",
+	"ResolveDestinationBootFilePath":"$env:temp\\boot.img"
 }
 `
 
