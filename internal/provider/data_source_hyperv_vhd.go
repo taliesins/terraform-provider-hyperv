@@ -56,7 +56,7 @@ func dataSourceHyperVVhd() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.VhdType_name[api.VhdType_Dynamic],
-				ValidateDiagFunc: stringKeyInMap(api.VhdType_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.VhdType_value, true),
 				ConflictsWith: []string{
 					"source",
 					"source_vm",

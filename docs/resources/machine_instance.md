@@ -25,6 +25,21 @@ terraform {
 provider "hyperv" {
 }
 
+data "archive_file" "bootstrap" {
+  type        = "zip"
+  source_dir  = "bootstrap"
+  output_path = "bootstrap.zip"
+}
+
+resource "hyperv_iso_image" "bootstrap" {
+  volume_name               = "BOOTSTRAP"
+  source_zip_file_path      = data.archive_file.bootstrap.output_path
+  source_zip_file_path_hash = data.archive_file.bootstrap.output_sha
+  destination_iso_file_path = "c:\\web_server\\bootstrap.iso"
+  iso_media_type            = "dvdplusrw_duallayer"
+  iso_file_system_type      = "unknown"
+}
+
 resource "hyperv_network_switch" "dmz_network_switch" {
   name                                    = "DMZ"
   notes                                   = ""
@@ -157,8 +172,8 @@ resource "hyperv_machine_instance" "default" {
   dvd_drives {
     controller_number   = "0"
     controller_location = "1"
-    path                = ""
-    #path                = "c:/iso/windows-server-2016.iso"
+    //path = ""
+    path               = hyperv_iso_image.bootstrap.destination_file_path
     resource_pool_name = ""
   }
 

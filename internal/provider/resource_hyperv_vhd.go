@@ -4,7 +4,6 @@ import (
 	"context"
 	"fmt"
 	"log"
-	"os"
 	"path"
 	"strings"
 	"time"
@@ -92,7 +91,7 @@ func resourceHyperVVhd() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.VhdType_name[api.VhdType_Dynamic],
-				ValidateDiagFunc: stringKeyInMap(api.VhdType_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.VhdType_value, true),
 				ConflictsWith: []string{
 					"source",
 					"source_vm",
@@ -191,26 +190,7 @@ func resourceHyperVVhd() *schema.Resource {
 				Description: "Does virtual disk exist.",
 			},
 		},
-
-		CustomizeDiff: customizeDiffForVhd,
 	}
-}
-
-func customizeDiffForVhd(ctx context.Context, diff *schema.ResourceDiff, i interface{}) error {
-	path := diff.Get("path").(string)
-
-	if _, err := os.Stat(path); err != nil {
-		if os.IsNotExist(err) {
-			// file does not exist
-			diff.SetNew("exists", false)
-			return nil
-		} else {
-			// other error
-			return err
-		}
-	}
-
-	return nil
 }
 
 func resourceHyperVVhdCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {

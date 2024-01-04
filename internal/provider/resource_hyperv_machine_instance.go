@@ -90,7 +90,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.CriticalErrorAction_name[api.CriticalErrorAction_Pause],
-				ValidateDiagFunc: stringKeyInMap(api.CriticalErrorAction_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.CriticalErrorAction_value, true),
 				Description:      "Specifies the action to take when the VM encounters a critical error, and exceeds the timeout duration specified by the AutomaticCriticalErrorActionTimeout cmdlet. Valid values to use are `Pause`, `None`.",
 			},
 
@@ -105,7 +105,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.StartAction_name[api.StartAction_StartIfRunning],
-				ValidateDiagFunc: stringKeyInMap(api.StartAction_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.StartAction_value, true),
 				Description:      "Specifies the action the virtual machine is to take upon start. Valid values to use are `Nothing`, `StartIfRunning`, `Start`.",
 			},
 
@@ -120,7 +120,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.StopAction_name[api.StopAction_Save],
-				ValidateDiagFunc: stringKeyInMap(api.StopAction_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.StopAction_value, true),
 				Description:      "Specifies the action the virtual machine is to take when the virtual machine host shuts down. Valid values to use are `TurnOff`, `Save`, `ShutDown`.",
 			},
 
@@ -128,7 +128,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.CheckpointType_name[api.CheckpointType_Production],
-				ValidateDiagFunc: stringKeyInMap(api.CheckpointType_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.CheckpointType_value, true),
 				Description:      "Allows you to configure the type of checkpoints created by Hyper-V. If `Disabled` is specified, block creation of checkpoints. If `Standard` is specified, create standard checkpoints. If `Production` is specified, create production checkpoints if supported by guest operating system. Otherwise, create standard checkpoints. If `ProductionOnly` is specified, create production checkpoints if supported by guest operating system. Otherwise, the operation fails. Valid values to use are `Disabled`, `Standard`, `Production`, `ProductionOnly`.",
 			},
 
@@ -158,7 +158,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.OnOffState_name[api.OnOffState_Off],
-				ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+				ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 				Description:      "Specifies whether virtual machine connection in basic mode locks the console after a user disconnects. Valid values to use are `On`, `Off`.",
 			},
 
@@ -239,7 +239,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.VmState_name[api.VmState_Running],
-				ValidateDiagFunc: stringKeyInMap(api.VmState_SettableValue, true),
+				ValidateDiagFunc: StringKeyInMap(api.VmState_SettableValue, true),
 				Description:      "Valid values to use are `Running`, `Off`. Specifies if the machine instance will be running or off.",
 			},
 
@@ -404,35 +404,35 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether virtual machines may change the source MAC address in outgoing packets to one not assigned to them. On allows the virtual machine to use a different MAC address. Off only allows the virtual machine to use the MAC address assigned to it. Valid values to use are `On`, `Off`.",
 						},
 						"dhcp_guard": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether to drop DHCP messages from a virtual machine claiming to be a DHCP server. Valid values to use are `On`, `Off`.",
 						},
 						"router_guard": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether to drop Router Advertisement and Redirection messages from unauthorized virtual machines. If On is specified, such messages are dropped. If Off is specified, such messages are sent. Valid values to use are `On`, `Off`.",
 						},
 						"port_mirroring": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.PortMirroring_name[api.PortMirroring_None],
-							ValidateDiagFunc: stringKeyInMap(api.PortMirroring_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.PortMirroring_value, true),
 							Description:      "Specifies the port mirroring mode for the network adapter to be configured. If a virtual network adapter is configured as Source, every packet it sends or receives is copied and forwarded to a virtual network adapter configured to receive the packets. If a virtual network adapter is configured as Destination, it receives copied packets from the source virtual network adapter. The source and destination virtual network adapters must be connected to the same virtual switch. Specify None to disable the feature. Valid values to use are `None`, `Source`, `Destination`.",
 						},
 						"ieee_priority_tag": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether IEEE 802.1p tagged packets from the virtual machine should be trusted. If it is on, the IEEE 802.1p tagged packets will be let go as is. If it is off, the priority value is reset to 0. Valid values to use are `On`, `Off`.",
 						},
 						"vmq_weight": {
@@ -453,7 +453,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.IovInterruptModerationValue_name[api.IovInterruptModerationValue_Off],
-							ValidateDiagFunc: stringKeyInMap(api.IovInterruptModerationValue_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.IovInterruptModerationValue_value, true),
 							Description:      "Specifies the interrupt moderation value for a single-root I/O virtualization (SR-IOV) virtual function assigned to a virtual network adapter. If Default is chosen, the value is determined by the physical network adapter vendor's setting. If Adaptive is chosen, the interrupt moderation rate will be based on the runtime traffic pattern. Valid values to use are `Default`, `Adaptive`, `Off`, `Low `, `Medium`, `High`.",
 						},
 						"iov_weight": {
@@ -524,7 +524,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_On],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether the virtual network adapter can be teamed with other network adapters connected to the same virtual switch. Valid values to use are `On`, `Off`.",
 						},
 						"not_monitored_in_cluster": {
@@ -549,14 +549,14 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether this adapter uses device naming. Valid values to use are `On`, `Off`.",
 						},
 						"fix_speed_10g": {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether the adapter uses fix speed of 10G. Valid values to use are `On`, `Off`.",
 						},
 						"packet_direct_num_procs": {
@@ -665,7 +665,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.ControllerType_name[api.ControllerType_Scsi],
-							ValidateDiagFunc: stringKeyInMap(api.ControllerType_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.ControllerType_value, true),
 							Description:      "Specifies the type of the controller to which the hard disk drive is to be added. Valid values to use are `Ide`, `Scsi`.",
 						},
 						"controller_number": {
@@ -725,7 +725,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.CacheAttributes_name[api.CacheAttributes_Default],
-							ValidateDiagFunc: stringKeyInMap(api.CacheAttributes_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.CacheAttributes_value, true),
 							Description:      "With Default it is equivalent of WriteCacheDisabled. With WriteCacheEnabled write I/O is acknowledged as written before it is committed to stable media. If your internal disks, DAS, SAN, or NAS has a battery backup system that can guarantee clean cache flushes on a power outage, write caching is generally safe. Internal batteries that report their status and/or automatically disable caching are best. UPS-backed systems are sometimes OK, but they are not foolproof. With WriteCacheAndFUAEnabled write I/O is committed to stable media BEFORE the I/O is acknowledged as written. With WriteCacheDisabled when I/O is written it is acknowledged as written as there is no cache in between. Valid values to use are `Default`, `WriteCacheEnabled`, `WriteCacheAndFUAEnabled`, `WriteCacheDisabled`.",
 						},
 					},
@@ -748,7 +748,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 									"boot_type": {
 										Type:             schema.TypeString,
 										Required:         true,
-										ValidateDiagFunc: stringKeyInMap(api.Gen2BootType_value, true),
+										ValidateDiagFunc: StringKeyInMap(api.Gen2BootType_value, true),
 										DiffSuppressFunc: func(k, oldValue, newValue string, d *schema.ResourceData) bool {
 											if newValue == "" || oldValue == newValue {
 												return true
@@ -887,7 +887,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_On],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies whether to enable secure boot. Valid values to use are `On`, `Off`.",
 						},
 
@@ -902,7 +902,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.IPProtocolPreference_name[api.IPProtocolPreference_IPv4],
-							ValidateDiagFunc: stringKeyInMap(api.IPProtocolPreference_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.IPProtocolPreference_value, true),
 							Description:      "Specifies the IP protocol version to use during a network boot. Valid values to use are `IPv4`, `IPv6`.",
 						},
 
@@ -910,7 +910,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.ConsoleModeType_name[api.ConsoleModeType_Default],
-							ValidateDiagFunc: stringKeyInMap(api.ConsoleModeType_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.ConsoleModeType_value, true),
 							Description:      "Specifies the console mode type for the virtual machine. This parameter allows a virtual machine to run without graphical user interface. Valid values to use are `Default`, `COM1`, `COM2`, `None`.",
 						},
 
@@ -918,7 +918,7 @@ func resourceHyperVMachineInstance() *schema.Resource {
 							Type:             schema.TypeString,
 							Optional:         true,
 							Default:          api.OnOffState_name[api.OnOffState_Off],
-							ValidateDiagFunc: stringKeyInMap(api.OnOffState_value, true),
+							ValidateDiagFunc: StringKeyInMap(api.OnOffState_value, true),
 							Description:      "Specifies the behavior of the virtual machine after a start failure. For a value of On, if the virtual machine fails to start correctly from a device, the virtual machine is paused. Valid values to use are `On`, `Off`.",
 						},
 					},

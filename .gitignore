@@ -1,3 +1,6 @@
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
+bootstrap.zip
 __tools/
 *.dll
 *.exe
