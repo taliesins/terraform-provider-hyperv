@@ -202,8 +202,8 @@ func ensureFileStateCreate(ctx context.Context, d *schema.ResourceData, c api.Cl
 		}
 	}
 
-	//if d.IsNewResource() {
-	//}
+	// if d.IsNewResource() {
+	// }
 
 	return resolveDestinationFilePath, nil
 }
@@ -269,8 +269,6 @@ func resourceHyperVIsoImageRead(ctx context.Context, d *schema.ResourceData, met
 
 	log.Printf("[INFO][iso-image][read] retrieved isoImage: %+v", isoImage)
 
-	//if destinationIsoFilePath == isoImage.ResolveDestinationIsoFilePath {
-
 	if err := d.Set("source_iso_file_path", isoImage.SourceIsoFilePath); err != nil {
 		return diag.FromErr(err)
 	}
@@ -316,7 +314,6 @@ func resourceHyperVIsoImageRead(ctx context.Context, d *schema.ResourceData, met
 	if err := d.Set("resolve_destination_boot_file_path", isoImage.ResolveDestinationBootFilePath); err != nil {
 		return diag.FromErr(err)
 	}
-	//}
 
 	log.Printf("[INFO][iso-image][read] read remote iso: %#v", d)
 
@@ -331,7 +328,8 @@ func ensureFileStateUpdate(ctx context.Context, d *schema.ResourceData, c api.Cl
 	sourceFilePath := (d.Get(sourceFilePathKey)).(string)
 	destinationFilePath := (d.Get(destinationFilePathKey)).(string)
 
-	if d.HasChange(sourceFilePathKey) {
+	switch {
+	case d.HasChange(sourceFilePathKey):
 		o, n := d.GetChange(sourceFilePathKey)
 		oldSourceFilePath := o.(string)
 		newSourceFilePath := n.(string)
@@ -360,22 +358,21 @@ func ensureFileStateUpdate(ctx context.Context, d *schema.ResourceData, c api.Cl
 			resolveNewDestinationFilePath = winPath(filepath.Join(`$env:TEMP`, filepath.Base(newSourceFilePath)))
 		}
 
-		if newSourceFilePath == "" {
-			//must delete the old filename as we have removed the source one
+		switch {
+		case newSourceFilePath == "":
+			// must delete the old filename as we have removed the source one
 			err := c.RemoteFileDelete(ctx, resolveOldDestinationFilePath)
 			return resolveNewDestinationFilePath, true, err
-		} else if oldSourceFilePath == "" {
-			//must upload file as we have set a new source one
+		case oldSourceFilePath == "":
+			// must upload file as we have set a new source one
 			err := c.RemoteFileUpload(ctx, newSourceFilePath, resolveNewDestinationFilePath)
 			return resolveNewDestinationFilePath, true, err
-		} else {
-			if d.HasChange(sourceFilePathHashKey) {
-				//must upload file over existing one as hash has changed
-				err := c.RemoteFileUpload(ctx, newSourceFilePath, resolveNewDestinationFilePath)
-				return resolveNewDestinationFilePath, true, err
-			}
+		case d.HasChange(sourceFilePathHashKey):
+			// must upload file over existing one as hash has changed
+			err := c.RemoteFileUpload(ctx, newSourceFilePath, resolveNewDestinationFilePath)
+			return resolveNewDestinationFilePath, true, err
 		}
-	} else if sourceFilePath != "" && d.HasChange(destinationFilePathKey) {
+	case sourceFilePath != "" && d.HasChange(destinationFilePathKey):
 		o, n := d.GetChange(destinationFilePathKey)
 		oldDestinationFilePath := o.(string)
 		newDestinationFilePath := n.(string)
@@ -391,18 +388,18 @@ func ensureFileStateUpdate(ctx context.Context, d *schema.ResourceData, c api.Cl
 		}
 
 		if resolveOldDestinationFilePath != resolveNewDestinationFilePath {
-			//must delete the old filename as we have renamed it and we are not sure if any other properties have changed
+			// must delete the old filename as we have renamed it and we are not sure if any other properties have changed
 			err := c.RemoteFileDelete(ctx, resolveOldDestinationFilePath)
 			if err != nil {
 				return resolveNewDestinationFilePath, true, err
 			}
 
-			//must upload file as we deleted the old one and we are expecting a file
+			// must upload file as we deleted the old one and we are expecting a file
 			err = c.RemoteFileUpload(ctx, sourceFilePath, resolveNewDestinationFilePath)
 			return resolveNewDestinationFilePath, true, err
 		}
-	} else if sourceFilePath != "" && d.HasChange(sourceFilePathHashKey) {
-		//must upload file over existing one as hash has changed
+	case sourceFilePath != "" && d.HasChange(sourceFilePathHashKey):
+		// must upload file over existing one as hash has changed
 		resolveDestinationFilePath := destinationFilePath
 		if resolveDestinationFilePath == "" {
 			resolveDestinationFilePath = winPath(filepath.Join(`$env:TEMP`, filepath.Base(sourceFilePath)))
@@ -410,7 +407,7 @@ func ensureFileStateUpdate(ctx context.Context, d *schema.ResourceData, c api.Cl
 
 		err := c.RemoteFileUpload(ctx, sourceFilePath, resolveDestinationFilePath)
 		return resolveDestinationFilePath, true, err
-	} else if sourceFilePath != "" {
+	case sourceFilePath != "":
 		resolveDestinationFilePath := destinationFilePath
 		if resolveDestinationFilePath == "" {
 			resolveDestinationFilePath = winPath(filepath.Join(`$env:TEMP`, filepath.Base(sourceFilePath)))
@@ -423,7 +420,7 @@ func ensureFileStateUpdate(ctx context.Context, d *schema.ResourceData, c api.Cl
 		}
 
 		if !resolveDestinationFilePathExists {
-			//must upload file over as we are missing expected file
+			// must upload file over as we are missing expected file
 			err = c.RemoteFileUpload(ctx, sourceFilePath, resolveDestinationFilePath)
 			return resolveDestinationFilePath, true, err
 		}
@@ -477,7 +474,7 @@ func resourceHyperVIsoImageUpdate(ctx context.Context, d *schema.ResourceData, m
 
 	recreateDestinationIsoFilePath := false
 	if !resolveDestinationIsoFilePathChanged && (resolveDestinationZipFilePathChanged || resolveDestinationBootFilePathChanged) || ((sourceZipFilePath != "" || sourceBootFilePath != "") && (d.HasChange("iso_media_type") || d.HasChange("iso_file_system_type") || d.HasChange("volume_name"))) {
-		//must delete the iso file as we need to recreate it as the way it is created has changed
+		// must delete the iso file as we need to recreate it as the way it is created has changed
 		err = c.RemoteFileDelete(ctx, resolveDestinationIsoFilePath)
 		if err != nil {
 			return diag.FromErr(err)

@@ -31,7 +31,7 @@ const (
 	IsoMediaType_BDROM               IsoMediaType = 0x11
 	IsoMediaType_BDR                 IsoMediaType = 0x12
 	IsoMediaType_BDRE                IsoMediaType = 0x13
-	//IsoMediaType_MAX                 IsoMediaType = 0x13
+	// IsoMediaType_MAX                 IsoMediaType = 0x13
 )
 
 var IsoMediaType_name = map[IsoMediaType]string{
@@ -79,7 +79,7 @@ var IsoMediaType_value = map[string]IsoMediaType{
 	"bdrom":               IsoMediaType_BDROM,
 	"bdr":                 IsoMediaType_BDR,
 	"bdre":                IsoMediaType_BDRE,
-	//"max": IsoMediaType_MAX,
+	// "max": IsoMediaType_MAX,
 }
 
 func (x IsoMediaType) String() string {

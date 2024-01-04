@@ -317,7 +317,6 @@ Save-IsoImage @SaveIsoImageArgs
 `))
 
 func (c *ClientConfig) CreateOrUpdateIsoImage(ctx context.Context, sourceIsoFilePath string, sourceIsoFilePathHash string, sourceZipFilePath string, sourceZipFilePathHash string, sourceBootFilePath string, sourceBootFilePathHash string, destinationIsoFilePath string, destinationZipFilePath string, destinationBootFilePath string, media api.IsoMediaType, fileSystem api.IsoFileSystemType, volumeName string, resolveDestinationIsoFilePath string, resolveDestinationZipFilePath string, resolveDestinationBootFilePath string) (err error) {
-
 	isoImageJson, err := json.Marshal(api.IsoImage{
 		SourceIsoFilePath:              sourceIsoFilePath,
 		SourceIsoFilePathHash:          sourceIsoFilePathHash,
@@ -348,7 +347,7 @@ func (c *ClientConfig) CreateOrUpdateIsoImage(ctx context.Context, sourceIsoFile
 		return fmt.Errorf("error creating or updating iso image: %v", err)
 	}
 
-	return err //This will return the error from deferred functions
+	return err // This will return the error from deferred functions
 }
 
 type getIsoImageArgs struct {

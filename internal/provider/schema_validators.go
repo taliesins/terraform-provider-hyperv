@@ -33,7 +33,7 @@ func AllowedIsoVolumeName() schema.SchemaValidateDiagFunc {
 	return func(v interface{}, path cty.Path) diag.Diagnostics {
 		var diags diag.Diagnostics
 		validIso9660VolumeNameRegex := regexp.MustCompile(`^[A-Z0-9_]*$`)
-		//validJolietAndUdfVolumeNameRegex := regexp.MustCompile(`^[a-zA-Z0-9_\.]*$`)
+		// validJolietAndUdfVolumeNameRegex := regexp.MustCompile(`^[a-zA-Z0-9_\.]*$`)
 
 		value, ok := v.(string)
 		if !ok {
