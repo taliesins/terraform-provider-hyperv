@@ -46,29 +46,29 @@ resource "hyperv_iso_image" "bootstrap" {
 
 ### Required
 
-- `destination_iso_file_path` (String) Remote file path for iso.
+- `destination_iso_file_path` (String) Remote iso file path.
 
 ### Optional
 
-- `destination_boot_file_path` (String) Remote file path for boot.
-- `destination_zip_file_path` (String) Remote file path for zip.
-- `iso_file_system_type` (String) File system type for iso.
-- `iso_media_type` (String) Media type for iso.
-- `source_boot_file_path` (String) Path to boot file to be copied into iso.
-- `source_boot_file_path_hash` (String) Hash of boot file.
-- `source_iso_file_path` (String) Path to iso file to be copied over.
-- `source_iso_file_path_hash` (String) Hash of iso file.
-- `source_zip_file_path` (String) Path to zip file whos contents will be copied into iso.
-- `source_zip_file_path_hash` (String) Hash of zip file.
+- `destination_boot_file_path` (String) Remote boot file path. This defaults to `$env:temp\{filename(source_boot_file_path)}`
+- `destination_zip_file_path` (String) Remote zip file path. This defaults to `$env:temp\{filename(source_zip_file_path)}`
+- `iso_file_system_type` (String) File system type for iso. Valid values to use are `none`, `iso9660`, `joliet`, `iso9660|joliet`, `udf`, `joliet|udf`, `iso9660|joliet|udf`, `unknown`.
+- `iso_media_type` (String) Media type for iso. Valid values to use are `unknown`, `cdrom`, `cdr`, `cdrw`, `dvdrom`, `dvdram`, `dvdplusr`, `dvdplusrw`, `dvdplusr_duallayer`, `dvddashr`, `dvddashrw`, `dvddashr_duallayer`, `disk`, `dvdplusrw_duallayer`, `hddvdrom`, `hddvdr`, `hddvdram`, `bdrom`, `bdr`, `bdre`.
+- `source_boot_file_path` (String) Local boot file path.
+- `source_boot_file_path_hash` (String) Hash of local boot file.
+- `source_iso_file_path` (String) Local iso file path.
+- `source_iso_file_path_hash` (String) Hash of local iso file.
+- `source_zip_file_path` (String) Local zip file path.
+- `source_zip_file_path_hash` (String) Hash of local zip file.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
-- `volume_name` (String) Volume name for iso.
+- `volume_name` (String) Volume name for iso. Must be 15 characters or less. Characters must be `A` through `Z`, `0` through `9` or `_` (underscore)
 
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-- `resolve_destination_boot_file_path` (String) Remote file path for boot.
-- `resolve_destination_iso_file_path` (String) Remote file path for iso.
-- `resolve_destination_zip_file_path` (String) Remote file path for zip.
+- `resolve_destination_boot_file_path` (String) The remote boot file path that was used.
+- `resolve_destination_iso_file_path` (String) The remote iso file path that was used.
+- `resolve_destination_zip_file_path` (String) The remote zip file path that was used.
 
 <a id="nestedblock--timeouts"></a>
 ### Nested Schema for `timeouts`

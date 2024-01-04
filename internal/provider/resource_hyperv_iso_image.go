@@ -41,7 +41,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Path to iso file to be copied over.",
+				Description: "Local iso file path.",
 				ConflictsWith: []string{
 					"source_zip_file_path",
 					"source_zip_file_path_hash",
@@ -53,7 +53,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Hash of iso file.",
+				Description: "Hash of local iso file.",
 				ConflictsWith: []string{
 					"source_zip_file_path",
 					"source_zip_file_path_hash",
@@ -65,7 +65,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Path to zip file whos contents will be copied into iso.",
+				Description: "Local zip file path.",
 				ConflictsWith: []string{
 					"source_iso_file_path",
 					"source_iso_file_path_hash",
@@ -75,7 +75,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Hash of zip file.",
+				Description: "Hash of local zip file.",
 				ConflictsWith: []string{
 					"source_iso_file_path",
 					"source_iso_file_path_hash",
@@ -85,7 +85,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Path to boot file to be copied into iso.",
+				Description: "Local boot file path.",
 				ConflictsWith: []string{
 					"source_iso_file_path",
 					"source_iso_file_path_hash",
@@ -95,7 +95,7 @@ func resourceHyperVIsoImage() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Hash of boot file.",
+				Description: "Hash of local boot file.",
 				ConflictsWith: []string{
 					"source_iso_file_path",
 					"source_iso_file_path_hash",
@@ -104,57 +104,56 @@ func resourceHyperVIsoImage() *schema.Resource {
 			"destination_iso_file_path": {
 				Type:        schema.TypeString,
 				Required:    true,
-				Description: "Remote file path for iso.",
+				Description: "Remote iso file path.",
 				ForceNew:    true,
 			},
 			"destination_zip_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Remote file path for zip.",
+				Description: "Remote zip file path. This defaults to `$env:temp\\{filename(source_zip_file_path)}`",
 			},
 			"destination_boot_file_path": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Default:     "",
-				Description: "Remote file path for boot.",
+				Description: "Remote boot file path. This defaults to `$env:temp\\{filename(source_boot_file_path)}`",
 			},
 			"iso_media_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.IsoMediaType_name[api.IsoMediaType_DVDPLUSRW_DUALLAYER],
 				ValidateDiagFunc: StringKeyInMap(api.IsoMediaType_value, false),
-				Description:      "Media type for iso.",
+				Description:      "Media type for iso. Valid values to use are `unknown`, `cdrom`, `cdr`, `cdrw`, `dvdrom`, `dvdram`, `dvdplusr`, `dvdplusrw`, `dvdplusr_duallayer`, `dvddashr`, `dvddashrw`, `dvddashr_duallayer`, `disk`, `dvdplusrw_duallayer`, `hddvdrom`, `hddvdr`, `hddvdram`, `bdrom`, `bdr`, `bdre`.",
 			},
 			"iso_file_system_type": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          api.IsoFileSystemType_name[api.IsoFileSystemType_Unknown],
 				ValidateDiagFunc: StringKeyInMap(api.IsoFileSystemType_value, false),
-				Description:      "File system type for iso.",
+				Description:      "File system type for iso. Valid values to use are `none`, `iso9660`, `joliet`, `iso9660|joliet`, `udf`, `joliet|udf`, `iso9660|joliet|udf`, `unknown`.",
 			},
 			"volume_name": {
 				Type:             schema.TypeString,
 				Optional:         true,
 				Default:          "UNTITLED",
 				ValidateDiagFunc: AllowedIsoVolumeName(),
-				Description:      "Volume name for iso.",
+				Description:      "Volume name for iso. Must be 15 characters or less. Characters must be `A` through `Z`, `0` through `9` or `_` (underscore)",
 			},
-
 			"resolve_destination_iso_file_path": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Remote file path for iso.",
+				Description: "The remote iso file path that was used.",
 			},
 			"resolve_destination_zip_file_path": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Remote file path for zip.",
+				Description: "The remote zip file path that was used.",
 			},
 			"resolve_destination_boot_file_path": {
 				Type:        schema.TypeString,
 				Computed:    true,
-				Description: "Remote file path for boot.",
+				Description: "The remote boot file path that was used.",
 			},
 		},
 	}
