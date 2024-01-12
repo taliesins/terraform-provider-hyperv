@@ -50,7 +50,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-go-pkg-mod
       timeout-minutes: 3
@@ -76,7 +76,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-go-pkg-mod
       timeout-minutes: 3
@@ -88,7 +88,7 @@ jobs:
           ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
           ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
           ${{ runner.os }}-go-pkg-mod
-    - uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-go-build
       timeout-minutes: 3
@@ -102,7 +102,7 @@ jobs:
           ${{ runner.os }}-go-build-${{ hashFiles('.github/workflows/release.yml') }}
           ${{ runner.os }}-go-build
     - name: Cache cache-terraform-plugin-dir
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-terraform-plugin-dir
       timeout-minutes: 2
@@ -129,7 +129,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Cache cache-terraform-providers-schema
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-terraform-providers-schema
       timeout-minutes: 2
@@ -138,7 +138,7 @@ jobs:
           terraform-providers-schema
         key: ${{ runner.os }}-terraform-providers-schema-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}-${{ hashFiles('internal/**', 'api/**', 'powershell/**') }}
     - name: Cache cache-terraform-plugin-dir
-      uses: actions/cache@v3.3.2
+      uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-terraform-plugin-dir
       timeout-minutes: 2
@@ -174,7 +174,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
-    - uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-go-pkg-mod
       timeout-minutes: 3
@@ -186,7 +186,7 @@ jobs:
           ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
           ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
           ${{ runner.os }}-go-pkg-mod
-    - uses: actions/cache@v3.3.2
+    - uses: actions/cache@v3.3.3
       continue-on-error: true
       id: cache-go-build
       timeout-minutes: 3
@@ -218,7 +218,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-pkg-mod
         timeout-minutes: 3
@@ -230,7 +230,7 @@ jobs:
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
             ${{ runner.os }}-go-pkg-mod
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-build
         timeout-minutes: 3
@@ -257,7 +257,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-pkg-mod
         timeout-minutes: 3
@@ -269,7 +269,7 @@ jobs:
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
             ${{ runner.os }}-go-pkg-mod
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-build
         timeout-minutes: 3
@@ -331,7 +331,7 @@ jobs:
           repository: ${{ github.event.pull_request.head.repo.full_name }}
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ secrets.CREATE_TAG_GITHUB_TOKEN }}
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-pkg-mod
         timeout-minutes: 3
@@ -343,7 +343,7 @@ jobs:
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}-${{ hashFiles('**/go.sum') }}
             ${{ runner.os }}-go-pkg-mod-${{ hashFiles('.github/workflows/release.yml') }}
             ${{ runner.os }}-go-pkg-mod
-      - uses: actions/cache@v3.3.2
+      - uses: actions/cache@v3.3.3
         continue-on-error: true
         id: cache-go-build
         timeout-minutes: 3
