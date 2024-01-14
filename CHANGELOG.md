@@ -1,6 +1,10 @@
 
 <a name="v1.2.0-prerelease.0"></a>
-## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.2.0-prerelease.0) (2024-01-04)
+## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.2.0-prerelease.0) (2024-01-14)
+
+### Chore
+- **deps:** [3a10f5c](https://github.com/taliesins/terraform-provider-hyperv/commit/3a10f5cb6276b82a949c8ea900c33bb2316e9d56) bump actions/cache from 3.3.2 to 3.3.3
+- **deps:** [bfc134a](https://github.com/taliesins/terraform-provider-hyperv/commit/bfc134a7a15de6dfa0894b0dc1bb99991616c235) bump github.com/cloudflare/circl from 1.3.3 to 1.3.7
 
 <a name="v1.1.0"></a>
 ## [v1.1.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.0.4...v1.1.0) (2023-12-31)
