@@ -178,14 +178,14 @@ func (c *ClientConfig) GetVMSwitch(ctx context.Context, name string) (result api
 }
 
 type updateVMSwitchArgs struct {
-	VmSwitchId   string
+	OldName      string
 	VmSwitchJson string
 }
 
 var updateVMSwitchTemplate = template.Must(template.New("UpdateVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
-$vmSwitchId = '{{.VmSwitchId}}'
+$oldName = '{{.OldName}}'
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
@@ -196,15 +196,14 @@ if ($vmSwitch.NetAdapterNames.length -gt 0) {
 
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
-$switchObject = Get-VMSwitch -Name "$($vmSwitchId)*" | ?{$_.Name -eq $vmSwitchId}
+$switchObject = Get-VMSwitch -Name "$($oldName)*" | ?{$_.Name -eq $oldName}
 
 if (!$switchObject){
-	throw "Switch does not exist - $($vmSwitchId)"
+	throw "Switch does not exist - $($oldName)"
 }
 
-
-if ($vmSwitchId -ne $vmSwitch.Name) {
-	Rename-VMSwitch $vmSwitchId -NewName $vmSwitch.Name
+if ($oldName -ne $vmSwitch.Name) {
+	Rename-VMSwitch -Name $oldName -NewName $vmSwitch.Name
 }
 
 $SetVmSwitchArgs = @{}
@@ -245,8 +244,8 @@ Set-VMSwitch @SetVmSwitchArgs
 
 func (c *ClientConfig) UpdateVMSwitch(
 	ctx context.Context,
-	switchId string,
-	switchName string,
+	oldName string,
+	name string,
 	notes string,
 	allowManagementOS bool,
 	// embeddedTeamingEnabled bool,
@@ -266,7 +265,7 @@ func (c *ClientConfig) UpdateVMSwitch(
 	}
 
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
-		Name:              switchName,
+		Name:              name,
 		Notes:             notes,
 		AllowManagementOS: allowManagementOS,
 		//EmbeddedTeamingEnabled:embeddedTeamingEnabled,
@@ -287,7 +286,7 @@ func (c *ClientConfig) UpdateVMSwitch(
 	}
 
 	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVMSwitchTemplate, updateVMSwitchArgs{
-		VmSwitchId:   switchId,
+		OldName:      oldName,
 		VmSwitchJson: string(vmSwitchJson),
 	})
 
