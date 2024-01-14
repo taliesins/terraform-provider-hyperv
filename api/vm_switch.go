@@ -166,7 +166,8 @@ type HypervVmSwitchClient interface {
 	GetVMSwitch(ctx context.Context, name string) (result VmSwitch, err error)
 	UpdateVMSwitch(
 		ctx context.Context,
-		name string,
+		switchId string,
+		switchName string,
 		notes string,
 		allowManagementOS bool,
 		// embeddedTeamingEnabled bool,
