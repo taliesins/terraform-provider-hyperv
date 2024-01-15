@@ -177,22 +177,29 @@ func (c *ClientConfig) GetVMSwitch(ctx context.Context, name string) (result api
 }
 
 type updateVMSwitchArgs struct {
+	OldName      string
 	VmSwitchJson string
 }
 
 var updateVMSwitchTemplate = template.Must(template.New("UpdateVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
 Import-Module Hyper-V
+$oldName = '{{.OldName}}'
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
 $NetAdapterNames = @($vmSwitch.NetAdapterNames)
+
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
-$switchObject = Get-VMSwitch -Name "$($vmSwitch.Name)*" | ?{$_.Name -eq $vmSwitch.Name}
+$switchObject = Get-VMSwitch -Name "$($oldName)*" | ?{$_.Name -eq $oldName}
 
 if (!$switchObject){
-	throw "Switch does not exist - $($vmSwitch.Name)"
+	throw "Switch does not exist - $($oldName)"
+}
+
+if ($oldName -ne $vmSwitch.Name) {
+	Rename-VMSwitch -Name $oldName -NewName $vmSwitch.Name
 }
 
 $SetVmSwitchArgs = @{}
@@ -233,6 +240,7 @@ Set-VMSwitch @SetVmSwitchArgs
 
 func (c *ClientConfig) UpdateVMSwitch(
 	ctx context.Context,
+	oldName string,
 	name string,
 	notes string,
 	allowManagementOS bool,
@@ -270,6 +278,7 @@ func (c *ClientConfig) UpdateVMSwitch(
 	}
 
 	err = c.WinRmClient.RunFireAndForgetScript(ctx, updateVMSwitchTemplate, updateVMSwitchArgs{
+		OldName:      oldName,
 		VmSwitchJson: string(vmSwitchJson),
 	})
 

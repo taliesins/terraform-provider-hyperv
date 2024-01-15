@@ -166,6 +166,7 @@ type HypervVmSwitchClient interface {
 	GetVMSwitch(ctx context.Context, name string) (result VmSwitch, err error)
 	UpdateVMSwitch(
 		ctx context.Context,
+		oldName string,
 		name string,
 		notes string,
 		allowManagementOS bool,
