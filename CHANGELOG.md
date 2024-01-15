@@ -1,6 +1,6 @@
 
 <a name="v1.2.0-prerelease.0"></a>
-## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.2.0-prerelease.0) (2024-01-14)
+## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.1.0...v1.2.0-prerelease.0) (2024-01-15)
 
 ### Chore
 - **deps:** [3a10f5c](https://github.com/taliesins/terraform-provider-hyperv/commit/3a10f5cb6276b82a949c8ea900c33bb2316e9d56) bump actions/cache from 3.3.2 to 3.3.3
