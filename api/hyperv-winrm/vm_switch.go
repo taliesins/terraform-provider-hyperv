@@ -3,7 +3,6 @@ package hyperv_winrm
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"text/template"
 
 	"github.com/taliesins/terraform-provider-hyperv/api"
@@ -189,10 +188,7 @@ $oldName = '{{.OldName}}'
 $vmSwitch = '{{.VmSwitchJson}}' | ConvertFrom-Json
 $minimumBandwidthMode = [Microsoft.HyperV.PowerShell.VMSwitchBandwidthMode]$vmSwitch.BandwidthReservationMode
 $switchType = [Microsoft.HyperV.PowerShell.VMSwitchType]$vmSwitch.SwitchType
-
-if ($vmSwitch.NetAdapterNames.length -gt 0) {
-	$NetAdapterNames = [string]$vmSwitch.NetAdapterNames[0]
-}
+$NetAdapterNames = @($vmSwitch.NetAdapterNames)
 
 #when EnablePacketDirect=true it seems to throw an exception if EnableIov=true or EnableEmbeddedTeaming=true
 
@@ -260,10 +256,6 @@ func (c *ClientConfig) UpdateVMSwitch(
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
 ) (err error) {
-	if len(netAdapterNames) > 1 {
-		return fmt.Errorf("[ERROR][hyperv] Can't update a switch with multiple net adapaters names (%v)", netAdapterNames)
-	}
-
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
 		Name:              name,
 		Notes:             notes,
