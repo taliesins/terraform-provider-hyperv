@@ -120,7 +120,7 @@ function Expand-Downloads {
 
 			$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
-            if ($vhdPath -and Test-Path $($vhdPath.FullName)) {
+            if ($vhdPath -and (Test-Path $($vhdPath.FullName))) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
@@ -145,7 +145,7 @@ function Expand-Downloads {
 
 			$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
-            if ($vhdPath -and Test-Path $($vhdPath.FullName)) {
+            if ($vhdPath -and (Test-Path $($vhdPath.FullName))) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
