@@ -3,6 +3,7 @@
 ## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.2.0...v1.2.0-prerelease.0) (2024-02-10)
 
 ### Chore
+- **deps:** [b8c178b](https://github.com/taliesins/terraform-provider-hyperv/commit/b8c178b1b1f060c3a4ce236477d3ea75995651e9) bump github.com/hashicorp/terraform-plugin-sdk/v2
 - **deps:** [c8b9b6a](https://github.com/taliesins/terraform-provider-hyperv/commit/c8b9b6ab8c7988342737e7eccc326a65f36d55e2) bump github.com/hashicorp/terraform-plugin-docs
 - **deps:** [244e278](https://github.com/taliesins/terraform-provider-hyperv/commit/244e278dfb5dadc43bdf70727150c142d15c853d) bump actions/cache from 3.3.3 to 4.0.0
 
