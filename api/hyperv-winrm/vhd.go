@@ -53,7 +53,7 @@ $vhdType = [Microsoft.Vhd.PowerShell.VhdType]$vhd.VhdType
 function Get-TarPath {
 	if (Get-Command "tar" -ErrorAction SilentlyContinue) {
 		return "tar"
-	} elseif (test-path "$env:SystemRoot\system32\tar.exe") {
+	} elseif (Test-Path "$env:SystemRoot\system32\tar.exe") {
 		return "$env:SystemRoot\system32\tar.exe"
 	} else {
 		return ""
@@ -63,9 +63,9 @@ function Get-TarPath {
 function Get-7ZipPath {
 	if (Get-Command "7z" -ErrorAction SilentlyContinue) {
 		return "7z"
-	} elseif (test-path "$env:ProgramFiles\7-Zip\7z.exe") {
+	} elseif (Test-Path "$env:ProgramFiles\7-Zip\7z.exe") {
 		return "$env:ProgramFiles\7-Zip\7z.exe"
-	} elseif (test-path "${env:ProgramFiles(x86)}\7-Zip\7z.exe") {
+	} elseif (Test-Path "${env:ProgramFiles(x86)}\7-Zip\7z.exe") {
 		return "${env:ProgramFiles(x86)}\7-Zip\7z.exe"
 	} else {
 		return ""
@@ -99,7 +99,7 @@ function Expand-Downloads {
 
 			$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
-            if (Test-Path $($vhdPath.FullName)) {
+            if ($vhdPath -and (Test-Path $vhdPath.FullName)) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
@@ -120,7 +120,7 @@ function Expand-Downloads {
 
 			$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
-            if ($vhdPath -and Test-Path $($vhdPath.FullName)) {
+            if ($vhdPath -and (Test-Path $vhdPath.FullName)) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
@@ -145,7 +145,7 @@ function Expand-Downloads {
 
 			$vhdPath = Get-ChildItem $tempPath *"Virtual Hard Disks"* -Recurse -Directory
 
-            if ($vhdPath -and Test-Path $($vhdPath.FullName)) {
+            if ($vhdPath -and (Test-Path $vhdPath.FullName)) {
         		Move-Item "$($vhdPath.FullName)\*.*" $FolderPath
 			} else {
 				Move-Item "$tempPath\*.*" $FolderPath
@@ -210,7 +210,7 @@ function Test-Uri {
     }
 }
 
-if (!(Test-Path -Path $vhd.Path)) {
+if ($vhd -and !(Test-Path $vhd.Path)) {
     $pathDirectory = [System.IO.Path]::GetDirectoryName($vhd.Path)
     $pathFilename = [System.IO.Path]::GetFileName($vhd.Path)
 
