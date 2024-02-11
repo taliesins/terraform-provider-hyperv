@@ -1,6 +1,6 @@
 
-<a name="v1.2.0-prerelease.0"></a>
-## [v1.2.0-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.2.0...v1.2.0-prerelease.0) (2024-02-10)
+<a name="v1.2.1-prerelease.0"></a>
+## [v1.2.1-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.2.0...v1.2.1-prerelease.0) (2024-02-11)
 
 ### Chore
 - **deps:** [b8c178b](https://github.com/taliesins/terraform-provider-hyperv/commit/b8c178b1b1f060c3a4ce236477d3ea75995651e9) bump github.com/hashicorp/terraform-plugin-sdk/v2
