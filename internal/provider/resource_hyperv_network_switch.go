@@ -139,6 +139,21 @@ func resourceHyperVNetworkSwitch() *schema.Resource {
 				Default:     false,
 				Description: "Should Virtual Receive Side Scaling be enabled. This configuration allows the load from a virtual network adapter to be distributed across multiple virtual processors in a virtual machine (VM), allowing the VM to process more network traffic more rapidly than it can with a single logical processor.",
 			},
+
+			"vlan_operation_mode": {
+				Type:             schema.TypeString,
+				Optional:         true,
+				Default:          api.VMSwitchOperationMode_name[api.VMSwitchOperationMode_Untagged],
+				ValidateDiagFunc: StringKeyInMap(api.VMSwitchOperationMode_value, true),
+				Description:      "Operation Mode for the management operating system. Valid values are [Untagged, Isolated, Community, Promiscuous]. Only Untagged and Isolated are currently supported",
+			},
+
+			"vlan_access_id": {
+				Type:        schema.TypeInt,
+				Optional:    true,
+				Default:     0,
+				Description: "The VLAN identifier used for all network communications through this network adapter. This setting does not affect virtual machine networking",
+			},
 		},
 	}
 }
@@ -236,7 +251,10 @@ func resourceHyperVNetworkSwitchCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][create] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
-	err := c.CreateVMSwitch(ctx, switchName, notes, allowManagementOS, embeddedTeamingEnabled, iovEnabled, packetDirectEnabled, bandwidthReservationMode, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
+	vlanOperationMode := api.ToVMSwitchOperationMode((d.Get("vlan_operation_mode")).(string))
+	vlanAccessId := int((d.Get("vlan_access_id")).(int))
+
+	err := c.CreateVMSwitch(ctx, switchName, notes, allowManagementOS, embeddedTeamingEnabled, iovEnabled, packetDirectEnabled, bandwidthReservationMode, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled, vlanOperationMode, vlanAccessId)
 
 	if err != nil {
 		return diag.FromErr(err)
@@ -363,6 +381,12 @@ func resourceHyperVNetworkSwitchRead(ctx context.Context, d *schema.ResourceData
 	if err := d.Set("default_queue_vrss_enabled", s.DefaultQueueVrssEnabled); err != nil {
 		return diag.FromErr(err)
 	}
+	if err := d.Set("vlan_operation_mode", s.OperationMode.String()); err != nil {
+		return diag.FromErr(err)
+	}
+	if err := d.Set("vlan_access_id", s.VlanID); err != nil {
+		return diag.FromErr(err)
+	}
 
 	log.Printf("[INFO][hyperv][read] read hyperv switch: %#v", d)
 
@@ -446,7 +470,10 @@ func resourceHyperVNetworkSwitchUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("[ERROR][hyperv][update] defaultQueueVmmqQueuePairs must be greater then 0")
 	}
 
-	err := c.UpdateVMSwitch(ctx, id, newName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled)
+	vlanOperationMode := api.ToVMSwitchOperationMode((d.Get("vlan_operation_mode")).(string))
+	vlanAccessId := int((d.Get("vlan_access_id")).(int))
+
+	err := c.UpdateVMSwitch(ctx, id, newName, notes, allowManagementOS, switchType, netAdapterNames, defaultFlowMinimumBandwidthAbsolute, defaultFlowMinimumBandwidthWeight, defaultQueueVmmqEnabled, defaultQueueVmmqQueuePairs, defaultQueueVrssEnabled, vlanOperationMode, vlanAccessId)
 
 	if err != nil {
 		return diag.FromErr(err)

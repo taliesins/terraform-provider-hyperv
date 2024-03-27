@@ -8,6 +8,65 @@ import (
 	"strings"
 )
 
+type VMSwitchOperationMode int
+
+const (
+	VMSwitchOperationMode_Untagged    VMSwitchOperationMode = 0
+	VMSwitchOperationMode_Isolated    VMSwitchOperationMode = 1
+	VMSwitchOperationMode_Community   VMSwitchOperationMode = 2
+	VMSwitchOperationMode_Promiscuous VMSwitchOperationMode = 3
+)
+
+var VMSwitchOperationMode_name = map[VMSwitchOperationMode]string{
+	VMSwitchOperationMode_Untagged:    "Untagged",
+	VMSwitchOperationMode_Isolated:    "Isolated",
+	VMSwitchOperationMode_Community:   "Community",
+	VMSwitchOperationMode_Promiscuous: "Promiscuous",
+}
+
+var VMSwitchOperationMode_value = map[string]VMSwitchOperationMode{
+	"untagged":    VMSwitchOperationMode_Untagged,
+	"isolated":    VMSwitchOperationMode_Isolated,
+	"community":   VMSwitchOperationMode_Community,
+	"promiscuous": VMSwitchOperationMode_Promiscuous,
+}
+
+func (x VMSwitchOperationMode) String() string {
+	return VMSwitchOperationMode_name[x]
+}
+
+func ToVMSwitchOperationMode(x string) VMSwitchOperationMode {
+	if integerValue, err := strconv.Atoi(x); err == nil {
+		return VMSwitchOperationMode(integerValue)
+	}
+
+	return VMSwitchOperationMode_value[strings.ToLower(x)]
+}
+
+func (d *VMSwitchOperationMode) MarshalJSON() ([]byte, error) {
+	buffer := bytes.NewBufferString(`"`)
+	buffer.WriteString(d.String())
+	buffer.WriteString(`"`)
+	return buffer.Bytes(), nil
+}
+
+func (d *VMSwitchOperationMode) UnmarshalJSON(b []byte) error {
+	var s string
+	err := json.Unmarshal(b, &s)
+	if err != nil {
+		var i int
+		err2 := json.Unmarshal(b, &i)
+		if err2 == nil {
+			*d = VMSwitchOperationMode(i)
+			return nil
+		}
+
+		return err
+	}
+	*d = ToVMSwitchOperationMode(s)
+	return nil
+}
+
 type VMSwitchBandwidthMode int
 
 const (
@@ -142,6 +201,8 @@ type VmSwitch struct {
 	DefaultQueueVmmqEnabled             bool
 	DefaultQueueVmmqQueuePairs          int32
 	DefaultQueueVrssEnabled             bool
+	OperationMode                       VMSwitchOperationMode
+	VlanID                              int
 }
 
 type HypervVmSwitchClient interface {
@@ -162,6 +223,8 @@ type HypervVmSwitchClient interface {
 		defaultQueueVmmqEnabled bool,
 		defaultQueueVmmqQueuePairs int32,
 		defaultQueueVrssEnabled bool,
+		vlanOperationMode VMSwitchOperationMode,
+		vlanId int,
 	) (err error)
 	GetVMSwitch(ctx context.Context, name string) (result VmSwitch, err error)
 	UpdateVMSwitch(
@@ -181,6 +244,8 @@ type HypervVmSwitchClient interface {
 		defaultQueueVmmqEnabled bool,
 		defaultQueueVmmqQueuePairs int32,
 		defaultQueueVrssEnabled bool,
+		vlanOperationMode VMSwitchOperationMode,
+		vlanId int,
 	) (err error)
 	DeleteVMSwitch(ctx context.Context, name string) (err error)
 }

@@ -90,6 +90,16 @@ $SetVmSwitchArgs.DefaultQueueVrssEnabled=$vmSwitch.DefaultQueueVrssEnabled
 
 Set-VMSwitch @SetVmSwitchArgs
 
+if ($vmSwitch.OperationMode -eq 1) {
+	$SetVmNetworkAdapterVlanArgs = @{}
+	$SetVmNetworkAdapterVlanArgs.VMNetworkAdapterName=$vmSwitch.Name
+	$SetVmNetworkAdapterVlanArgs.ManagementOS=$true
+	$SetVmNetworkAdapterVlanArgs.Access=$true
+	$SetVmNetworkAdapterVlanArgs.VlanID=$vmSwitch.VlanId
+
+	Set-VMNetworkAdapterVlan @SetVmNetworkAdapterVlanArgs
+}
+
 `))
 
 func (c *ClientConfig) CreateVMSwitch(
@@ -108,6 +118,8 @@ func (c *ClientConfig) CreateVMSwitch(
 	defaultQueueVmmqEnabled bool,
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
+	operationMode api.VMSwitchOperationMode,
+	vlanId int,
 ) (err error) {
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
 		Name:                                name,
@@ -124,6 +136,8 @@ func (c *ClientConfig) CreateVMSwitch(
 		DefaultQueueVmmqEnabled:             defaultQueueVmmqEnabled,
 		DefaultQueueVmmqQueuePairs:          defaultQueueVmmqQueuePairs,
 		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
+		OperationMode:                       operationMode,
+		VlanID:                              vlanId,
 	})
 
 	if err != nil {
@@ -143,6 +157,11 @@ type getVMSwitchArgs struct {
 
 var getVMSwitchTemplate = template.Must(template.New("GetVMSwitch").Parse(`
 $ErrorActionPreference = 'Stop'
+$vmAdapterVlanObject = Get-VMNetworkAdapterVlan -ManagementOS -VMNetworkAdapterName '{{.Name}}*' | %{ @{
+	OperationMode=$_.OperationMode
+	AccessVlanId=$_.AccessVlanId
+}}
+
 $vmSwitchObject = Get-VMSwitch -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } | %{ @{
 	Name=$_.Name;
 	Notes=$_.Notes;
@@ -158,7 +177,10 @@ $vmSwitchObject = Get-VMSwitch -Name '{{.Name}}*' | ?{$_.Name -eq '{{.Name}}' } 
 	DefaultQueueVmmqEnabled=$_.DefaultQueueVmmqEnabledRequested;
 	DefaultQueueVmmqQueuePairs=$_.DefaultQueueVmmqQueuePairsRequested;
 	DefaultQueueVrssEnabled=$_.DefaultQueueVrssEnabledRequested;
+	OperationMode=$vmAdapterVlanObject.OperationMode
+	VlanID=$vmAdapterVlanObject.AccessVlanId
 }}
+
 
 if ($vmSwitchObject){
 	$vmSwitch = ConvertTo-Json -InputObject $vmSwitchObject
@@ -207,7 +229,8 @@ $SetVmSwitchArgs.Name=$vmSwitch.Name
 $SetVmSwitchArgs.Notes=$vmSwitch.Notes
 if ($NetAdapterNames) {
 	$SetVmSwitchArgs.AllowManagementOS=$vmSwitch.AllowManagementOS
-	$SetVmSwitchArgs.NetAdapterName=$NetAdapterNames
+	# Converts the incoming Object[] to a String as expected by the command
+	$SetVmSwitchArgs.NetAdapterName=[system.String]::Join(",", $NetAdapterNames)
 	#Updates not supported on:
 	#-EnableEmbeddedTeaming $vmSwitch.EmbeddedTeamingEnabled
 	#-EnableIov $vmSwitch.IovEnabled
@@ -236,6 +259,16 @@ $SetVmSwitchArgs.DefaultQueueVmmqQueuePairs=$vmSwitch.DefaultQueueVmmqQueuePairs
 $SetVmSwitchArgs.DefaultQueueVrssEnabled=$vmSwitch.DefaultQueueVrssEnabled
 
 Set-VMSwitch @SetVmSwitchArgs
+
+if ($vmSwitch.OperationMode -eq 1) {
+	$SetVmNetworkAdapterVlanArgs = @{}
+	$SetVmNetworkAdapterVlanArgs.VMNetworkAdapterName=$vmSwitch.Name
+	$SetVmNetworkAdapterVlanArgs.ManagementOS=$true
+	$SetVmNetworkAdapterVlanArgs.Access=$true
+	$SetVmNetworkAdapterVlanArgs.VlanID=$vmSwitch.VlanId
+
+	Set-VMNetworkAdapterVlan @SetVmNetworkAdapterVlanArgs
+}
 `))
 
 func (c *ClientConfig) UpdateVMSwitch(
@@ -255,6 +288,8 @@ func (c *ClientConfig) UpdateVMSwitch(
 	defaultQueueVmmqEnabled bool,
 	defaultQueueVmmqQueuePairs int32,
 	defaultQueueVrssEnabled bool,
+	operationMode api.VMSwitchOperationMode,
+	vlanId int,
 ) (err error) {
 	vmSwitchJson, err := json.Marshal(api.VmSwitch{
 		Name:              name,
@@ -271,6 +306,8 @@ func (c *ClientConfig) UpdateVMSwitch(
 		DefaultQueueVmmqEnabled:             defaultQueueVmmqEnabled,
 		DefaultQueueVmmqQueuePairs:          defaultQueueVmmqQueuePairs,
 		DefaultQueueVrssEnabled:             defaultQueueVrssEnabled,
+		OperationMode:                       operationMode,
+		VlanID:                              vlanId,
 	})
 
 	if err != nil {

@@ -45,3 +45,6 @@ website/vendor
 /.vs
 /.idea
 /.terraform
+
+# Ignore output binary
+terraform-provider-hyperv

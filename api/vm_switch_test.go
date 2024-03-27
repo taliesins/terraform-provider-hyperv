@@ -18,6 +18,8 @@ func TestSerializeVmSwitch(t *testing.T) {
 		NetAdapterNames:            []string{"wan", "lan"},
 		DefaultQueueVrssEnabled:    true,
 		DefaultQueueVmmqQueuePairs: 0,
+		OperationMode:              VMSwitchOperationMode_Isolated,
+		VlanID:                     42,
 	})
 
 	if err != nil {
@@ -44,7 +46,9 @@ func TestDeserializeVmSwitch(t *testing.T) {
     "SwitchType":  2,
     "IovEnabled":  false,
     "EmbeddedTeamingEnabled":  false,
-    "PacketDirectEnabled":  false
+    "PacketDirectEnabled":  false,
+		"OperationMode": 1,
+		"VlanID": 42
 }
 `
 
