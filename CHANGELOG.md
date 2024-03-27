@@ -1,4 +1,12 @@
 
+<a name="v1.2.1-prerelease.0"></a>
+## [v1.2.1-prerelease.0](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.2.1...v1.2.1-prerelease.0) (2024-03-27)
+
+### Chore
+- **deps:** [e31fbac](https://github.com/taliesins/terraform-provider-hyperv/commit/e31fbac22bf7da954ae43e44898ed335203bebeb) bump actions/cache from 4.0.0 to 4.0.2
+- **deps:** [6f508b6](https://github.com/taliesins/terraform-provider-hyperv/commit/6f508b6c5edf7930ed99361ab668f9b757f4f930) bump google.golang.org/protobuf from 1.32.0 to 1.33.0
+- **deps:** [9e35bb8](https://github.com/taliesins/terraform-provider-hyperv/commit/9e35bb8233ad0cc1b63f7f1ce52875d9e3acda98) bump github.com/hashicorp/terraform-plugin-sdk/v2
+
 <a name="v1.2.1"></a>
 ## [v1.2.1](https://github.com/taliesins/terraform-provider-hyperv/compare/v1.2.0...v1.2.1) (2024-02-11)
 
