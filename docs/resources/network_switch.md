@@ -66,6 +66,8 @@ resource "hyperv_network_switch" "default" {
 - `notes` (String) Specifies a note to be associated with the switch to be created.
 - `switch_type` (String) Specifies the type of the switch to be created. Valid values to use are `Internal`, `Private` and `External`.
 - `timeouts` (Block, Optional) (see [below for nested schema](#nestedblock--timeouts))
+- `vlan_access_id` (Number) The VLAN identifier used for all network communications through this network adapter. This setting does not affect virtual machine networking
+- `vlan_operation_mode` (String) Operation Mode for the management operating system. Valid values are [Untagged, Isolated, Community, Promiscuous]. Only Untagged and Isolated are currently supported
 
 ### Read-Only
 
