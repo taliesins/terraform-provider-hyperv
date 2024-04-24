@@ -152,7 +152,7 @@ jobs:
           ${{ runner.os }}-terraform-plugin-dir-
   
     - if: steps.cache-terraform-providers-schema.outputs.cache-hit != 'true' || steps.cache-terraform-providers-schema.outcome == 'failure'
-      uses: hashicorp/setup-terraform@v3.0.0
+      uses: hashicorp/setup-terraform@v3.1.0
       with:
         terraform_version: ${{ env.TERRAFORM_VERSION }}
         terraform_wrapper: false
