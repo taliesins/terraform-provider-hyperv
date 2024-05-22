@@ -271,6 +271,102 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Description: "The amount of time in seconds to wait between trying to get ip addresses for network cards on the virtual machine.",
 			},
 
+			"gpu_adapters": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"device_path_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The device path name of the GPU adapter.",
+						},
+						"min_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum amount of VRAM to dedicate to the virtual machine.",
+						},
+						"max_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum amount of VRAM to dedicate to the virtual machine.",
+						},
+						"optimal_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal amount of VRAM to dedicate to the virtual machine.",
+						},
+						"min_partition_encode_streams": {
+							Type:        schema.TypeFloat,
+							Optional:    true,
+							Default:     0,
+							Description: "Specifies the minimum number of encode streams to dedicate to the virtual machine.",
+						},
+						"max_partition_encode_streams": {
+							Type:        schema.TypeFloat,
+							Optional:    true,
+							Default:     18446744073709551615.0,
+							Description: "Specifies the maximum number of encode streams to dedicate to the virtual machine.",
+						},
+						"optimal_partition_encode_streams": {
+							Type:        schema.TypeFloat,
+							Optional:    true,
+							Default:     9223372036854775807.0,
+							Description: "Specifies the optimal number of encode streams to dedicate to the virtual machine.",
+						},
+						"min_partition_decode_streams": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum number of decode streams to dedicate to the virtual machine.",
+						},
+						"max_partition_decode_streams": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum number of decode streams to dedicate to the virtual machine.",
+						},
+						"optimal_partition_decode_streams": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal number of decode streams to dedicate to the virtual machine.",
+						},
+						"min_partition_compute_units": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum number of compute units to dedicate to the virtual machine.",
+						},
+						"max_partition_compute_units": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum number of compute units to dedicate to the virtual machine.",
+						},
+						"optimal_partition_compute_units": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal number of compute units to dedicate to the virtual machine.",
+						},
+					},
+				},
+				Description: "",
+			},
+
 			"vm_processor": {
 				Type:     schema.TypeList,
 				Optional: true,
