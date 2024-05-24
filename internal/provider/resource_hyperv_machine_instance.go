@@ -271,6 +271,102 @@ func resourceHyperVMachineInstance() *schema.Resource {
 				Description: "The amount of time in seconds to wait between trying to get ip addresses for network cards on the virtual machine.",
 			},
 
+			"gpu_adapters": {
+				Type:     schema.TypeList,
+				Optional: true,
+				Elem: &schema.Resource{
+					Schema: map[string]*schema.Schema{
+						"device_path_name": {
+							Type:        schema.TypeString,
+							Required:    true,
+							Description: "The device path name of the GPU adapter.",
+						},
+						"min_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum amount of VRAM to dedicate to the virtual machine.",
+						},
+						"max_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum amount of VRAM to dedicate to the virtual machine.",
+						},
+						"optimal_partition_vram": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal amount of VRAM to dedicate to the virtual machine.",
+						},
+						"min_partition_encode": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "0",
+							Description: "Specifies the minimum number of encode streams to dedicate to the virtual machine.",
+						},
+						"max_partition_encode": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "18446744073709551615",
+							Description: "Specifies the maximum number of encode streams to dedicate to the virtual machine.",
+						},
+						"optimal_partition_encode": {
+							Type:        schema.TypeString,
+							Optional:    true,
+							Default:     "9223372036854775807",
+							Description: "Specifies the optimal number of encode streams to dedicate to the virtual machine.",
+						},
+						"min_partition_decode": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum number of decode streams to dedicate to the virtual machine.",
+						},
+						"max_partition_decode": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum number of decode streams to dedicate to the virtual machine.",
+						},
+						"optimal_partition_decode": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal number of decode streams to dedicate to the virtual machine.",
+						},
+						"min_partition_compute": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          0,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the minimum number of compute units to dedicate to the virtual machine.",
+						},
+						"max_partition_compute": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          1000000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the maximum number of compute units to dedicate to the virtual machine.",
+						},
+						"optimal_partition_compute": {
+							Type:             schema.TypeInt,
+							Optional:         true,
+							Default:          50000000,
+							ValidateDiagFunc: IntBetween(0, 1000000000),
+							Description:      "Specifies the optimal number of compute units to dedicate to the virtual machine.",
+						},
+					},
+				},
+				Description: "",
+			},
+
 			"vm_processor": {
 				Type:     schema.TypeList,
 				Optional: true,
@@ -983,6 +1079,11 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 		return diag.Errorf("[ERROR][hyperv][create] Either dynamic or static must be selected")
 	}
 
+	gpuAdapters, err := api.ExpandGpuAdapters(d)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
 	vmProcessors, err := api.ExpandVmProcessors(d)
 	if err != nil {
 		return diag.FromErr(err)
@@ -1022,6 +1123,11 @@ func resourceHyperVMachineInstanceCreate(ctx context.Context, d *schema.Resource
 	}
 
 	err = client.CreateVm(ctx, name, path, generation, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+	if err != nil {
+		return diag.FromErr(err)
+	}
+
+	err = client.CreateOrUpdateVmGpuAdapters(ctx, name, gpuAdapters)
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -1108,6 +1214,10 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 	if err != nil {
 		return diag.FromErr(err)
 	}
+	gpuAdapters, err := client.GetVmGpuAdapters(ctx, name)
+	if err != nil {
+		return diag.FromErr(err)
+	}
 
 	vmFirmwares := client.GetNoVmFirmwares(ctx)
 	if vm.Generation > 1 {
@@ -1184,6 +1294,13 @@ func resourceHyperVMachineInstanceRead(ctx context.Context, d *schema.ResourceDa
 	}
 	log.Printf("[INFO][hyperv][read] networkAdapters: %v", networkAdapters)
 	log.Printf("[INFO][hyperv][read] flattenedNetworkAdapters: %v", flattenedNetworkAdapters)
+
+	flattenedGpuAdapters := api.FlattenGpuAdapters(&gpuAdapters)
+	if err := d.Set("gpu_adapters", flattenedGpuAdapters); err != nil {
+		return diag.Errorf("[DEBUG] Error setting gpu_adapters error: %v", err)
+	}
+	log.Printf("[INFO][hyperv][read] gpuAdapters: %v", gpuAdapters)
+	log.Printf("[INFO][hyperv][read] flattenedGpuAdapters: %v", flattenedGpuAdapters)
 
 	flattenedVmFirmwares := api.FlattenVmFirmwares(&vmFirmwares)
 	if err := d.Set("vm_firmware", flattenedVmFirmwares); err != nil {
@@ -1303,6 +1420,7 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		d.HasChange("vm_processor") ||
 		d.HasChange("integration_services") ||
 		d.HasChange("network_adaptors") ||
+		d.HasChange("gpu_adapters") ||
 		d.HasChange("dvd_drives") ||
 		d.HasChange("hard_disk_drives")
 
@@ -1361,6 +1479,18 @@ func resourceHyperVMachineInstanceUpdate(ctx context.Context, d *schema.Resource
 		}
 
 		err := client.UpdateVm(ctx, name, automaticCriticalErrorAction, automaticCriticalErrorActionTimeout, automaticStartAction, automaticStartDelay, automaticStopAction, checkpointType, dynamicMemory, guestControlledCacheTypes, highMemoryMappedIoSpace, lockOnDisconnect, lowMemoryMappedIoSpace, memoryMaximumBytes, memoryMinimumBytes, memoryStartupBytes, notes, processorCount, smartPagingFilePath, snapshotFileLocation, staticMemory)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+	}
+
+	if d.HasChange("gpu_adapters") {
+		gpuAdapters, err := api.ExpandGpuAdapters(d)
+		if err != nil {
+			return diag.FromErr(err)
+		}
+
+		err = client.CreateOrUpdateVmGpuAdapters(ctx, name, gpuAdapters)
 		if err != nil {
 			return diag.FromErr(err)
 		}

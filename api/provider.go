@@ -9,6 +9,7 @@ type Client interface {
 	HypervVmIntegrationServiceClient
 	HypervVmNetworkAdapterClient
 	HypervVmProcessorClient
+	HypervGpuAdapterClient
 	HypervVmStatusClient
 	HypervVmSwitchClient
 	HypervIsoImageClient
