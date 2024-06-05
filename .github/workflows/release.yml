@@ -390,7 +390,7 @@ jobs:
           echo "release version: ${release_version}"
       - name: goreleaser check
         continue-on-error: true
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         with:
           args: check
       - name: Import GPG key
@@ -402,7 +402,7 @@ jobs:
           #passphrase: ${{ secrets.PASSPHRASE }}  
 
       - name: goreleaser release
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         if: startsWith(github.ref, 'refs/tags/v')
         with:
           version: latest
@@ -418,7 +418,7 @@ jobs:
         run: |
           git-chglog --next-tag "v${{ steps.get_version.outputs.PRERELEASE_VERSION }}" > CHANGELOG.md
       - name: goreleaser snapshot
-        uses: goreleaser/goreleaser-action@v5
+        uses: goreleaser/goreleaser-action@v6
         if: "!(startsWith(github.ref, 'refs/tags/v'))"
         with:
           args: release --clean --skip=sign --snapshot --timeout ${{ env.RELEASE_TIME_OUT }} --release-notes=CHANGELOG.md
