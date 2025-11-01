@@ -4,7 +4,9 @@ import (
 	"context"
 	"encoding/json"
 	"text/template"
-
+	"time"
+	"log"
+	"strings"
 	"github.com/taliesins/terraform-provider-hyperv/api"
 )
 
@@ -319,9 +321,16 @@ type resizeVhdArgs struct {
 
 var resizeVhdTemplate = template.Must(template.New("ResizeVhd").Parse(`
 $ErrorActionPreference = 'Stop'
-$vhd = Get-VHD -Path '{{.Path}}'
-if ($vhd.Size -ne {{.Size}}){
-	Resize-VHD -Path '{{.Path}}' -SizeBytes {{.Size}}
+for ($i=0; $i -lt 20; $i++) {
+	try {
+		$vhd = Get-VHD -Path '{{.Path}}'
+		if ($vhd.Size -ne {{.Size}}){
+			Resize-VHD -Path '{{.Path}}' -SizeBytes {{.Size}}
+		}
+	} catch {
+		write-host "Error resizing VHD: $($_.Exception.Message)" 
+		sleep -second 10
+	}
 }
 `))
 
@@ -372,12 +381,48 @@ if ($vhdObject){
 }
 `))
 
-func (c *ClientConfig) GetVhd(ctx context.Context, path string) (result api.Vhd, err error) {
-	err = c.WinRmClient.RunScriptWithResult(ctx, getVhdTemplate, getVhdArgs{
-		Path: path,
-	}, &result)
+const (
+    getVHDErrorMessage = "ObjectInUse"
+    checkInterval      = 10 * time.Second // Interval between status checks
+    maxWaitTime        = 5 * time.Minute  // Maximum time to wait for the disk to be ready
+)
 
-	return result, err
+// GetVhd retrieves information about a VHD, waiting until the disk is fully created or the timeout is reached
+func (c *ClientConfig) GetVhd(ctx context.Context, path string) (result api.Vhd, err error) {
+    startTime := time.Now()
+
+    for {
+        // Attempt to retrieve the VHD information
+        err = c.WinRmClient.RunScriptWithResult(ctx, getVhdTemplate, getVhdArgs{
+            Path: path,
+        }, &result)
+
+        // If no error, the disk is ready
+        if err == nil {
+            log.Printf("[INFO] GetVHD succeeded for path: %s", path)
+            return result, nil
+        }
+
+        // Check if the error is a ResourceBusy error
+        if strings.Contains(err.Error(), getVHDErrorMessage) {
+            elapsedTime := time.Since(startTime)
+
+            // If we've waited too long, return an error
+            if elapsedTime > maxWaitTime {
+                log.Printf("[ERROR] GetVHD timed out after %s: %s", elapsedTime, err.Error())
+                return result, err
+            }
+
+            // Log a warning and wait before checking again
+            log.Printf("[WARN] GetVHD failed: %s. Waiting %s before retrying...", err.Error(), checkInterval)
+            time.Sleep(checkInterval)
+            continue
+        }
+
+        // If the error is not ResourceBusy, return the error immediately
+        log.Printf("[ERROR] GetVHD failed with unexpected error: %s", err.Error())
+        return result, err
+    }
 }
 
 type deleteVhdArgs struct {
