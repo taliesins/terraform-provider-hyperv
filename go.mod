@@ -1,8 +1,8 @@
 module github.com/taliesins/terraform-provider-hyperv
 
-go 1.21
+go 1.26
 
-toolchain go1.21.6
+toolchain go1.26.1
 
 require (
 	github.com/dylanmei/iso8601 v0.1.0

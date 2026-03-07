@@ -36,7 +36,7 @@ on:
       - website/**
 
 env:
-  GO_VERSION: "1.21.5"
+  GO_VERSION: "1.26.1"
   GO111MODULE: on
   TERRAFORM_VERSION: "1.5.5"
   GIT_CHGLOG_VERSION: "0.15.4"

@@ -4,11 +4,6 @@ issues:
         - gosimple
       text: "S1039:"
 
-    # Exclude issues bypassing staticcheck.conf
-    - linters:
-        - staticcheck
-      text: "SA1019:"
-
     - linters:
         - unparam
       text: "always receives"

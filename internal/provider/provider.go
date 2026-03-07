@@ -2,7 +2,6 @@ package provider
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"context"
@@ -221,7 +220,7 @@ func configure(version string, commit string, provider *schema.Provider) func(co
 				return nil, diag.FromErr(fmt.Errorf("cacertPath does not exist - %s", cacertPath))
 			}
 
-			cacert, err = ioutil.ReadFile(cacertPath)
+			cacert, err = os.ReadFile(cacertPath)
 			if err != nil {
 				return nil, diag.FromErr(err)
 			}
@@ -234,7 +233,7 @@ func configure(version string, commit string, provider *schema.Provider) func(co
 				return nil, diag.FromErr(fmt.Errorf("certPath does not exist - %s", certPath))
 			}
 
-			cert, err = ioutil.ReadFile(certPath)
+			cert, err = os.ReadFile(certPath)
 			if err != nil {
 				return nil, diag.FromErr(err)
 			}
@@ -247,7 +246,7 @@ func configure(version string, commit string, provider *schema.Provider) func(co
 				return nil, diag.FromErr(fmt.Errorf("keyPath does not exist - %s", keyPath))
 			}
 
-			key, err = ioutil.ReadFile(keyPath)
+			key, err = os.ReadFile(keyPath)
 			if err != nil {
 				return nil, diag.FromErr(err)
 			}
